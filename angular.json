@@ -60,10 +60,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "daBubble:build:production"
+              "buildTarget": "dabubble:build:production"
             },
             "development": {
-              "buildTarget": "daBubble:build:development"
+              "buildTarget": "dabubble:build:development"
             }
           },
           "defaultConfiguration": "development"
