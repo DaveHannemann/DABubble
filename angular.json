@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "daBubble": {
+    "dabubble": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -88,5 +88,8 @@
         }
       }
     }
+  },
+  "cli": {
+    "analytics": "a5d982d1-fe5c-440a-9b66-a9d3404b4bfe"
   }
 }
