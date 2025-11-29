@@ -14,24 +14,7 @@ import {
 } from '@angular/fire/auth';
 import { Observable } from 'rxjs';
 import { map, shareReplay } from 'rxjs/operators';
-
-export interface AuthenticationResult<T> {
-  success: boolean;
-  data?: T;
-  errorMessage?: string;
-}
-
-export interface PasswordValidationResult {
-  isValid: boolean;
-  unmetCriteria: {
-    missingLowercase?: string;
-    missingUppercase?: string;
-    missingNumber?: string;
-    missingSpecialChar?: string;
-    tooShort?: string;
-    tooLong?: string;
-  };
-}
+import { AuthenticationResult, PasswordValidationResult } from '../interfaces';
 
 @Injectable({
   providedIn: 'root',
@@ -127,22 +110,22 @@ export class AuthService {
     const isValid = status.isValid;
 
     if (!isValid) {
-      if (status.containsLowercaseLetter !== true) {
+      if (status.containsLowercaseLetter === false) {
         unmetCriteria.missingLowercase = 'Mindestens ein Kleinbuchstabe wird benötigt.';
       }
-      if (status.containsUppercaseLetter !== true) {
+      if (status.containsUppercaseLetter === false) {
         unmetCriteria.missingUppercase = 'Mindestens ein Großbuchstabe wird benötigt.';
       }
-      if (status.containsNumericCharacter !== true) {
+      if (status.containsNumericCharacter === false) {
         unmetCriteria.missingNumber = 'Mindestens eine Zahl wird benötigt.';
       }
-      if (status.containsNonAlphanumericCharacter !== true) {
+      if (status.containsNonAlphanumericCharacter === false) {
         unmetCriteria.missingSpecialChar = 'Mindestens ein Sonderzeichen wird benötigt.';
       }
-      if (status.meetsMinPasswordLength !== true) {
+      if (status.meetsMinPasswordLength === false) {
         unmetCriteria.tooShort = 'Das Passwort muss mindestens 8 Zeichen lang sein.';
       }
-      if (status.meetsMaxPasswordLength !== true) {
+      if (status.meetsMaxPasswordLength === false) {
         unmetCriteria.tooLong = 'Das Passwort darf höchstens 50 Zeichen lang sein.';
       }
     }
