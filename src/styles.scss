@@ -1,3 +1,5 @@
+@import "tailwindcss";
+
 * {
   font-family: 'Nunito', sans-serif;
   margin: 0;
@@ -25,7 +27,7 @@ body {
   font-family: 'Nunito';
   font-style: normal;
   font-weight: 200;
-  src: url('./app/assets/fonts/nunito-v32-latin-200.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+  src: url('/fonts/nunito-v32-latin-200.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
 }
 /* nunito-300 - latin */
 @font-face {
@@ -33,7 +35,7 @@ body {
   font-family: 'Nunito';
   font-style: normal;
   font-weight: 300;
-  src: url('./app/assets/fonts/nunito-v32-latin-300.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+  src: url('/fonts/nunito-v32-latin-300.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
 }
 /* nunito-regular - latin */
 @font-face {
@@ -41,7 +43,7 @@ body {
   font-family: 'Nunito';
   font-style: normal;
   font-weight: 400;
-  src: url('./app/assets/fonts/nunito-v32-latin-regular.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+  src: url('/fonts/nunito-v32-latin-regular.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
 }
 /* nunito-500 - latin */
 @font-face {
@@ -49,7 +51,7 @@ body {
   font-family: 'Nunito';
   font-style: normal;
   font-weight: 500;
-  src: url('./app/assets/fonts/nunito-v32-latin-500.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+  src: url('/fonts/nunito-v32-latin-500.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
 }
 /* nunito-600 - latin */
 @font-face {
@@ -57,7 +59,7 @@ body {
   font-family: 'Nunito';
   font-style: normal;
   font-weight: 600;
-  src: url('./app/assets/fonts/nunito-v32-latin-600.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+  src: url('/fonts/nunito-v32-latin-600.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
 }
 /* nunito-700 - latin */
 @font-face {
@@ -65,7 +67,7 @@ body {
   font-family: 'Nunito';
   font-style: normal;
   font-weight: 700;
-  src: url('./app/assets/fonts/nunito-v32-latin-700.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+  src: url('/fonts/nunito-v32-latin-700.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
 }
 /* nunito-800 - latin */
 @font-face {
@@ -73,7 +75,7 @@ body {
   font-family: 'Nunito';
   font-style: normal;
   font-weight: 800;
-  src: url('./app/assets/fonts/nunito-v32-latin-800.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+  src: url('/fonts/nunito-v32-latin-800.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
 }
 /* nunito-900 - latin */
 @font-face {
@@ -81,5 +83,5 @@ body {
   font-family: 'Nunito';
   font-style: normal;
   font-weight: 900;
-  src: url('./app/assets/fonts/nunito-v32-latin-900.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+  src: url('/fonts/nunito-v32-latin-900.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
 }
