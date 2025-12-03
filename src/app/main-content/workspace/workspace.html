@@ -3,7 +3,7 @@
     <div class="workspace__brand">
       <img src="imgs/workspace/Workspace logo.png" alt="Workspace Logo" />
       <div class="workspace__titles">
-        <h1>Workspace</h1>
+        <h1>Devspace</h1>
         <p>Organisiere deine Channels</p>
       </div>
     </div>
@@ -16,6 +16,15 @@
     <div class="workspace__section">
       <div class="workspace__section-header">
         <div class="workspace__section-title">
+          <button
+            class="workspace__chevron"
+            type="button"
+            (click)="toggleChannels()"
+            [attr.aria-expanded]="!areChannelsCollapsed"
+            aria-controls="workspace-channels"
+          >
+            {{ areChannelsCollapsed ? '▸' : '▾' }}
+          </button>
           <img src="imgs/workspace/channellist img.png" alt="Kanäle" />
           <span>Kanäle</span>
         </div>
@@ -24,27 +33,46 @@
           type="button"
           aria-label="Neuen Channel hinzufügen"
           (click)="openCreateChannel()"
-        >
-          +
-        </button>
+        ></button>
       </div>
-      <ul class="workspace__list">
-        <li *ngFor="let channel of channels$ | async" class="workspace__list-item">
-          <span># {{ channel.title || 'Unbenannter Channel' }}</span>
-        </li>
-      </ul>
-      <button class="workspace__add-btn" type="button" (click)="openCreateChannel()">
-        <img src="imgs/workspace/add new channel.png" alt="Neuen Channel anlegen" />
-        <span>Neuen Channel anlegen</span>
-      </button>
+      <ng-container *ngIf="!areChannelsCollapsed">
+        <ul class="workspace__list" id="workspace-channels">
+          <li *ngFor="let channel of channels$ | async" class="workspace__list-item">
+            <span># {{ channel.title || 'Unbenannter Channel' }}</span>
+          </li>
+        </ul>
+        <button class="workspace__add-btn" type="button" (click)="openCreateChannel()">
+          <img src="imgs/workspace/add new channel.png" alt="Neuen Channel anlegen" />
+          <span>Neuen Channel anlegen</span>
+        </button>
+      </ng-container>
     </div>
     <div class="workspace__section">
       <div class="workspace__section-header">
         <div class="workspace__section-title">
-          <img src="imgs/workspace/new message.png" alt="Direktnachrichten" />
+          <button
+            class="workspace__chevron"
+            type="button"
+            (click)="toggleDirectMessages()"
+            [attr.aria-expanded]="!areDirectMessagesCollapsed"
+            aria-controls="workspace-direct-messages"
+          >
+            {{ areDirectMessagesCollapsed ? '▸' : '▾' }}
+          </button>
+          <img src="imgs/direktnachrichten img.svg" alt="Direktnachrichten" />
           <span>Direktnachrichten</span>
         </div>
       </div>
+      <ul
+        *ngIf="!areDirectMessagesCollapsed"
+        class="workspace__list workspace__list--direct"
+        id="workspace-direct-messages"
+      >
+        <li *ngFor="let directMessage of directMessages$ | async" class="workspace__list-item">
+          <img class="workspace__avatar" alt="Profilbild" />
+          <span>{{ directMessage.name }}</span>
+        </li>
+      </ul>
     </div>
   </nav>
 </aside>

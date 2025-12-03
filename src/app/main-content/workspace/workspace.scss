@@ -140,6 +140,27 @@
   color: #0f172a;
 }
 
+.workspace__chevron {
+  border: none;
+  background: transparent;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #0f172a;
+  border-radius: 8px;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.workspace__chevron:hover,
+.workspace__chevron:focus-visible {
+  background: #f1f5f9;
+  color: #1d4ed8;
+  outline: none;
+}
 .workspace__section-title img {
   width: 24px;
   height: 24px;
@@ -184,6 +205,13 @@
   color: #1d4ed8;
 }
 
+.workspace__avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #cbd5e1 0%, #e2e8f0 100%);
+  flex-shrink: 0;
+}
 .workspace__add-btn {
   display: inline-flex;
   align-items: center;

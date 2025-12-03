@@ -16,20 +16,27 @@ import {
   signInWithPopup,
   GoogleAuthProvider,
   signInAnonymously,
+  sendPasswordResetEmail as firebaseSendPasswordResetEmail,
+  applyActionCode,
+  confirmPasswordReset as firebaseConfirmPasswordReset,
+  verifyPasswordResetCode as firebaseVerifyPasswordResetCode,
 } from '@angular/fire/auth';
 import { Observable } from 'rxjs';
 import { map, shareReplay } from 'rxjs/operators';
 import { PasswordValidationResult } from '../types';
 import { NOTIFICATIONS } from '../notifications';
+import { Router } from '@angular/router';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
   readonly auth: Auth = inject(Auth);
+  private router = inject(Router);
 
   constructor() {
     this.auth.useDeviceLanguage();
+    (globalThis as any).signOut = () => this.signOut();
   }
 
   readonly user$: Observable<User | null> = user(this.auth);
@@ -90,6 +97,18 @@ export class AuthService {
   async signOut(): Promise<void> {
     try {
       await firebaseSignOut(this.auth);
+      this.router.navigate(['/login']);
+    } catch (error: any) {
+      this.throwMappedError(error);
+    }
+  }
+
+  async sendPasswordResetEmail(email: string): Promise<void> {
+    try {
+      await firebaseSendPasswordResetEmail(this.auth, email, {
+        url: `${window.location.origin}/auth-action`,
+        handleCodeInApp: true,
+      });
     } catch (error: any) {
       this.throwMappedError(error);
     }
@@ -120,34 +139,57 @@ export class AuthService {
 
     try {
       await sendEmailVerification(user, {
-        url: `${window.location.origin}/email-confirmed`,
-        handleCodeInApp: false,
+        url: `${window.location.origin}/auth-action`,
+        handleCodeInApp: true,
       });
     } catch (error: any) {
       this.throwMappedError(error);
     }
   }
 
-  private mapFirebaseError(error: any): string | undefined {
-    const code = error?.code;
-    switch (code) {
-      case AuthErrorCodes.INVALID_EMAIL:
-        return 'Die E-Mail-Adresse ist ungültig.';
-      case AuthErrorCodes.USER_DISABLED:
-        return 'Dieser Benutzer wurde deaktiviert.';
-      case AuthErrorCodes.USER_DELETED:
-        return 'Es existiert kein Benutzer mit diesen Daten.';
-      case AuthErrorCodes.INVALID_PASSWORD:
-        return 'Das Passwort ist falsch.';
-      case AuthErrorCodes.EMAIL_EXISTS:
-        return 'Diese E-Mail-Adresse wird bereits verwendet.';
-      case AuthErrorCodes.WEAK_PASSWORD:
-        return 'Das Passwort ist zu schwach.';
-      case AuthErrorCodes.INVALID_LOGIN_CREDENTIALS:
-        return 'Ungültige Anmeldedaten.';
-      default:
-        return undefined;
+  async verifyEmail(outOfBandCode: string): Promise<void> {
+    try {
+      await applyActionCode(this.auth, outOfBandCode);
+    } catch (error: any) {
+      this.throwMappedError(error);
     }
+  }
+
+  async verifyPasswordResetCode(outOfBandCode: string): Promise<string> {
+    try {
+      return await firebaseVerifyPasswordResetCode(this.auth, outOfBandCode);
+    } catch (error: any) {
+      this.throwMappedError(error);
+    }
+  }
+
+  async confirmPasswordReset(outOfBandCode: string, newPassword: string): Promise<void> {
+    try {
+      await firebaseConfirmPasswordReset(this.auth, outOfBandCode, newPassword);
+    } catch (error: any) {
+      this.throwMappedError(error);
+    }
+  }
+
+  private readonly firebaseErrorMessages: Record<string, string> = {
+    [AuthErrorCodes.INVALID_EMAIL]: NOTIFICATIONS.FIREBASE_INVALID_EMAIL,
+    [AuthErrorCodes.USER_DISABLED]: NOTIFICATIONS.FIREBASE_USER_DISABLED,
+    [AuthErrorCodes.USER_DELETED]: NOTIFICATIONS.FIREBASE_USER_DELETED,
+    [AuthErrorCodes.INVALID_PASSWORD]: NOTIFICATIONS.FIREBASE_INVALID_PASSWORD,
+    [AuthErrorCodes.EMAIL_EXISTS]: NOTIFICATIONS.FIREBASE_EMAIL_EXISTS,
+    [AuthErrorCodes.WEAK_PASSWORD]: NOTIFICATIONS.FIREBASE_WEAK_PASSWORD,
+    [AuthErrorCodes.INVALID_LOGIN_CREDENTIALS]: NOTIFICATIONS.FIREBASE_INVALID_LOGIN_CREDENTIALS,
+    [AuthErrorCodes.POPUP_CLOSED_BY_USER]: NOTIFICATIONS.FIREBASE_POPUP_CLOSED_BY_USER,
+    [AuthErrorCodes.EXPIRED_OOB_CODE]: NOTIFICATIONS.FIREBASE_EXPIRED_OOB_CODE,
+    [AuthErrorCodes.INVALID_OOB_CODE]: NOTIFICATIONS.FIREBASE_INVALID_OOB_CODE,
+  };
+
+  private mapFirebaseError(error: any): string | undefined {
+    const code = error?.code as string | undefined;
+    if (!code) {
+      return undefined;
+    }
+    return this.firebaseErrorMessages[code];
   }
 
   async validateUserPassword(password: string): Promise<PasswordValidationResult> {

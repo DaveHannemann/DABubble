@@ -21,6 +21,8 @@ export class Login {
 
   isSubmitting = false;
   errorMessage: string | null = null;
+  infoMessage: string | null = null;
+  isResetMode = false;
 
   private async executeLogin(loginAction: () => Promise<UserCredential>) {
     if (this.isSubmitting) {
@@ -29,6 +31,7 @@ export class Login {
 
     this.isSubmitting = true;
     this.errorMessage = null;
+    this.infoMessage = null;
 
     try {
       await loginAction();
@@ -56,5 +59,50 @@ export class Login {
 
   async onGuestLogin() {
     await this.executeLogin(() => this.authService.signInAsGuest());
+  }
+
+  onStartPasswordReset() {
+    if (this.isSubmitting) {
+      return;
+    }
+
+    this.errorMessage = null;
+    this.infoMessage = null;
+    this.isResetMode = true;
+  }
+
+  onBackToLoginView() {
+    if (this.isSubmitting) {
+      return;
+    }
+
+    this.errorMessage = null;
+    this.infoMessage = null;
+    this.isResetMode = false;
+  }
+
+  async onSendPasswordReset(form: NgForm) {
+    if (this.isSubmitting || form.invalid) {
+      return;
+    }
+
+    this.errorMessage = null;
+    this.infoMessage = null;
+
+    if (!this.email) {
+      this.errorMessage = NOTIFICATIONS.EMAIL_FORMAT_ERROR;
+      return;
+    }
+
+    this.isSubmitting = true;
+
+    try {
+      await this.authService.sendPasswordResetEmail(this.email);
+      this.infoMessage = NOTIFICATIONS.PASSWORD_RESET_EMAIL_SENT;
+    } catch (error: any) {
+      this.errorMessage = error?.message ?? NOTIFICATIONS.SIGNUP_ERROR;
+    } finally {
+      this.isSubmitting = false;
+    }
   }
 }

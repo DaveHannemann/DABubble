@@ -2,8 +2,32 @@
   <div
     class="w-full max-w-xl rounded-[32px] bg-white shadow-lg px-8 py-10 sm:px-12 sm:py-12 text-center"
   >
+    @if (isProcessingVerification) {
     <h1 class="text-[28px] font-extrabold leading-tight text-[#4A5CF6]">
-      Ihre E-Mail-Adresse wurde bestätigt
+      Deine E-Mail-Adresse wird bestätigt
+    </h1>
+
+    <p class="mt-4 text-sm sm:text-base text-slate-600">
+      Bitte warte einen Moment, während wir deinen Bestätigungslink prüfen.
+    </p>
+    } @else { @if (verificationErrorMessage) {
+    <h1 class="text-[28px] font-extrabold leading-tight text-red-600">Bestätigung nicht möglich</h1>
+
+    <p class="mt-4 text-sm sm:text-base text-slate-600">
+      {{ verificationErrorMessage }}
+    </p>
+
+    <div class="mt-8 flex justify-center">
+      <a
+        routerLink="/login"
+        class="rounded-full bg-[#4A5CF6] px-8 py-3 text-sm font-semibold text-white shadow-md hover:bg-[#3c4ad1]"
+      >
+        Zur Anmeldung
+      </a>
+    </div>
+    } @else {
+    <h1 class="text-[28px] font-extrabold leading-tight text-[#4A5CF6]">
+      Deine E-Mail-Adresse wurde bestätigt
     </h1>
 
     <p class="mt-4 text-sm sm:text-base text-slate-600">
@@ -18,5 +42,6 @@
         Weiter zum Devspace
       </a>
     </div>
+    } }
   </div>
 </section>

@@ -8,10 +8,20 @@ import { EmailConfirmed } from './auth/email-confirmed/email-confirmed';
 import { publicOrRedirectGuard } from './guards/public-or-redirect.guard';
 import { onlyUnverifiedGuard } from './guards/only-unverified.guard';
 import { onlyVerifiedGuard } from './guards/only-verified.guard';
+import { emailConfirmedGuard } from './guards/email-confirmed.guard';
+import { ResetPassword } from './auth/reset-password/reset-password';
+import { AuthActionComponent } from './auth/auth-action/auth-action';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
-
+  {
+    path: 'auth-action',
+    component: AuthActionComponent,
+  },
+  {
+    path: 'reset-password',
+    component: ResetPassword,
+  },
   {
     path: 'login',
     component: Login,
@@ -27,19 +37,16 @@ export const routes: Routes = [
     component: SetProfilePicture,
     canMatch: [publicOrRedirectGuard],
   },
-
   {
     path: 'verify-email',
     component: VerifyEmail,
     canMatch: [onlyUnverifiedGuard],
   },
-
   {
     path: 'email-confirmed',
     component: EmailConfirmed,
-    canMatch: [onlyVerifiedGuard],
+    canActivate: [emailConfirmedGuard],
   },
-
   {
     path: 'main',
     component: MainContent,
