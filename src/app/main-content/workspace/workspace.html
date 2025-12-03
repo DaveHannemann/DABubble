@@ -1,28 +1,52 @@
-<p>workspace menu</p>
-
-<section>
-  <header>
-    <img src="imgs/workspace/Workspace logo.png" alt="" />
-    <h1>Workspace</h1>
-    <img src="imgs/workspace/new message.png" alt="" />
-  </header>
-  <div>
-    <div>
-      <span>▾</span>
-      <div><img src="imgs/workspace/channellist img.png" alt="" /><span>Channels</span></div>
-      <span role="button" tabindex="0" (click)="openCreateChannel()">+</span>
+<aside class="workspace">
+  <header class="workspace__header">
+    <div class="workspace__brand">
+      <img src="imgs/workspace/Workspace logo.png" alt="Workspace Logo" />
+      <div class="workspace__titles">
+        <h1>Workspace</h1>
+        <p>Organisiere deine Channels</p>
+      </div>
     </div>
-    <ul>
-      <li *ngFor="let channel of channels$ | async">
-        <span># {{ channel.title || 'Unbenannter Channel' }}</span>
-      </li>
-    </ul>
-    <div>
-      <button type="button" (click)="openCreateChannel()">
+    <button class="workspace__icon-btn" type="button" aria-label="Neue Nachricht">
+      <img src="imgs/workspace/new message.png" alt="Neue Nachricht" />
+    </button>
+  </header>
+
+  <nav class="workspace__nav">
+    <div class="workspace__section">
+      <div class="workspace__section-header">
+        <div class="workspace__section-title">
+          <img src="imgs/workspace/channellist img.png" alt="Kanäle" />
+          <span>Kanäle</span>
+        </div>
+        <button
+          class="workspace__icon-btn workspace__icon-btn--ghost"
+          type="button"
+          aria-label="Neuen Channel hinzufügen"
+          (click)="openCreateChannel()"
+        >
+          +
+        </button>
+      </div>
+      <ul class="workspace__list">
+        <li *ngFor="let channel of channels$ | async" class="workspace__list-item">
+          <span># {{ channel.title || 'Unbenannter Channel' }}</span>
+        </li>
+      </ul>
+      <button class="workspace__add-btn" type="button" (click)="openCreateChannel()">
         <img src="imgs/workspace/add new channel.png" alt="Neuen Channel anlegen" />
+        <span>Neuen Channel anlegen</span>
       </button>
     </div>
-  </div>
-</section>
+    <div class="workspace__section">
+      <div class="workspace__section-header">
+        <div class="workspace__section-title">
+          <img src="imgs/workspace/new message.png" alt="Direktnachrichten" />
+          <span>Direktnachrichten</span>
+        </div>
+      </div>
+    </div>
+  </nav>
+</aside>
 
 <app-create-channel *ngIf="isCreateChannelOpen" (close)="closeCreateChannel()"></app-create-channel>

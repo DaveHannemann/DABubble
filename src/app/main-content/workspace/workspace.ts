@@ -5,7 +5,8 @@ import { Observable, map } from 'rxjs';
 import { CreateChannel } from './create-channel/create-channel';
 
 type Channel = { id: string; title?: string };
-
+type MenuEntry = { label: string };
+type DirectMessage = { name: string; status: 'online' | 'offline' };
 
 @Component({
   selector: 'app-workspace',
@@ -17,6 +18,9 @@ type Channel = { id: string; title?: string };
 export class Workspace {
   private readonly firestore = inject(Firestore);
   protected readonly channels$: Observable<Channel[]> = this.loadChannels();
+
+
+
   protected isCreateChannelOpen = false;
   protected openCreateChannel(): void {
     this.isCreateChannelOpen = true;
