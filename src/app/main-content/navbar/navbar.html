@@ -1,17 +1,19 @@
-<section class="flex justify-between items-center p-4 max-w-[1440px] mx-auto px-4">
+<section class="flex justify-between items-center p-4 max-w-[1440px] mx-auto px-4 gap-24">
   <div><img src="/imgs/logo_bubble.png" /></div>
-  <div class="relative w-full">
+  <div class="relative grow">
     <input
       matInput
       type="text"
       placeholder="Devspace durchsuchen"
       class="w-full rounded-full bg-white py-2 pl-12 pr-10 focus:outline-none text-gray-500 h-12"
     />
-
     <mat-icon class="absolute right-12 top-1/2 -translate-y-1/2"> search </mat-icon>
   </div>
   <div class="flex items-center gap-4">
     <p class="font-nunito">Max Mustermann</p>
     <img class="size-16 rounded-full" src="/imgs/m1.png" />
+    <button #menuBtn class="size-16" matIconButton (click)="openUserMenu($event)">
+      <mat-icon>keyboard_arrow_down</mat-icon>
+    </button>
   </div>
 </section>

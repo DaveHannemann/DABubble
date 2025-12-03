@@ -1,7 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
+import { OverlayService } from '../../services/overlay.service';
+import { NavbarDialog } from './navbar-dialog/navbar-dialog';
 
 @Component({
   selector: 'app-navbar',
@@ -9,4 +11,19 @@ import { MatInputModule } from '@angular/material/input';
   templateUrl: './navbar.html',
   styleUrl: './navbar.scss',
 })
-export class Navbar {}
+export class Navbar {
+  private overlayService = inject(OverlayService);
+
+
+  openUserMenu(event: Event) {
+    const target = event.currentTarget as HTMLElement;
+
+    this.overlayService.open(NavbarDialog, {
+      target,
+      offsetX: -180,
+      offsetY: 10,
+      backdropOpacity: 0.4,
+      data: { originTarget: target },
+    });
+  }
+}
