@@ -5,7 +5,7 @@ import { Observable, map } from 'rxjs';
 import { CreateChannel } from './create-channel/create-channel';
 
 type Channel = { id: string; title?: string };
-type DirectMessage = { name: string;};
+type DirectMessage = { name: string; };
 
 @Component({
   selector: 'app-workspace',
@@ -18,7 +18,8 @@ export class Workspace {
   private readonly firestore = inject(Firestore);
   protected readonly channels$: Observable<Channel[]> = this.loadChannels();
   protected readonly directMessages$: Observable<DirectMessage[]> = this.loadDirectMessages();
-
+  protected areChannelsCollapsed = false;
+  protected areDirectMessagesCollapsed = false;
   protected isCreateChannelOpen = false;
   protected openCreateChannel(): void {
     this.isCreateChannelOpen = true;
@@ -26,7 +27,13 @@ export class Workspace {
   protected closeCreateChannel(): void {
     this.isCreateChannelOpen = false;
   }
+  protected toggleChannels(): void {
+    this.areChannelsCollapsed = !this.areChannelsCollapsed;
+  }
 
+  protected toggleDirectMessages(): void {
+    this.areDirectMessagesCollapsed = !this.areDirectMessagesCollapsed;
+  }
   private loadChannels(): Observable<Channel[]> {
     const channelsLocation = collection(this.firestore, 'channels');
     return collectionData(channelsLocation, { idField: 'id' }).pipe(map((channels) => channels as Channel[])
