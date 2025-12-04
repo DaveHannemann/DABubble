@@ -1,10 +1,18 @@
 import { inject } from '@angular/core';
-import { CanMatchFn, Router, Route, UrlSegment } from '@angular/router';
+import {
+  CanActivateFn,
+  Router,
+  ActivatedRouteSnapshot,
+  RouterStateSnapshot,
+} from '@angular/router';
 import { combineLatest } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { AuthService } from '../services/auth';
 
-export const publicOrRedirectGuard: CanMatchFn = (route: Route, segments: UrlSegment[]) => {
+export const publicOrRedirectGuard: CanActivateFn = (
+  route: ActivatedRouteSnapshot,
+  state: RouterStateSnapshot
+) => {
   const authService = inject(AuthService);
   const router = inject(Router);
 

@@ -1,10 +1,18 @@
 import { inject } from '@angular/core';
-import { CanMatchFn, Router, Route, UrlSegment } from '@angular/router';
+import {
+  Router,
+  CanActivateFn,
+  ActivatedRouteSnapshot,
+  RouterStateSnapshot,
+} from '@angular/router';
 import { map } from 'rxjs/operators';
 import { combineLatest } from 'rxjs';
 import { AuthService } from '../services/auth';
 
-export const onlyVerifiedGuard: CanMatchFn = (route: Route, segments: UrlSegment[]) => {
+export const onlyVerifiedGuard: CanActivateFn = (
+  route: ActivatedRouteSnapshot,
+  state: RouterStateSnapshot
+) => {
   const authService = inject(AuthService);
   const router = inject(Router);
 

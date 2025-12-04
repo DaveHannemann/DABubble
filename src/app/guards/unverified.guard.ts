@@ -1,15 +1,23 @@
 import { inject } from '@angular/core';
-import { CanMatchFn, Router, Route, UrlSegment } from '@angular/router';
-import { combineLatest } from 'rxjs';
+import {
+  CanActivateFn,
+  Router,
+  ActivatedRouteSnapshot,
+  RouterStateSnapshot,
+} from '@angular/router';
 import { map } from 'rxjs/operators';
 import { AuthService } from '../services/auth';
+import { combineLatest } from 'rxjs';
 
-export const onlyUnverifiedGuard: CanMatchFn = (route: Route, segments: UrlSegment[]) => {
+export const unverifiedGuard: CanActivateFn = (
+  route: ActivatedRouteSnapshot,
+  state: RouterStateSnapshot
+) => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
-  return combineLatest([authService.isLoggedIn$, authService.isEmailVerified$]).pipe(
-    map(([isLoggedIn, isEmailVerified]) => {
+  return combineLatest([authService.isEmailVerified$, authService.isLoggedIn$]).pipe(
+    map(([isEmailVerified, isLoggedIn]) => {
       if (!isLoggedIn) {
         return router.createUrlTree(['/login']);
       }

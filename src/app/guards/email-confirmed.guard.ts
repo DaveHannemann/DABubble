@@ -1,10 +1,18 @@
 import { inject } from '@angular/core';
-import { CanActivateFn, Router } from '@angular/router';
+import {
+  CanActivateFn,
+  Router,
+  ActivatedRouteSnapshot,
+  RouterStateSnapshot,
+} from '@angular/router';
 import { combineLatest } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { AuthService } from '../services/auth';
 
-export const emailConfirmedGuard: CanActivateFn = (route, state) => {
+export const emailConfirmedGuard: CanActivateFn = (
+  route: ActivatedRouteSnapshot,
+  state: RouterStateSnapshot
+) => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
@@ -14,20 +22,20 @@ export const emailConfirmedGuard: CanActivateFn = (route, state) => {
 
   return combineLatest([authService.isLoggedIn$, authService.isEmailVerified$]).pipe(
     map(([isLoggedIn, isEmailVerified]) => {
-      if (!isLoggedIn) {
-        return router.createUrlTree(['/login']);
-      }
-
-      if (isEmailVerified) {
-        return true;
-      }
-
       const hasValidVerificationParams = Boolean(outOfBandCode && mode === 'verifyEmail');
       if (hasValidVerificationParams) {
         return true;
       }
 
-      return router.createUrlTree(['/verify-email']);
+      if (isLoggedIn && isEmailVerified) {
+        return true;
+      }
+
+      if (isLoggedIn && !isEmailVerified) {
+        return router.createUrlTree(['/verify-email']);
+      }
+
+      return router.createUrlTree(['/login']);
     })
   );
 };
