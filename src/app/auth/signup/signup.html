@@ -2,6 +2,7 @@
   <div
     class="relative w-full max-w-xl rounded-[32px] bg-white shadow-lg px-8 py-10 sm:px-12 sm:py-12"
   >
+    @if (!isAvatarStep) {
     <header class="mb-8">
       <button
         type="button"
@@ -116,5 +117,41 @@
         </button>
       </footer>
     </form>
+    } @else {
+
+    <header class="mb-6">
+      <button
+        type="button"
+        aria-label="Zurück"
+        class="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100"
+        (click)="onBackFromAvatarStep()"
+      >
+        ←
+      </button>
+    </header>
+
+    <app-set-profile-picture
+      [displayName]="name"
+      [selectedProfilePictureKey]="selectedProfilePictureKey"
+      (profilePictureChange)="onProfilePictureChange($event)"
+    ></app-set-profile-picture>
+
+    @if (errorMessage) {
+    <p class="mt-4 text-sm text-red-600 bg-red-50 border border-red-200 rounded-2xl px-4 py-3">
+      {{ errorMessage }}
+    </p>
+    }
+
+    <footer class="mt-6 flex justify-end">
+      <button
+        type="button"
+        (click)="onCompleteSignup()"
+        [disabled]="isSubmitting"
+        class="rounded-full bg-[#4A5CF6] px-8 py-3 text-sm font-semibold text-white shadow-md hover:bg-[#3c4ad1] disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        {{ isSubmitting ? 'Konto wird erstellt …' : 'Konto jetzt erstellen' }}
+      </button>
+    </footer>
+    }
   </div>
 </section>

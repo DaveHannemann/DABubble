@@ -1,22 +1,24 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth';
 import { NOTIFICATIONS } from '../../notifications';
-import { RegistrationStateService } from '../../services/registration-state';
-import { PROFILE_PICTURE_URLS } from '../set-profile-picture/set-profile-picture';
+import {
+  SetProfilePicture,
+  PROFILE_PICTURE_URLS,
+} from '../set-profile-picture/set-profile-picture';
+import { ProfilePictureKey } from '../../types';
 
 @Component({
   selector: 'app-signup',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, SetProfilePicture],
   templateUrl: './signup.html',
   styleUrl: './signup.scss',
 })
-export class Signup implements OnInit {
+export class Signup {
   private authenticationService = inject(AuthService);
   private router = inject(Router);
-  private registrationStateService = inject(RegistrationStateService);
 
   name = '';
   emailAddress = '';
@@ -27,15 +29,8 @@ export class Signup implements OnInit {
   errorMessage: string | null = null;
   passwordValidationErrors: string[] = [];
 
-  ngOnInit(): void {
-    const storedData = this.registrationStateService.getRegistrationData();
-    if (storedData) {
-      this.name = storedData.fullName;
-      this.emailAddress = storedData.emailAddress;
-      this.password = storedData.password;
-      this.acceptedPrivacy = storedData.acceptedPrivacy;
-    }
-  }
+  isAvatarStep = false;
+  selectedProfilePictureKey: ProfilePictureKey = 'default';
 
   async onSubmit(form: NgForm): Promise<void> {
     if (this.isSubmitting || form.invalid) {
@@ -57,15 +52,37 @@ export class Signup implements OnInit {
         return;
       }
 
-      this.registrationStateService.setRegistrationData({
-        fullName: this.name,
-        emailAddress: this.emailAddress,
-        password: this.password,
-        acceptedPrivacy: this.acceptedPrivacy,
-        profilePicture: { key: 'default', path: PROFILE_PICTURE_URLS.default },
-      });
+      this.isAvatarStep = true;
+    } catch (error: any) {
+      this.errorMessage = error?.message ?? NOTIFICATIONS.SIGNUP_ERROR;
+    } finally {
+      this.isSubmitting = false;
+    }
+  }
 
-      await this.router.navigate(['/set-profile-picture']);
+  onProfilePictureChange(key: ProfilePictureKey): void {
+    this.selectedProfilePictureKey = key;
+  }
+
+  async onCompleteSignup(): Promise<void> {
+    if (this.isSubmitting) {
+      return;
+    }
+
+    this.isSubmitting = true;
+    this.errorMessage = null;
+
+    try {
+      const userCredential = await this.authenticationService.signUpWithEmailAndPassword(
+        this.emailAddress,
+        this.password
+      );
+
+      const photoUrl = PROFILE_PICTURE_URLS[this.selectedProfilePictureKey];
+      await this.authenticationService.updateUserProfile(this.name, photoUrl);
+
+      await this.authenticationService.sendEmailVerificationLink(userCredential.user);
+      this.router.navigate(['/verify-email']);
     } catch (error: any) {
       this.errorMessage = error?.message ?? NOTIFICATIONS.SIGNUP_ERROR;
     } finally {
@@ -74,7 +91,13 @@ export class Signup implements OnInit {
   }
 
   onBackToLogin(): void {
-    this.registrationStateService.clearRegistrationData();
     this.router.navigate(['/login']);
+  }
+
+  onBackFromAvatarStep(): void {
+    if (this.isSubmitting) {
+      return;
+    }
+    this.isAvatarStep = false;
   }
 }

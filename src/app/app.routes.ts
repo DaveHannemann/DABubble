@@ -1,7 +1,6 @@
 import { Routes } from '@angular/router';
 import { Signup } from './auth/signup/signup';
 import { MainContent } from './main-content/main-content';
-import { SetProfilePicture } from './auth/set-profile-picture/set-profile-picture';
 import { Login } from './auth/login/login';
 import { VerifyEmail } from './auth/verify-email/verify-email';
 import { EmailConfirmed } from './auth/email-confirmed/email-confirmed';
@@ -22,11 +21,6 @@ export const routes: Routes = [
   {
     path: 'signup',
     component: Signup,
-    canActivate: [publicOrRedirectGuard],
-  },
-  {
-    path: 'set-profile-picture',
-    component: SetProfilePicture,
     canActivate: [publicOrRedirectGuard],
   },
   {

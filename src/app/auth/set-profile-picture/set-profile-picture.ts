@@ -1,9 +1,5 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, computed, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { AuthService } from '../../services/auth';
-import { NOTIFICATIONS } from '../../notifications';
-import { RegistrationStateService } from '../../services/registration-state';
-import { Router } from '@angular/router';
 import { ProfilePicture, ProfilePictureKey } from '../../types';
 
 export const PROFILE_PICTURE_URLS = {
@@ -22,10 +18,9 @@ export const PROFILE_PICTURE_URLS = {
   templateUrl: './set-profile-picture.html',
   styleUrls: ['./set-profile-picture.scss'],
 })
-export class SetProfilePicture implements OnInit {
-  private readonly authService = inject(AuthService);
-  private readonly registrationStateService = inject(RegistrationStateService);
-  private readonly router = inject(Router);
+export class SetProfilePicture {
+  readonly displayName = input.required<string>();
+  readonly selectedProfilePictureKey = input<ProfilePictureKey>('default');
 
   readonly profilePictureOptions: ProfilePicture[] = Object.entries(PROFILE_PICTURE_URLS).map(
     ([key, path]) => ({
@@ -34,73 +29,21 @@ export class SetProfilePicture implements OnInit {
     })
   );
 
-  profilePicture!: ProfilePicture;
-  displayName = '';
-
-  isSubmitting = false;
-  updateErrorMessage = '';
-
-  ngOnInit(): void {
-    const registrationData = this.registrationStateService.getRegistrationData();
-    if (!registrationData && !this.authService.auth.currentUser) {
-      this.router.navigate(['/signup']);
-      return;
-    }
-
-    const currentUser = this.authService.auth.currentUser;
-    if (currentUser) {
-      this.displayName = currentUser.displayName as string;
-      this.profilePicture = this.getProfilePictureFromPath(currentUser.photoURL as string);
-    }
-
-    if (registrationData) {
-      this.displayName = registrationData.fullName;
-      this.profilePicture = registrationData.profilePicture;
-    }
-  }
-
-  private getProfilePictureFromPath(path: string): ProfilePicture {
-    const matchedOption = this.profilePictureOptions.find((option) => option.path === path);
-    const matchedKey: ProfilePictureKey = matchedOption?.key ?? 'default';
-
+  readonly selectedProfilePicture = computed<ProfilePicture>(() => {
+    const key = this.selectedProfilePictureKey();
     return {
-      key: matchedKey,
-      path: PROFILE_PICTURE_URLS[matchedKey],
+      key,
+      path: PROFILE_PICTURE_URLS[key],
     };
+  });
+
+  readonly profilePictureChange = output<ProfilePictureKey>();
+
+  selectProfilePicture(key: ProfilePictureKey): void {
+    this.profilePictureChange.emit(key);
   }
 
-  selectProfilePicture(path: string): void {
-    this.profilePicture = this.getProfilePictureFromPath(path);
-  }
-
-  async signUp(): Promise<void> {
-    const registrationData = this.registrationStateService.getRegistrationData();
-    if (!registrationData || this.isSubmitting) {
-      return;
-    }
-
-    this.isSubmitting = true;
-    this.updateErrorMessage = '';
-
-    try {
-      const userCredential = await this.authService.signUpWithEmailAndPassword(
-        registrationData.emailAddress,
-        registrationData.password
-      );
-
-      await this.authService.updateUserProfile(registrationData.fullName, this.profilePicture.path);
-      await this.authService.sendEmailVerificationLink(userCredential.user);
-
-      this.registrationStateService.clearRegistrationData();
-      await this.router.navigate(['/verify-email']);
-    } catch (error: any) {
-      this.updateErrorMessage = error?.message ?? NOTIFICATIONS.SIGNUP_ERROR;
-    } finally {
-      this.isSubmitting = false;
-    }
-  }
-
-  onBackToSignup(): void {
-    this.router.navigate(['/signup']);
+  isSelected(key: ProfilePictureKey): boolean {
+    return this.selectedProfilePictureKey() === key;
   }
 }
