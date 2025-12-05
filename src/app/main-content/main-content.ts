@@ -4,12 +4,13 @@ import { Workspace } from './workspace/workspace';
 import { Navbar } from './navbar/navbar';
 import { Messages } from './messages/messages';
 import { Thread } from './thread/thread';
+import { ChannelComponent } from './channel/channel';
 
 @Component({
   selector: 'app-main-content',
   standalone: true,
-  imports: [MatSidenavModule, Workspace, Navbar, Messages, Thread],
+  imports: [MatSidenavModule, Workspace, Navbar, Messages,ChannelComponent, Thread],
   templateUrl: './main-content.html',
   styleUrl: './main-content.scss',
 })
-export class MainContent {}
+export class MainContent { }

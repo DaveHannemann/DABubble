@@ -1,0 +1,138 @@
+<section class="channel">
+  <header class="channel__header">
+    <div class="channel__titles">
+      <div class="channel__title-row">
+        <h1># {{ channelName }}</h1>
+        <span class="channel__divider">|</span>
+        <span class="channel__category">{{ channelCategory }}</span>
+        <span class="channel__badge channel__badge--status">{{ channelStats }}</span>
+        <span class="channel__badge channel__badge--private">
+          <mat-icon>lock</mat-icon>
+          Privat
+        </span>
+      </div>
+      <p class="channel__summary">{{ channelSummary }}</p>
+    </div>
+
+    <div class="channel__actions">
+      <div class="channel__member-stack" aria-label="Teilnehmerliste">
+        <button type="button" class="channel__icon-button" aria-label="Channel-Favorit">
+          <mat-icon>favorite_border</mat-icon>
+        </button>
+        <button type="button" class="channel__icon-button" aria-label="Benutzer stummschalten">
+          <mat-icon>notifications_off</mat-icon>
+        </button>
+        <div class="channel__avatars">
+          <img
+            *ngFor="let avatar of memberAvatars"
+            class="channel__avatar"
+            [src]="avatar"
+            alt="Profilbild"
+          />
+          <button type="button" class="channel__add-user" aria-label="Nutzer hinzufügen">
+            <mat-icon>add</mat-icon>
+          </button>
+        </div>
+      </div>
+
+      <label class="channel__search" aria-label="Suche im Channel">
+        <mat-icon>search</mat-icon>
+        <input type="text" placeholder="In #{{ channelName }} suchen" />
+      </label>
+    </div>
+  </header>
+
+  <section class="channel__panel">
+    <div class="channel__messages" aria-live="polite">
+      <ng-container *ngFor="let day of messagesByDay">
+        <div class="channel__day">
+          <span>{{ day.label }}</span>
+        </div>
+
+        <article *ngFor="let message of day.messages" class="channel__message">
+          <img class="channel__message-avatar" [src]="message.avatar" [alt]="message.author" />
+
+          <div class="channel__message-body">
+            <header class="channel__message-header">
+              <div class="channel__message-meta">
+                <div class="channel__author-line">
+                  <strong>{{ message.author }}</strong>
+                  <time>{{ message.time }}</time>
+                </div>
+                <div class="channel__tags">
+                  <span *ngIf="message.tag" class="channel__pill">{{ message.tag }}</span>
+                  <button type="button" class="channel__icon-button" aria-label="Nachricht favorisieren">
+                    <mat-icon>favorite_border</mat-icon>
+                  </button>
+                  <button type="button" class="channel__icon-button" aria-label="Weitere Aktionen">
+                    <mat-icon>more_horiz</mat-icon>
+                  </button>
+                </div>
+              </div>
+            </header>
+
+            <p class="channel__message-text">{{ message.text }}</p>
+
+            <ng-container *ngIf="message.attachment as attachment">
+              <div class="channel__attachment">
+                <div class="channel__attachment-text">
+                  <span *ngIf="attachment.badgeLabel" class="channel__pill channel__pill--info">
+                    {{ attachment.badgeLabel }}
+                  </span>
+                  <h3>{{ attachment.title }}</h3>
+                  <p *ngIf="attachment.description">{{ attachment.description }}</p>
+                </div>
+                <a *ngIf="attachment.linkLabel" class="channel__attachment-link" [href]="attachment.linkHref">
+                  {{ attachment.linkLabel }}
+                  <mat-icon>open_in_new</mat-icon>
+                </a>
+              </div>
+            </ng-container>
+
+            <footer class="channel__message-footer">
+              <button type="button" class="channel__reaction" aria-label="Smiley hinzufügen">
+                <mat-icon>sentiment_satisfied</mat-icon>
+              </button>
+              <button type="button" class="channel__reaction" aria-label="Antwort schreiben">
+                <mat-icon>reply</mat-icon>
+              </button>
+              <button type="button" class="channel__reaction" aria-label="Link teilen">
+                <mat-icon>link</mat-icon>
+              </button>
+
+              <span class="channel__reply-count" *ngIf="message.replies">
+                {{ message.replies }} Antworten
+              </span>
+            </footer>
+          </div>
+        </article>
+      </ng-container>
+    </div>
+
+    <form class="channel__composer" aria-label="Neue Nachricht verfassen">
+      <div class="channel__composer-icons">
+        <button type="button" class="channel__composer-button" aria-label="Datei hochladen">
+          <mat-icon>note_add</mat-icon>
+        </button>
+        <button type="button" class="channel__composer-button" aria-label="Emoji einfügen">
+          <mat-icon>sentiment_satisfied</mat-icon>
+        </button>
+      </div>
+      <textarea rows="3" placeholder="Nachricht an #{{ channelName }}"></textarea>
+      <div class="channel__composer-actions">
+        <div class="channel__composer-icons">
+          <button type="button" class="channel__composer-button" aria-label="Bild anhängen">
+            <mat-icon>add_photo_alternate</mat-icon>
+          </button>
+          <button type="button" class="channel__composer-button" aria-label="Kalender öffnen">
+            <mat-icon>event</mat-icon>
+          </button>
+        </div>
+        <button type="button" class="channel__send" aria-label="Nachricht senden">
+          <span>Senden</span>
+          <mat-icon>send</mat-icon>
+        </button>
+      </div>
+    </form>
+  </section>
+</section>
