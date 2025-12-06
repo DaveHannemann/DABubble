@@ -3,11 +3,11 @@
     <div class="channel__titles">
       <div class="channel__title-row">
         <h1># {{ (channelTitle$ | async) ?? channelDefaults.name }}</h1>
-       
+        <img src="imgs/channel description/keyboard_arrow_down.svg" alt="">
       </div>
-     <p class="channel__summary">
+      <p class="channel__summary">
         {{ (channelDescription$ | async) ?? channelDefaults.summary }}
-      </p>    
+      </p>
     </div>
 
     <div class="channel__actions">
@@ -18,21 +18,18 @@
         <button type="button" class="channel__icon-button" aria-label="Benutzer stummschalten">
           <mat-icon>notifications_off</mat-icon>
         </button>
-   
       </div>
 
       <label class="channel__search" aria-label="Suche im Channel">
         <mat-icon>search</mat-icon>
-        <input
-          type="text"
-          [placeholder]="'In #' + ((channelTitle$ | async) ?? channelDefaults.name) + ' suchen'"
-        />      </label>
+        <input type="text" [placeholder]="'In #' + ((channelTitle$ | async) ?? channelDefaults.name) + ' suchen'" />
+      </label>
     </div>
   </header>
 
   <section class="channel__panel">
     <div class="channel__messages" aria-live="polite">
-     <ng-container *ngIf="messagesByDay$ | async as messagesByDay">
+      <ng-container *ngIf="messagesByDay$ | async as messagesByDay">
         <ng-container *ngIf="messagesByDay.length; else noMessages">
           <ng-container *ngFor="let day of messagesByDay">
             <div class="channel__day">
@@ -60,9 +57,9 @@
                     </div>
                   </div>
                 </header>
-       <p class="channel__message-text">{{ message.text }}</p>
+                <p class="channel__message-text">{{ message.text }}</p>
 
-          <ng-container *ngIf="message.attachment as attachment">
+                <ng-container *ngIf="message.attachment as attachment">
                   <div class="channel__attachment">
                     <div class="channel__attachment-text">
                       <span *ngIf="attachment.badgeLabel" class="channel__pill channel__pill--info">
@@ -82,27 +79,25 @@
                   <button type="button" class="channel__reaction" aria-label="Smiley hinzufügen">
                     <mat-icon>sentiment_satisfied</mat-icon>
                   </button>
-              <button type="button" class="channel__reaction" aria-label="Antwort schreiben">
+                  <button type="button" class="channel__reaction" aria-label="Antwort schreiben">
                     <mat-icon>reply</mat-icon>
                   </button>
                   <button type="button" class="channel__reaction" aria-label="Link teilen">
                     <mat-icon>link</mat-icon>
                   </button>
-               <span class="channel__reply-count" *ngIf="message.replies">
-                    {{ message.replies }} Antworten
-                  </span>
-                               </footer>
+                  <span class="channel__reply-count" *ngIf="message.replies"> {{ message.replies }} Antworten </span>
+                </footer>
               </div>
-             </article>
+            </article>
           </ng-container>
         </ng-container>
       </ng-container>
-        <ng-template #noMessages>
+      <ng-template #noMessages>
         <p class="channel__empty">Noch keine Nachrichten vorhanden.</p>
       </ng-template>
     </div>
 
-    <form class="channel__composer" aria-label="Neue Nachricht verfassen">
+    <form class="channel__composer" aria-label="Neue Nachricht verfassen" (ngSubmit)="sendMessage()">
       <div class="channel__composer-icons">
         <button type="button" class="channel__composer-button" aria-label="Datei hochladen">
           <mat-icon>note_add</mat-icon>
@@ -111,10 +106,12 @@
           <mat-icon>sentiment_satisfied</mat-icon>
         </button>
       </div>
-  <textarea
+      <textarea
         rows="3"
-        [placeholder]="'Nachricht an #' + ((channelTitle$ | async) ?? channelDefaults.name)"
-      ></textarea>      <div class="channel__composer-actions">
+        name="message"
+        [(ngModel)]="messageText"
+        [placeholder]="'Nachricht an #' + ((channelTitle$ | async) ?? channelDefaults.name)"></textarea>
+      <div class="channel__composer-actions">
         <div class="channel__composer-icons">
           <button type="button" class="channel__composer-button" aria-label="Bild anhängen">
             <mat-icon>add_photo_alternate</mat-icon>
@@ -123,7 +120,11 @@
             <mat-icon>event</mat-icon>
           </button>
         </div>
-        <button type="button" class="channel__send" aria-label="Nachricht senden">
+        <button
+          type="submit"
+          class="channel__send"
+          aria-label="Nachricht senden"
+          [disabled]="!messageText.trim() || isSending">
           <span>Senden</span>
           <mat-icon>send</mat-icon>
         </button>

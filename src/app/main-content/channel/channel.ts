@@ -1,13 +1,15 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
-import { Observable, map, of, shareReplay, switchMap } from 'rxjs';
+import { Observable, from, map, of, shareReplay, switchMap, take } from 'rxjs';
 import {
   Channel,
   ChannelAttachment,
   ChannelMessage,
   FirestoreService,
 } from '../../services/firestore.service';
+
 type ChannelDay = {
   label: string;
   sortKey: number;
@@ -25,14 +27,13 @@ type ChannelMessageView = {
   attachment?: ChannelAttachment;
 };
 
-
-
 @Component({
   selector: 'app-channel',
   standalone: true,
-  imports: [CommonModule, MatIconModule],
+  imports: [CommonModule, FormsModule, MatIconModule],
   templateUrl: './channel.html',
-  styleUrl: './channel.scss',
+  // Angular prefers the plural key
+  styleUrls: ['./channel.scss'],
 })
 export class ChannelComponent {
   private readonly firestoreService = inject(FirestoreService);
@@ -43,19 +44,29 @@ export class ChannelComponent {
       'Gruppe zum Austausch über technische Fragen und das laufende Redesign des Devspace.',
   };
 
-
   protected readonly memberAvatars = [
     'imgs/users/Property 1=Frederik Beck.svg',
     'imgs/users/Property 1=Noah Braun.svg',
     'imgs/users/Property 1=Sofia Müller.svg',
     'imgs/users/Property 1=Elias Neumann.svg',
   ];
-  protected readonly channel$: Observable<Channel | undefined> = this.firestoreService
-    .getChannels()
-    .pipe(
-      map((channels) => channels[0]),
-      shareReplay({ bufferSize: 1, refCount: true })
-    );
+
+  protected readonly currentUser = {
+    name: 'Du',
+    avatar: this.memberAvatars[0] ?? 'imgs/users/placeholder.svg',
+  };
+
+  protected messageText = '';
+  protected isSending = false;
+
+  protected readonly channel$: Observable<Channel | undefined> =
+    this.firestoreService
+      .getChannels()
+      .pipe(
+        // Ensure correct typing so 'channel' isn't inferred as {}
+        map((channels: Channel[]) => channels?.[0]),
+        shareReplay({ bufferSize: 1, refCount: true })
+      );
 
   protected readonly channelTitle$: Observable<string> = this.channel$.pipe(
     map((channel) => channel?.title ?? this.channelDefaults.name)
@@ -70,7 +81,6 @@ export class ChannelComponent {
       if (!channel?.id) {
         return of<ChannelDay[]>([]);
       }
-
       return this.firestoreService.getChannelMessages(channel.id).pipe(
         map((messages) => this.groupMessagesByDay(messages))
       );
@@ -101,6 +111,41 @@ export class ChannelComponent {
     return Array.from(grouped.values()).sort((a, b) => a.sortKey - b.sortKey);
   }
 
+  protected sendMessage(): void {
+    const text = this.messageText.trim();
+    if (!text || this.isSending) return;
+
+    this.isSending = true;
+
+    this.channel$
+      .pipe(
+        take(1),
+        switchMap((channel) => {
+          if (!channel?.id) {
+            return of(null);
+          }
+          return from(
+            this.firestoreService.addChannelMessage(channel.id, {
+              text,
+              author: this.currentUser.name,
+              avatar: this.currentUser.avatar,
+            })
+          );
+        })
+      )
+      .subscribe({
+        next: () => {
+          this.messageText = '';
+        },
+        error: (error: unknown) => {
+          console.error('Fehler beim Senden der Nachricht', error);
+        },
+        complete: () => {
+          this.isSending = false;
+        },
+      });
+  }
+
   private toViewMessage(message: ChannelMessage): ChannelMessageView {
     const createdAt = this.resolveTimestamp(message);
 
@@ -118,10 +163,9 @@ export class ChannelComponent {
   }
 
   private resolveTimestamp(message: ChannelMessage): Date {
-    if (message.createdAt && 'toDate' in message.createdAt) {
-      return message.createdAt.toDate();
+    if (message.createdAt && 'toDate' in (message.createdAt as any)) {
+      return (message.createdAt as any).toDate();
     }
-
     return new Date();
   }
 
