@@ -1,6 +1,8 @@
 <section
-  class="flex flex-col items-center justify-center h-40 w-60 bg-white rounded-bl-2xl rounded-br-2xl rounded-tl-2xl shadow-xl gap-4"
->
-  <button class="text-xl rounded-full w-48 h-10" (click)="openProfileDialog($event)">Profil</button>
-  <button class="text-xl rounded-full w-48 h-10" (click)="logOut()">Log out</button>
+  *ngIf="visible"
+  @slideFromRight
+  (@slideFromRight.done)="onAnimationDone($event)"
+  class="flex h-40 w-60 flex-col items-center justify-center gap-4 rounded-tl-2xl rounded-br-2xl rounded-bl-2xl bg-white shadow-xl">
+  <button class="h-10 w-48 rounded-full text-xl" (click)="openProfileDialog($event)">Profil</button>
+  <button class="h-10 w-48 rounded-full text-xl" (click)="logOut()">Log out</button>
 </section>

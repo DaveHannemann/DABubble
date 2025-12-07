@@ -1,20 +1,22 @@
 <section
-  class="flex flex-col items-center justify-center h-120 w-110 bg-white rounded-bl-2xl rounded-br-2xl rounded-tl-2xl shadow-xl gap-6"
->
-  <div class="flex justify-between w-full px-6 items-center">
+  *ngIf="visible"
+  [@scaleAnimation]="visible ? 'enter' : 'leave'"
+  (@scaleAnimation.done)="onAnimationDone($event)"
+  class="flex h-120 w-110 flex-col items-center justify-center gap-6 rounded-tl-2xl rounded-br-2xl rounded-bl-2xl bg-white shadow-xl">
+  <div class="flex w-full items-center justify-between px-6">
     <h2>Dein Profil bearbeiten</h2>
     <mat-icon class="close" (click)="closeOverlay()">close</mat-icon>
   </div>
   <img class="size-40 rounded-full" src="/imgs/m1.png" alt="" />
-  <div class="flex flex-col w-full px-6">
-    <div class="flex gap-4 items-center">
+  <div class="flex w-full flex-col px-6">
+    <div class="flex items-center gap-4">
       <img src="imgs/direktnachrichten img.svg" alt="" />
       <h4>Vollständiger Name</h4>
     </div>
     <input class="rounded-full text-gray-500" type="text" placeholder="Max Mustermann" />
   </div>
   <div class="flex items-center gap-10 pt-6">
-    <button class="rounded-full cancel" (click)="closeOverlay()">Abbrechen</button>
-    <button class="rounded-full update" (click)="updateName()">Speichern</button>
+    <button class="cancel rounded-full" (click)="closeOverlay()">Abbrechen</button>
+    <button class="update rounded-full" (click)="updateName()">Speichern</button>
   </div>
 </section>

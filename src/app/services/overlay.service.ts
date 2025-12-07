@@ -24,7 +24,10 @@ export class OverlayService {
       display: 'none',
     });
 
-    this.backdrop.addEventListener('click', () => this.closeLast());
+    this.backdrop.addEventListener('click', () => {
+      const last = this.overlays[this.overlays.length - 1];
+      last?.startCloseAnimation();
+    });
 
     document.body.appendChild(this.backdrop);
   }
@@ -32,17 +35,12 @@ export class OverlayService {
   open<T extends object>(component: Type<T>, config?: OverlayConfig<T>) {
     this.backdrop.style.display = 'block';
 
-    const overlayRef = new OverlayRef<T>(
-      component,
-      config,
-      this.appRef,
-      this.envInjector
-    );
+    const overlayRef = new OverlayRef<T>(component, config, this.appRef, this.envInjector);
 
     this.overlays.push(overlayRef as OverlayRef<object>);
 
     overlayRef.onClose(() => {
-      this.overlays = this.overlays.filter(o => o !== overlayRef);
+      this.overlays = this.overlays.filter((o) => o !== overlayRef);
 
       if (this.overlays.length === 0) {
         this.backdrop.style.display = 'none';
@@ -55,12 +53,16 @@ export class OverlayService {
 
   closeLast() {
     const last = this.overlays[this.overlays.length - 1];
-    last?.close();
+    last?.startCloseAnimation();
   }
 
   closeAll() {
-    this.overlays.forEach(o => o.close());
+    this.overlays.forEach((o) => o.startCloseAnimation());
     this.overlays = [];
     this.backdrop.style.display = 'none';
+  }
+
+    getLastOverlay(): OverlayRef | undefined {
+    return this.overlays[this.overlays.length - 1];
   }
 }
