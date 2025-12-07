@@ -73,38 +73,6 @@ export class FirestoreService {
     );
   }
 
-
-  async addChannelMessage(
-    channelId: string,
-    message: Pick<ChannelMessage, 'text'> & Partial<ChannelMessage>
-  ): Promise<void> {
-    const trimmedText = message.text?.trim();
-
-    if (!trimmedText) {
-      return;
-    }
-
-    const payload: Record<string, unknown> = {
-      text: trimmedText,
-      createdAt: serverTimestamp(),
-    };
-
-    if (message.author) {
-      payload['author'] = message.author.trim();
-    }
-
-    if (message.avatar) {
-      payload['avatar'] = message.avatar;
-    }
-
-    const messagesCollection = collection(
-      this.firestore,
-      `channels/${channelId}/messages`
-    );
-
-    await addDoc(messagesCollection, payload);
-  }
-
   getFirstChannelTitle(): Observable<string> {
     return this.getChannels().pipe(
       map((channels) => {
