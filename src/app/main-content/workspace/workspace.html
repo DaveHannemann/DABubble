@@ -79,6 +79,15 @@
             <span>{{ user.displayName || user.email || 'Aktueller Nutzer' }}</span>
           </li>
         </ng-container>
+          <ng-container *ngIf="directMessages$ | async as directMessages">
+          <li *ngFor="let directMessage of directMessages" class="workspace__list-item">
+            <img
+              class="workspace__avatar"
+              src="imgs/default-profile-picture.png"
+              [alt]="directMessage.name" />
+            <span>{{ directMessage.name }}</span>
+          </li>
+        </ng-container>
       </ul>
     </div>
   </nav>
