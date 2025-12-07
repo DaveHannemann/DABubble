@@ -3,10 +3,25 @@
     ×
   </button>
   <div class="channel-description__field">
-    <label class="channel-description__label">Channel-Name</label>
-    <div class="channel-description__input-group">
+    <div class="channel-description__field-header">
+      <label class="channel-description__label">Channel-Name</label>
+      <div class="channel-description__actions-inline">
+        <button type="button" class="channel-description__action" *ngIf="!isEditingTitle" (click)="startEditTitle()">
+          Bearbeiten
+        </button>
+        <button
+          type="button"
+          class="channel-description__action channel-description__action--primary"
+          *ngIf="isEditingTitle"
+          [disabled]="isSavingTitle || !channelId"
+          (click)="saveTitle()">
+          Speichern
+        </button>
+      </div>
+    </div>
+    <div class="channel-description__input-group" [class.channel-description__input-group--editable]="isEditingTitle">
       <span class="channel-description__prefix">#</span>
-      <input type="text" [value]="title" readonly aria-label="Channel-Name" />
+      <input type="text" [(ngModel)]="editableTitle" [readonly]="!isEditingTitle" aria-label="Channel-Name" />
     </div>
     <p class="channel-description__hint">
       Es ist nur eine Channel-Beschreibung: Hier kannst du eintragen, um was es in diesem Channel geht. So weiß jeder,
@@ -15,21 +30,41 @@
   </div>
 
   <div class="channel-description__field">
-    <div class="channel-description__field-header">
-      <label for="channel-description-input" class="channel-description__label">Channel-Beschreibung</label>
-      <span class="channel-description__meta-hint"
-        >Du kannst eine kurze Beschreibung für deinen Channel hinzufügen</span
-      >
+    <div class="channel-description__field-header channel-description__field-header--row">
+      <div class="channel-description__field-labels">
+        <label for="channel-description-input" class="channel-description__label">Beschreibung</label>
+        <span class="channel-description__meta-hint"
+          >Du kannst eine kurze Beschreibung für deinen Channel hinzufügen</span
+        >
+      </div>
+      <div class="channel-description__actions-inline">
+        <button
+          type="button"
+          class="channel-description__action"
+          *ngIf="!isEditingDescription"
+          (click)="startEditDescription()">
+          Bearbeiten
+        </button>
+        <button
+          type="button"
+          class="channel-description__action channel-description__action--primary"
+          *ngIf="isEditingDescription"
+          [disabled]="isSavingDescription || !channelId"
+          (click)="saveDescription()">
+          Speichern
+        </button>
+      </div>
     </div>
     <textarea
       id="channel-description-input"
       class="channel-description__textarea"
       rows="3"
-      readonly
+      [readonly]="!isEditingDescription"
+      [class.channel-description__textarea--editable]="isEditingDescription"
       aria-label="Channel-Beschreibung"
-      >{{ description }}</textarea
-    >
+      [(ngModel)]="editableDescription"></textarea>
   </div>
+  <p class="channel-description__error" *ngIf="errorMessage">{{ errorMessage }}</p>
   <div class="channel-description__meta-grid">
     <div class="channel-description__meta-row">
       <span class="channel-description__meta-label">Erstellt von</span>

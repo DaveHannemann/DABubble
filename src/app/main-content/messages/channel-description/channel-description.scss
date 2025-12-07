@@ -51,12 +51,65 @@
   gap: 4px;
 }
 
+.channel-description__field-header--row {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.channel-description__field-labels {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
 .channel-description__label {
   font-weight: 700;
   color: #111827;
   font-size: 14px;
 }
 
+.channel-description__actions-inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.channel-description__action {
+  border: none;
+  background: transparent;
+  color: #4f46e5;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 10px;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.channel-description__action:hover {
+  background: #eef2ff;
+}
+
+.channel-description__action:focus-visible {
+  outline: 2px solid #c7d2fe;
+  outline-offset: 2px;
+}
+
+.channel-description__action:disabled {
+  color: #9ca3af;
+  cursor: not-allowed;
+  background: #f3f4f6;
+}
+
+.channel-description__action--primary {
+  background: #eef2ff;
+  border: 1px solid #c7d2fe;
+  color: #4338ca;
+}
+
+.channel-description__action--primary:hover:not(:disabled) {
+  background: #e0e7ff;
+}
 .channel-description__input-group {
   display: flex;
   align-items: center;
@@ -67,7 +120,11 @@
   padding: 10px 12px;
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04);
 }
-
+.channel-description__input-group--editable {
+  background: #ffffff;
+  border-color: #c7d2fe;
+  box-shadow: 0 0 0 3px #eef2ff;
+}
 .channel-description__prefix {
   color: #6b7280;
   font-weight: 700;
@@ -126,7 +183,11 @@
   font-weight: 600;
   font-size: 14px;
 }
-
+.channel-description__textarea--editable {
+  background: #ffffff;
+  border-color: #c7d2fe;
+  box-shadow: 0 0 0 3px #eef2ff;
+}
 .channel-description__meta-value {
   font-weight: 700;
   color: #374151;
@@ -154,6 +215,16 @@
     background-color 0.2s ease,
     transform 0.1s ease;
 }
+.channel-description__error {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecdd3;
+  font-size: 14px;
+}
+
 
 .channel-description__secondary {
   background: #f3f4f6;

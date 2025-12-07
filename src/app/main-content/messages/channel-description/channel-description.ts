@@ -1,22 +1,112 @@
-import { Component, Input, inject } from '@angular/core';
+import { Component, Input, OnChanges, inject } from '@angular/core'; 
 import { CommonModule } from '@angular/common';
 import { OverlayService } from '../../../services/overlay.service';
+import { FormsModule } from '@angular/forms';
+import { FirestoreService } from '../../../services/firestore.service';
 
 @Component({
   selector: 'app-channel-description',
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './channel-description.html',
   styleUrl: './channel-description.scss',
 })
-export class ChannelDescription {
+export class ChannelDescription implements OnChanges {
   private readonly overlayService = inject(OverlayService);
+  private readonly firestoreService = inject(FirestoreService);
 
+  @Input() channelId?: string;
   @Input() title = '';
   @Input() description = '';
   @Input() createdBy = 'Team-Admins';
   @Input() createdAt = 'Gerade eben';
 
+
+  protected editableTitle = '';
+  protected editableDescription = '';
+  protected isEditingTitle = false;
+  protected isEditingDescription = false;
+  protected isSavingTitle = false;
+  protected isSavingDescription = false;
+  protected errorMessage = '';
+
+  ngOnChanges(): void {
+    this.editableTitle = this.title;
+    this.editableDescription = this.description;
+  }
+
   protected closeOverlay(): void {
     this.overlayService.closeLast();
+  }
+
+  protected startEditTitle(): void {
+    this.isEditingTitle = true;
+    this.errorMessage = '';
+  }
+
+  protected startEditDescription(): void {
+    this.isEditingDescription = true;
+    this.errorMessage = '';
+  }
+
+  protected async saveTitle(): Promise<void> {
+    if (!this.channelId || this.isSavingTitle) {
+      return;
+    }
+
+    const trimmedTitle = this.editableTitle.trim();
+    if (!trimmedTitle || trimmedTitle === this.title.trim()) {
+      this.isEditingTitle = false;
+      this.editableTitle = this.title;
+      return;
+    }
+
+    this.isSavingTitle = true;
+    this.errorMessage = '';
+
+    try {
+      await this.firestoreService.updateChannel(this.channelId, {
+        title: trimmedTitle,
+      });
+
+      this.title = trimmedTitle;
+      this.editableTitle = trimmedTitle;
+      this.isEditingTitle = false;
+    } catch (error) {
+      console.error('Fehler beim Aktualisieren des Channel-Namens', error);
+      this.errorMessage = 'Channel-Änderungen konnten nicht gespeichert werden.';
+    } finally {
+      this.isSavingTitle = false;
+    }
+  }
+
+  protected async saveDescription(): Promise<void> {
+    if (!this.channelId || this.isSavingDescription) {
+      return;
+    }
+
+    const trimmedDescription = this.editableDescription.trim();
+    if (trimmedDescription === this.description.trim()) {
+      this.isEditingDescription = false;
+      this.editableDescription = this.description;
+      return;
+    }
+
+    this.isSavingDescription = true;
+    this.errorMessage = '';
+
+    try {
+      await this.firestoreService.updateChannel(this.channelId, {
+        description: trimmedDescription,
+      });
+
+      this.description = trimmedDescription;
+      this.editableDescription = trimmedDescription;
+      this.isEditingDescription = false;
+    } catch (error) {
+      console.error('Fehler beim Aktualisieren der Channel-Beschreibung', error);
+      this.errorMessage = 'Channel-Änderungen konnten nicht gespeichert werden.';
+    } finally {
+      this.isSavingDescription = false;
+    }
   }
 }

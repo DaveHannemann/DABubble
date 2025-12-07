@@ -235,17 +235,21 @@ export class ChannelComponent {
   protected openChannelDescription(event: Event): void {
     const target = event.currentTarget as HTMLElement | null;
 
-    combineLatest([this.channelTitle$, this.channelDescription$])
-      .pipe(take(1))
-      .subscribe(([title, description]) => {
-        this.overlayService.open(ChannelDescription, {
-          target: target ?? undefined,
-          offsetY: 8,
-          data: {
-            title,
-            description,
-          },
-        });
+    this.channel$.pipe(take(1)).subscribe((channel) => {
+      const resolvedChannel = channel ?? {
+        title: this.channelDefaults.name,
+        description: this.channelDefaults.summary,
+      };
+
+      this.overlayService.open(ChannelDescription, {
+        target: target ?? undefined,
+        offsetY: 8,
+        data: {
+          channelId: resolvedChannel.id,
+          title: resolvedChannel.title ?? this.channelDefaults.name,
+          description: resolvedChannel.description ?? this.channelDefaults.summary,
+        },
       });
+    });
   }
 }

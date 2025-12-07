@@ -5,7 +5,9 @@ import {
   addDoc,
   collection,
   collectionData,
+  doc,
   serverTimestamp,
+  updateDoc,
 } from '@angular/fire/firestore';
 import { Observable, map } from 'rxjs';
 
@@ -125,5 +127,26 @@ export class FirestoreService {
 
     const channelsCollection = collection(this.firestore, 'channels');
     await addDoc(channelsCollection, channelPayload);
+  }
+  async updateChannel(
+    channelId: string,
+    payload: Partial<Pick<Channel, 'title' | 'description'>>
+  ): Promise<void> {
+    const updates: Record<string, unknown> = {};
+
+    if (payload.title !== undefined) {
+      updates['title'] = payload.title.trim();
+    }
+
+    if (payload.description !== undefined) {
+      updates['description'] = payload.description.trim();
+    }
+
+    if (!Object.keys(updates).length) {
+      return;
+    }
+
+    const channelDoc = doc(this.firestore, `channels/${channelId}`);
+    await updateDoc(channelDoc, updates);
   }
 }
