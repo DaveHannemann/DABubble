@@ -1,1 +1,18 @@
-.mat-sidenav {}
+.workspace_button{
+    transform: rotate(270deg);
+    width: max-content;
+    background-color: red;
+    padding: 12px 20px;
+    &:hover{
+        color: yellowgreen;
+        cursor: pointer;
+    }
+}
+
+.open_workspace{
+    transform: rotate(90deg);
+}
+
+.close_workspace{
+    transform: rotate(270deg);
+}

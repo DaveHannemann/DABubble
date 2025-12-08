@@ -80,7 +80,7 @@ export class Signup {
       await this.userService.createUserDocument(userCredential.user, {
         name: this.name,
         photoUrl: photoUrl,
-        onlineStatus: true,
+        // onlineStatus: true,
       });
 
       await this.authenticationService.sendEmailVerificationLink(userCredential.user);

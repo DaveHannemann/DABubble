@@ -1,12 +1,33 @@
-<section class="pl-[calc((100%-1440px)/2)] pr-[calc((100%-1440px)/2)]">
+<section class="relative pr-[calc((100%-1440px)/2)] pl-[calc((100%-1440px)/2)]">
   <app-navbar></app-navbar>
 
-  <mat-sidenav-container class="h-[calc(100vh-124px)]">
-    <mat-sidenav opened mode="side"><app-workspace></app-workspace></mat-sidenav>
+  <mat-sidenav-container class="relative h-[calc(100vh-124px)]">
+    <mat-sidenav #leftSidenav opened mode="side"><app-workspace></app-workspace></mat-sidenav>
     <mat-sidenav opened mode="side" position="end"><app-thread></app-thread></mat-sidenav>
 
-     <!-- <app-workspace></app-workspace> -->
+    <!-- <app-workspace></app-workspace> -->
     <!-- <app-messages></app-messages>  -->
-        <app-channel></app-channel>
+    <app-channel></app-channel>
   </mat-sidenav-container>
+  <div 
+  class="absolute"
+  *ngIf="leftSidenav.opened"
+>
+  <button class="workspace_button absolute bottom-64 -left-28 z-10 flex items-center gap-3"
+          (click)="leftSidenav.close()">
+    Workspace-Menü schließen
+    <mat-icon class="close_workspace">slideshow</mat-icon>
+  </button>
+</div>
+
+<div 
+  class="absolute"
+  *ngIf="!leftSidenav.opened"
+>
+  <button class="workspace_button absolute bottom-64 -left-25 z-10 flex items-center gap-3"
+          (click)="leftSidenav.open()">
+    Workspace-Menü öffnen
+    <mat-icon class="open_workspace">slideshow</mat-icon>
+  </button>
+</div>
 </section>
