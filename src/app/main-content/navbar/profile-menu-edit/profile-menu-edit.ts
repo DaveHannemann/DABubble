@@ -3,10 +3,13 @@ import { MatIcon } from '@angular/material/icon';
 import { OverlayService } from '../../../services/overlay.service';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { CommonModule } from '@angular/common';
+import { UserService } from '../../../services/user.service';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-profile-menu-edit',
-  imports: [MatIcon, CommonModule],
+  standalone: true,
+  imports: [MatIcon, CommonModule, FormsModule],
   templateUrl: './profile-menu-edit.html',
   styleUrl: './profile-menu-edit.scss',
   animations: [
@@ -17,6 +20,10 @@ import { CommonModule } from '@angular/common';
 })
 export class ProfileMenuEdit {
   private overlayService = inject(OverlayService);
+  private userService = inject(UserService);
+
+  newName: string = '';
+  currentUser = this.userService.currentUser;
   visible = true;
 
   onAnimationDone(event: any) {
@@ -30,6 +37,20 @@ export class ProfileMenuEdit {
   }
 
   updateName() {
-    console.log('Name updated');
+    const trimmed = this.newName.trim();
+    if (!trimmed) return;
+
+    this.userService
+      .updateUser({ name: trimmed })
+      .then(() => {
+        console.log('Name aktualisiert');
+        this.closeOverlay();
+      })
+      .catch((err) => console.error(err));
+  }
+
+  get canEditName(): boolean {
+    const user = this.currentUser();
+    return !!user && !!user.email;
   }
 }

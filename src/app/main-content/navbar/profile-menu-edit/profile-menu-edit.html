@@ -7,16 +7,23 @@
     <h2>Dein Profil bearbeiten</h2>
     <mat-icon class="close" (click)="closeOverlay()">close</mat-icon>
   </div>
-  <img class="size-40 rounded-full" src="/imgs/m1.png" alt="" />
+  <img class="size-40 rounded-full" [src]="currentUser()?.photoUrl || 'imgs/default-profile-picture.png'" alt="" />
   <div class="flex w-full flex-col px-6">
     <div class="flex items-center gap-4">
       <img src="imgs/direktnachrichten img.svg" alt="" />
       <h4>Vollständiger Name</h4>
     </div>
-    <input class="rounded-full text-gray-500" type="text" placeholder="Max Mustermann" />
+    <input
+      class="rounded-full text-gray-500"
+      type="text"
+      [(ngModel)]="newName"
+      placeholder="{{ currentUser()?.name || 'Gast' }}"
+      [disabled]="!canEditName"
+      [class.input-disabled]="!canEditName" />
+    <span *ngIf="!canEditName" class="text-xs text-red-400">Nur für registrierte User möglich!</span>
   </div>
   <div class="flex items-center gap-10 pt-6">
     <button class="cancel rounded-full" (click)="closeOverlay()">Abbrechen</button>
-    <button class="update rounded-full" (click)="updateName()">Speichern</button>
+    <button class="update rounded-full" (click)="updateName()" [disabled]="!canEditName">Speichern</button>
   </div>
 </section>

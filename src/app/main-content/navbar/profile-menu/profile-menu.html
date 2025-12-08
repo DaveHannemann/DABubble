@@ -7,10 +7,10 @@
     <h2>Profil</h2>
     <mat-icon class="close" (click)="closeOverlay()">close</mat-icon>
   </div>
-  <img class="size-40 rounded-full" src="/imgs/m1.png" alt="" />
+  <img class="size-40 rounded-full" [src]="currentUser()?.photoUrl || 'imgs/default-profile-picture.png'"/>
   <div class="flex w-full flex-col gap-2 px-6">
     <div class="flex items-center justify-between">
-      <h3>Max Mustermann</h3>
+      <h3>{{ currentUser()?.name || 'Gast' }}</h3>
       <span class="edit" (click)="editProfile()">Bearbeiten</span>
     </div>
     <div class="flex items-center gap-2">
@@ -22,7 +22,7 @@
     <mat-icon>mail_outline</mat-icon>
     <div class="flex flex-col gap-4">
       <h4>E-Mail-Adresse</h4>
-      <p class="mail">Max@Mustermann.de</p>
+      <p class="mail">{{ currentUser()?.email || 'Hello@Gast.de' }}</p>
     </div>
   </div>
 </section>
