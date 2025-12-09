@@ -13,7 +13,7 @@
   class="absolute"
   *ngIf="leftSidenav.opened"
 >
-  <button class="workspace_button absolute bottom-64 -left-28 z-10 flex items-center gap-3"
+  <button class="workspace_button open absolute bottom-64 drop-shadow-lg rounded-b-xl z-10 flex items-center gap-3"
           (click)="leftSidenav.close()">
     Workspace-Menü schließen
     <mat-icon class="close_workspace">slideshow</mat-icon>
@@ -24,7 +24,7 @@
   class="absolute"
   *ngIf="!leftSidenav.opened"
 >
-  <button class="workspace_button absolute bottom-64 -left-25 z-10 flex items-center gap-3"
+  <button class="workspace_button close absolute bottom-64 drop-shadow-lg rounded-b-xl z-10 flex items-center gap-3"
           (click)="leftSidenav.open()">
     Workspace-Menü öffnen
     <mat-icon class="open_workspace">slideshow</mat-icon>

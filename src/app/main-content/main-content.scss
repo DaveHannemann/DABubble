@@ -1,10 +1,10 @@
 .workspace_button{
     transform: rotate(270deg);
     width: max-content;
-    background-color: red;
     padding: 12px 20px;
+    background-color: white;
     &:hover{
-        color: yellowgreen;
+        color: #535AF1;
         cursor: pointer;
     }
 }
@@ -15,4 +15,12 @@
 
 .close_workspace{
     transform: rotate(270deg);
+}
+
+.open{
+    left: -115px;
+}
+
+.close{
+    left: -103px;
 }
