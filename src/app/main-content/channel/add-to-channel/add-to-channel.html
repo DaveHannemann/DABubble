@@ -18,12 +18,31 @@
     <span># {{ channelTitle }}</span>
   </div>
 
-  <div class="add-to-channel__search" (focusin)="onSearchFocus()">
+  <form class="add-to-channel__search" (focusin)="onSearchFocus()" (ngSubmit)="addSelectedMembers()">
     <label class="add-to-channel__label" for="add-to-channel-search">Mitglieder hinzufügen</label>
     <div class="add-to-channel__field">
       <mat-icon>add_circle</mat-icon>
-      <input id="add-to-channel-search" type="text" placeholder="Name eingeben" aria-label="Mitglied suchen" />
+      <input
+        id="add-to-channel-search"
+        type="text"
+        placeholder="Name eingeben"
+        aria-label="Mitglied suchen"
+        name="memberSearch"
+        [(ngModel)]="searchTerm"
+        (ngModelChange)="onSearch($event)"
+        (focus)="onSearchFocus()" />
     </div>
+
+    <div *ngIf="selectedMembers.length" class="add-to-channel__chips" aria-live="polite">
+      <div *ngFor="let member of selectedMembers" class="add-to-channel__chip">
+        <img [src]="member.avatar" [alt]="member.name" />
+        <span>{{ member.name }}</span>
+        <button type="button" aria-label="{{ member.name }} entfernen" (click)="removeSelectedMember(member.id)">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+    </div>
+
     <div class="add-to-channel__dropdown" *ngIf="showSuggestions">
       <div *ngIf="filteredMembers.length === 0" class="add-to-channel__empty">
         Alle Mitglieder sind bereits im Channel.
@@ -33,6 +52,7 @@
         type="button"
         *ngFor="let member of filteredMembers"
         class="add-to-channel__option"
+        (click)="selectMember(member)"
         aria-label="{{ member.name }} zum Channel hinzufügen">
         <img [src]="member.avatar" [alt]="member.name" />
         <div class="add-to-channel__option-meta">
@@ -42,5 +62,20 @@
         <span *ngIf="member.status === 'online'" class="add-to-channel__status" aria-label="Online"></span>
       </button>
     </div>
-  </div>
+
+    <p *ngIf="saveError" class="add-to-channel__error" role="alert">{{ saveError }}</p>
+
+    <footer class="add-to-channel__actions">
+      <button type="button" class="add-to-channel__cancel" (click)="closeOverlay()">Abbrechen</button>
+      <button
+        type="submit"
+        class="add-to-channel__confirm"
+        [disabled]="!selectedMembers.length || isSaving">
+        <ng-container *ngIf="!isSaving; else saving">
+          Hinzufügen
+        </ng-container>
+        <ng-template #saving>Wird hinzugefügt...</ng-template>
+      </button>
+    </footer>
+  </form>
 </section>

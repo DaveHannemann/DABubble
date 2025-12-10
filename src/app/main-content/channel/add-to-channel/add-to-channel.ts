@@ -6,6 +6,7 @@ import { animate, style, transition, trigger } from '@angular/animations';
 import { FormsModule } from '@angular/forms';
 import { UserService } from '../../../services/user.service';
 import { take } from 'rxjs';
+import { FirestoreService } from '../../../services/firestore.service';
 
 type ChannelMember = {
   id: string;
@@ -41,7 +42,9 @@ type SuggestedMember = {
 export class AddToChannel implements OnInit {
   private readonly overlayService = inject(OverlayService);
   private readonly userService = inject(UserService);
+  private readonly firestoreService = inject(FirestoreService);
 
+  @Input() channelId?: string;
   @Input() channelTitle = 'Entwicklerteam';
   @Input() members: ChannelMember[] = [];
 
@@ -50,6 +53,9 @@ export class AddToChannel implements OnInit {
   protected showSuggestions = false;
   protected suggestedMembers: SuggestedMember[] = [];
   protected filteredMembers: SuggestedMember[] = [];
+  protected selectedMembers: SuggestedMember[] = [];
+  protected isSaving = false;
+  protected saveError?: string;
 
   ngOnInit(): void {
     this.userService
@@ -84,11 +90,65 @@ export class AddToChannel implements OnInit {
     const search = term.trim().toLowerCase();
 
     if (!search) {
-      return [...this.suggestedMembers];
+      return this.suggestedMembers.filter(
+        (member) => !this.isAlreadySelected(member.id)
+      );
     }
 
     return this.suggestedMembers.filter((member) =>
-      member.name.toLowerCase().includes(search)
+      member.name.toLowerCase().includes(search) &&
+      !this.isAlreadySelected(member.id)
+    );
+  }
+
+  protected selectMember(member: SuggestedMember): void {
+    if (this.isAlreadySelected(member.id)) return;
+
+    this.selectedMembers = [...this.selectedMembers, member];
+    this.searchTerm = '';
+    this.showSuggestions = false;
+    this.filteredMembers = this.filterMembers('');
+    this.saveError = undefined;
+  }
+
+  protected removeSelectedMember(memberId: string): void {
+    this.selectedMembers = this.selectedMembers.filter(
+      (member) => member.id !== memberId
+    );
+    this.filteredMembers = this.filterMembers(this.searchTerm);
+  }
+
+  protected async addSelectedMembers(): Promise<void> {
+    if (!this.channelId || !this.selectedMembers.length) return;
+
+    this.isSaving = true;
+    this.saveError = undefined;
+
+    try {
+      await Promise.all(
+        this.selectedMembers.map((member) =>
+          this.firestoreService.upsertChannelMember(this.channelId!, {
+            id: member.id,
+            name: member.name,
+            avatar: member.avatar,
+            subtitle: member.subtitle,
+          })
+        )
+      );
+
+      this.closeOverlay();
+    } catch (error) {
+      console.error('Fehler beim Hinzufügen des Mitglieds', error);
+      this.saveError = 'Mitglied konnte nicht hinzugefügt werden.';
+    } finally {
+      this.isSaving = false;
+    }
+  }
+
+  private isAlreadySelected(memberId: string): boolean {
+    return (
+      this.selectedMembers.some((member) => member.id === memberId) ||
+      this.members.some((member) => member.id === memberId)
     );
   }
 

@@ -17,6 +17,7 @@ import {
   Channel,
   ChannelAttachment,
   ChannelMessage,
+  ChannelMember,
   FirestoreService,
 } from '../../services/firestore.service';
 import { OverlayService } from '../../services/overlay.service';
@@ -42,13 +43,8 @@ type ChannelMessageView = {
   tag?: string;
   attachment?: ChannelAttachment;
 };
-type ChannelMember = {
-  id: string;
-  name: string;
-  avatar: string;
-  subtitle?: string;
-  isCurrentUser?: boolean;
-};
+type ChannelMemberView = ChannelMember & { isCurrentUser?: boolean };
+
 @Component({
   selector: 'app-channel',
   standalone: true,
@@ -120,21 +116,28 @@ export class ChannelComponent {
     map((channel) => channel?.description ?? this.channelDefaults.summary)
   );
 
-  protected readonly members$: Observable<ChannelMember[]> = this.userService
-    .getAllUsers()
-    .pipe(
-      map((users) => {
-        const currentUserId = this.userService.currentUser()?.uid;
+  protected readonly members$: Observable<ChannelMemberView[]> = this.channel$.pipe(
+    switchMap((channel) => {
+      if (!channel?.id) {
+        return of<ChannelMemberView[]>([]);
+      }
 
-        return users.map((user) => ({
-          id: user.uid,
-          name: user.name,
-          avatar: user.photoUrl || 'imgs/users/placeholder.svg',
-          subtitle: user.email ?? undefined,
-          isCurrentUser: user.uid === currentUserId,
-        }));
-      })
-    );
+      return this.firestoreService.getChannelMembers(channel.id).pipe(
+        map((members) => {
+          const currentUserId = this.userService.currentUser()?.uid;
+
+          return members.map((member) => ({
+            id: member.id,
+            name: member.name,
+            avatar: member.avatar || 'imgs/users/placeholder.svg',
+            subtitle: member.subtitle,
+            isCurrentUser: member.id === currentUserId,
+          }));
+        })
+      );
+    }),
+    shareReplay({ bufferSize: 1, refCount: true })
+  );
   protected readonly messagesByDay$: Observable<ChannelDay[]> = this.channel$.pipe(
     switchMap((channel) => {
       if (!channel?.id) {
@@ -281,25 +284,26 @@ export class ChannelComponent {
   protected openChannelMembers(event: Event): void {
     const target = event.currentTarget as HTMLElement | null;
 
-    this.members$.pipe(take(1)).subscribe((members) => {
-      this.overlayService.open(ChannelMembers, {
-        target: target ?? undefined,
-        offsetY: 8,
-        data: { members },
+    combineLatest([this.channel$, this.channelTitle$, this.members$])
+      .pipe(take(1))
+      .subscribe(([channel, title, members]) => {
+        this.overlayService.open(ChannelMembers, {
+          target: target ?? undefined,
+          offsetY: 8,
+          data: { channelId: channel?.id, title, members },
+        });
       });
-    });
   }
 
   protected openAddToChannel(event: Event): void {
     const target = event.currentTarget as HTMLElement | null;
 
-    combineLatest([this.channelTitle$, this.members$])
-      .pipe(take(1))
-      .subscribe(([title, members]) => {
+    combineLatest([this.channel$, this.channelTitle$, this.members$]).pipe(take(1))
+      .subscribe(([channel, title, members]) => {
         this.overlayService.open(AddToChannel, {
           target: target ?? undefined,
           offsetY: 8,
-          data: { channelTitle: title, members },
+          data: { channelId: channel?.id, channelTitle: title, members },
         });
       });
   }

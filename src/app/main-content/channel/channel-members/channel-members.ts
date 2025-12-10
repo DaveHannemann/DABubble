@@ -36,6 +36,7 @@ export class ChannelMembers {
 
   @Input() members: ChannelMember[] = [];
   @Input() title = 'Mitglieder';
+  @Input() channelId?: string;
 
   protected visible = true;
 
@@ -55,7 +56,7 @@ export class ChannelMembers {
     this.overlayService.open(AddToChannel, {
       target: target ?? undefined,
       offsetY: 8,
-      data: { channelTitle: this.title, members: this.members },
+      data: { channelId: this.channelId, channelTitle: this.title, members: this.members },
     });
   }
 }

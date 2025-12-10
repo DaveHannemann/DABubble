@@ -25,6 +25,37 @@
   gap: 10px;
   margin-left: auto;
 }
+.channel__member-preview {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+}
+
+.channel__avatars {
+  display: inline-flex;
+}
+
+.channel__avatars img {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 2px solid #ffffff;
+  margin-left: -10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.channel__avatars img:first-child {
+  margin-left: 0;
+}
+
+.channel__member-count {
+  font-weight: 700;
+  color: #0f172a;
+}
 
 .channel__titles {
   display: flex;

@@ -167,3 +167,75 @@
   color: #475569;
   font-size: 14px;
 }
+
+.add-to-channel__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 4px 0 8px;
+}
+
+.add-to-channel__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #eef2ff;
+  border-radius: 16px;
+  padding: 6px 10px;
+  border: 1px solid #e0e7ff;
+}
+
+.add-to-channel__chip img {
+  width: 28px;
+  height: 28px;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+.add-to-channel__chip button {
+  border: none;
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #475569;
+}
+
+.add-to-channel__error {
+  margin: 6px 0 0;
+  color: #ef4444;
+  font-size: 14px;
+}
+
+.add-to-channel__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.add-to-channel__cancel,
+.add-to-channel__confirm {
+  border: none;
+  border-radius: 14px;
+  padding: 10px 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.add-to-channel__cancel {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.add-to-channel__confirm {
+  background: #4f46e5;
+  color: #ffffff;
+  min-width: 120px;
+}
+
+.add-to-channel__confirm:disabled {
+  background: #c7d2fe;
+  cursor: not-allowed;
+}

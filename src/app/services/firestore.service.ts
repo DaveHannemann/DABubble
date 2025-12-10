@@ -7,6 +7,7 @@ import {
   collectionData,
   doc,
   serverTimestamp,
+  setDoc,
   updateDoc,
 } from '@angular/fire/firestore';
 import { Observable, map } from 'rxjs';
@@ -42,6 +43,13 @@ export interface DirectMessage {
   photoUrl?: string | null;
 }
 
+export interface ChannelMember {
+  id: string;
+  name: string;
+  avatar: string;
+  subtitle?: string;
+  addedAt?: Timestamp;
+}
 @Injectable({ providedIn: 'root' })
 export class FirestoreService {
   private readonly firestore = inject(Firestore);
@@ -161,5 +169,40 @@ export class FirestoreService {
 
     const channelDoc = doc(this.firestore, `channels/${channelId}`);
     await updateDoc(channelDoc, updates);
+  }
+  getChannelMembers(channelId: string): Observable<ChannelMember[]> {
+    const membersCollection = collection(
+      this.firestore,
+      `channels/${channelId}/members`
+    );
+
+    return collectionData(membersCollection, { idField: 'id' }).pipe(
+      map((members) =>
+        (members as Array<Record<string, unknown>>).map((member) => ({
+          id: (member['id'] as string) ?? 'unbekannt',
+          name: (member['name'] as string) ?? 'Unbenannter Nutzer',
+          avatar:
+            (member['avatar'] as string) ?? 'imgs/users/placeholder.svg',
+          subtitle: member['subtitle'] as string | undefined,
+          addedAt: member['addedAt'] as Timestamp | undefined,
+        }))
+      )
+    );
+  }
+
+  async upsertChannelMember(
+    channelId: string,
+    member: Pick<ChannelMember, 'id' | 'name' | 'avatar' | 'subtitle'>
+  ): Promise<void> {
+    const memberDoc = doc(this.firestore, `channels/${channelId}/members/${member.id}`);
+
+    await setDoc(
+      memberDoc,
+      {
+        ...member,
+        addedAt: serverTimestamp(),
+      },
+      { merge: true }
+    );
   }
 }
