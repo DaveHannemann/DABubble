@@ -6,6 +6,7 @@ import {
   collection,
   collectionData,
   doc,
+  docData,
   serverTimestamp,
   setDoc,
   updateDoc,
@@ -13,7 +14,7 @@ import {
   orderBy,
   query,
 } from '@angular/fire/firestore';
-import { Observable, map } from 'rxjs';
+import { Observable, catchError, map, of } from 'rxjs';
 
 export interface Channel {
   id?: string;
@@ -37,6 +38,14 @@ export interface ThreadReply {
   isOwn?: boolean;
 }
 
+export interface ThreadDocument {
+  id?: string;
+  channelTitle?: string;
+  author?: string;
+  avatar?: string;
+  text?: string;
+  createdAt?: Timestamp;
+}
 
 export interface ChannelMessage {
   id?: string;
@@ -63,9 +72,14 @@ export interface ChannelMember {
   subtitle?: string;
   addedAt?: Timestamp;
 }
+
 @Injectable({ providedIn: 'root' })
 export class FirestoreService {
   private readonly firestore = inject(Firestore);
+
+  // Feste Dokument-ID für die Thread-Metadaten, damit der Pfad eine gerade Segmentzahl hat:
+  // channels/{channelId}/messages/{messageId}/thread/{THREAD_DOC_ID}
+  private static readonly THREAD_DOC_ID = 'meta';
 
   getChannels(): Observable<Channel[]> {
     const channelsCollection = collection(this.firestore, 'channels');
@@ -91,13 +105,14 @@ export class FirestoreService {
             'imgs/users/Property 1=Frederik Beck.svg',
           createdAt: message['createdAt'] as Timestamp,
           text: (message['text'] as string) ?? '',
-          replies: message['replies'] as number,
+          replies: (message['replies'] as number) ?? 0,
           tag: message['tag'] as string,
           attachment: message['attachment'] as ChannelAttachment,
         }))
       )
     );
   }
+
   async addChannelMessage(
     channelId: string,
     message: Partial<ChannelMessage> &
@@ -162,6 +177,7 @@ export class FirestoreService {
     const channelsCollection = collection(this.firestore, 'channels');
     await addDoc(channelsCollection, channelPayload);
   }
+
   async updateChannel(
     channelId: string,
     payload: Partial<Pick<Channel, 'title' | 'description'>>
@@ -183,6 +199,7 @@ export class FirestoreService {
     const channelDoc = doc(this.firestore, `channels/${channelId}`);
     await updateDoc(channelDoc, updates);
   }
+
   getChannelMembers(channelId: string): Observable<ChannelMember[]> {
     const membersCollection = collection(
       this.firestore,
@@ -207,7 +224,10 @@ export class FirestoreService {
     channelId: string,
     member: Pick<ChannelMember, 'id' | 'name' | 'avatar' | 'subtitle'>
   ): Promise<void> {
-    const memberDoc = doc(this.firestore, `channels/${channelId}/members/${member.id}`);
+    const memberDoc = doc(
+      this.firestore,
+      `channels/${channelId}/members/${member.id}`
+    );
 
     await setDoc(
       memberDoc,
@@ -234,9 +254,9 @@ export class FirestoreService {
       map((replies) =>
         (replies as Array<Record<string, unknown>>).map((reply) => ({
           id: reply['id'] as string,
-          author: reply['author'] as string,
-          avatar: reply['avatar'] as string,
-          text: reply['text'] as string,
+          author: (reply['author'] as string) ?? 'Unbekannter Nutzer',
+          avatar: (reply['avatar'] as string) ?? 'imgs/users/placeholder.svg',
+          text: (reply['text'] as string) ?? '',
           createdAt: reply['createdAt'] as Timestamp,
           isOwn: reply['isOwn'] as boolean,
         }))
@@ -267,5 +287,40 @@ export class FirestoreService {
     await updateDoc(messageDoc, {
       replies: increment(1),
     });
+  }
+
+  async saveThread(
+    channelId: string,
+    messageId: string,
+    payload: Pick<ThreadDocument, 'channelTitle' | 'author' | 'avatar' | 'text'>
+  ): Promise<void> {
+    const threadDoc = doc(
+      this.firestore,
+      `channels/${channelId}/messages/${messageId}/thread/${FirestoreService.THREAD_DOC_ID}`
+    );
+
+    await setDoc(
+      threadDoc,
+      {
+        ...payload,
+        createdAt: serverTimestamp(),
+      },
+      { merge: true }
+    );
+  }
+
+  getThread(
+    channelId: string,
+    messageId: string
+  ): Observable<ThreadDocument | null> {
+    const threadDocRef = doc(
+      this.firestore,
+      `channels/${channelId}/messages/${messageId}/thread/${FirestoreService.THREAD_DOC_ID}`
+    );
+
+    return docData(threadDocRef, { idField: 'id' }).pipe(
+      map((data) => (data as ThreadDocument) ?? null),
+      catchError(() => of(null))
+    );
   }
 }

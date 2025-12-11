@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { Observable } from 'rxjs';
 import { ThreadContext, ThreadService } from '../../services/thread.service';
-
 @Component({
   selector: 'app-thread',
   standalone: true,
@@ -23,17 +22,22 @@ export class Thread {
   };
   protected draftReply = '';
 
-  protected sendReply(): void {
+  protected async sendReply(): Promise<void> {
     const trimmed = this.draftReply.trim();
     if (!trimmed) return;
 
-    this.threadService.addReply({
-      author: this.currentUser.name,
-      avatar: this.currentUser.avatar,
-      text: trimmed,
-      isOwn: true,
-    });
+    try {
+      await this.threadService.addReply({
+        author: this.currentUser.name,
+        avatar: this.currentUser.avatar,
+        text: trimmed,
+        isOwn: true,
+      });
 
-    this.draftReply = '';
+      this.draftReply = '';
+    } catch (error) {
+      console.error('Reply konnte nicht gespeichert werden', error);
+    }
+
   }
 }

@@ -1,6 +1,10 @@
 import { Injectable, inject } from '@angular/core';
-import { BehaviorSubject, Observable, map, of, switchMap } from 'rxjs';
-import { FirestoreService, ThreadReply as FirestoreThreadReply } from './firestore.service';
+import { BehaviorSubject, Observable, combineLatest, map, of, switchMap } from 'rxjs';
+import {
+    FirestoreService,
+    ThreadDocument,
+    ThreadReply as FirestoreThreadReply,
+} from './firestore.service';
 
 export interface ThreadMessage {
     id: string;
@@ -36,20 +40,23 @@ export class ThreadService {
         switchMap((context) => {
             if (!context?.channelId || !context.root.id) return of(null);
 
-            return this.firestoreService
-                .getThreadReplies(context.channelId, context.root.id)
-                .pipe(
-                    map((replies) => ({
-                        ...context,
-                        replies: replies.map((reply) => this.toThreadMessage(reply)),
-                    }))
-                );
+            return combineLatest([
+                this.firestoreService.getThread(context.channelId, context.root.id),
+                this.firestoreService.getThreadReplies(context.channelId, context.root.id),
+            ]).pipe(
+                map(([storedThread, replies]) => ({
+                    channelId: context.channelId,
+                    channelTitle: storedThread?.channelTitle ?? context.channelTitle,
+                    root: this.toRootMessage(context, storedThread),
+                    replies: replies.map((reply) => this.toThreadMessage(reply)),
+                }))
+            );
         })
     );
 
     openThread(source: ThreadSource): void {
         const id = this.generateId();
-        this.threadSubject.next({
+        const context: ThreadContext = {
             channelId: source.channelId,
             channelTitle: source.channelTitle,
             root: {
@@ -60,14 +67,23 @@ export class ThreadService {
                 text: source.text,
             },
             replies: [],
+        };
+
+        this.threadSubject.next(context);
+
+        void this.firestoreService.saveThread(context.channelId, context.root.id, {
+            channelTitle: context.channelTitle,
+            author: context.root.author,
+            avatar: context.root.avatar,
+            text: context.root.text,
         });
     }
 
-    addReply(reply: Omit<ThreadMessage, 'id' | 'timestamp'>): void {
+    async addReply(reply: Omit<ThreadMessage, 'id' | 'timestamp'>): Promise<void> {
         const current = this.threadSubject.value;
         if (!current?.root.id) return;
 
-        void this.firestoreService.addThreadReply(current.channelId, current.root.id, {
+        await this.firestoreService.addThreadReply(current.channelId, current.root.id, {
             ...reply,
         });
     }
@@ -76,6 +92,17 @@ export class ThreadService {
         this.threadSubject.next(null);
     }
 
+
+    private toRootMessage(context: ThreadContext, storedThread: ThreadDocument | null): ThreadMessage {
+        const createdAt = this.resolveTimestamp(storedThread);
+        return {
+            id: context.root.id,
+            author: storedThread?.author ?? context.root.author,
+            avatar: storedThread?.avatar ?? context.root.avatar,
+            timestamp: storedThread?.createdAt ? this.formatTime(createdAt) : context.root.timestamp,
+            text: storedThread?.text ?? context.root.text,
+        };
+    }
     private toThreadMessage(reply: FirestoreThreadReply): ThreadMessage {
         const createdAt = this.resolveTimestamp(reply);
         return {
@@ -88,8 +115,8 @@ export class ThreadService {
         };
     }
 
-    private resolveTimestamp(message: FirestoreThreadReply): Date {
-        if (message.createdAt && 'toDate' in message.createdAt) {
+    private resolveTimestamp(message: FirestoreThreadReply | ThreadDocument | null): Date {
+        if (message?.createdAt && 'toDate' in message.createdAt) {
             return (message.createdAt as unknown as { toDate: () => Date }).toDate();
         }
 
