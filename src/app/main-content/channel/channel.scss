@@ -292,13 +292,6 @@
   font-size: 13px;
 }
 
-.channel__tags {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
 .channel__pill {
   padding: 4px 10px;
   border-radius: 999px;
@@ -351,12 +344,6 @@
   text-decoration: none;
 }
 
-.channel__message-footer {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
 .channel__icon-button {
   width: 36px;
   height: 36px;
@@ -389,29 +376,6 @@
 .channel__icon-button--primary:hover {
   background: #e0e7ff;
 }
-
-.channel__reaction {
-  width: 32px;
-  height: 32px;
-  border-radius: 10px;
-  border: 1px solid #e2e8f0;
-  background: #fff;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
-
-.channel__reaction:hover {
-  background: #eef2ff;
-}
-
-.channel__reply-count {
-  margin-left: auto;
-  color: #2563eb;
-  font-weight: 600;
-}
-
 .channel__composer {
   display: grid;
   grid-template-columns: auto 1fr auto;

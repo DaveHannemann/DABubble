@@ -75,15 +75,6 @@
                       <strong>{{ message.author }}</strong>
                       <time>{{ message.time }}</time>
                     </div>
-                    <div class="channel__tags">
-                      <span *ngIf="message.tag" class="channel__pill">{{ message.tag }}</span>
-                      <button type="button" class="channel__icon-button" aria-label="Nachricht favorisieren">
-                        <mat-icon>favorite_border</mat-icon>
-                      </button>
-                      <button type="button" class="channel__icon-button" aria-label="Weitere Aktionen">
-                        <mat-icon>more_horiz</mat-icon>
-                      </button>
-                    </div>
                   </div>
                 </header>
                 <p class="channel__message-text">{{ message.text }}</p>
@@ -104,20 +95,7 @@
                   </div>
                 </ng-container>
 
-                <footer class="channel__message-footer">
-                  <button type="button" class="channel__reaction" aria-label="Smiley hinzufügen">
-                    <mat-icon>sentiment_satisfied</mat-icon>
-                  </button>
-                  <button
-                    type="button"
-                    class="channel__reaction"
-                    aria-label="Antwort schreiben"
-                    (click)="openThread(message)"></button>
-                  <button type="button" class="channel__reaction" aria-label="Link teilen">
-                    <mat-icon>link</mat-icon>
-                  </button>
-                  <span class="channel__reply-count" *ngIf="message.replies"> {{ message.replies }} Antworten </span>
-                </footer>
+               
               </div>
             </article>
           </ng-container>
