@@ -1,5 +1,10 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { Injectable, inject } from '@angular/core';
+import { BehaviorSubject, Observable, combineLatest, map, of, switchMap } from 'rxjs';
+import {
+    FirestoreService,
+    ThreadDocument,
+    ThreadReply as FirestoreThreadReply,
+} from './firestore.service';
 
 export interface ThreadMessage {
     id: string;
@@ -11,12 +16,16 @@ export interface ThreadMessage {
 }
 
 export interface ThreadContext {
+    channelId: string;
+    channelTitle: string;
     root: ThreadMessage;
     replies: ThreadMessage[];
 }
 
 export interface ThreadSource {
     id?: string;
+    channelId: string;
+    channelTitle: string;
     author: string;
     avatar: string;
     time: string;
@@ -25,14 +34,31 @@ export interface ThreadSource {
 
 @Injectable({ providedIn: 'root' })
 export class ThreadService {
+    private readonly firestoreService = inject(FirestoreService);
     private readonly threadSubject = new BehaviorSubject<ThreadContext | null>(null);
-    readonly thread$ = this.threadSubject.asObservable();
+    readonly thread$: Observable<ThreadContext | null> = this.threadSubject.pipe(
+        switchMap((context) => {
+            if (!context?.channelId || !context.root.id) return of(null);
 
-
+            return combineLatest([
+                this.firestoreService.getThread(context.channelId, context.root.id),
+                this.firestoreService.getThreadReplies(context.channelId, context.root.id),
+            ]).pipe(
+                map(([storedThread, replies]) => ({
+                    channelId: context.channelId,
+                    channelTitle: storedThread?.channelTitle ?? context.channelTitle,
+                    root: this.toRootMessage(context, storedThread),
+                    replies: replies.map((reply) => this.toThreadMessage(reply)),
+                }))
+            );
+        })
+    );
 
     openThread(source: ThreadSource): void {
         const id = this.generateId();
-        const thread: ThreadContext = {
+        const context: ThreadContext = {
+            channelId: source.channelId,
+            channelTitle: source.channelTitle,
             root: {
                 id: source.id ?? id,
                 author: source.author,
@@ -43,30 +69,67 @@ export class ThreadService {
             replies: [],
         };
 
-        this.threadSubject.next(thread);
+        this.threadSubject.next(context);
+
+        void this.firestoreService.saveThread(context.channelId, context.root.id, {
+            channelTitle: context.channelTitle,
+            author: context.root.author,
+            avatar: context.root.avatar,
+            text: context.root.text,
+        });
     }
 
-    addReply(reply: Omit<ThreadMessage, 'id' | 'timestamp'>): void {
+    async addReply(reply: Omit<ThreadMessage, 'id' | 'timestamp'>): Promise<void> {
         const current = this.threadSubject.value;
-        if (!current) return;
+        if (!current?.root.id) return;
 
-        const timestamp = new Date();
+        await this.firestoreService.addThreadReply(current.channelId, current.root.id, {
+            ...reply,
+        });
+    }
+
+    reset(): void {
+        this.threadSubject.next(null);
+    }
+
+
+    private toRootMessage(context: ThreadContext, storedThread: ThreadDocument | null): ThreadMessage {
+        const createdAt = this.resolveTimestamp(storedThread);
+        return {
+            id: context.root.id,
+            author: storedThread?.author ?? context.root.author,
+            avatar: storedThread?.avatar ?? context.root.avatar,
+            timestamp: storedThread?.createdAt ? this.formatTime(createdAt) : context.root.timestamp,
+            text: storedThread?.text ?? context.root.text,
+        };
+    }
+    private toThreadMessage(reply: FirestoreThreadReply): ThreadMessage {
+        const createdAt = this.resolveTimestamp(reply);
+        return {
+            id: reply.id ?? this.generateId(),
+            author: reply.author ?? 'Unbekannter Nutzer',
+            avatar: reply.avatar ?? 'imgs/users/placeholder.svg',
+            timestamp: this.formatTime(createdAt),
+            text: reply.text ?? '',
+            isOwn: reply.isOwn,
+        };
+    }
+
+    private resolveTimestamp(message: FirestoreThreadReply | ThreadDocument | null): Date {
+        if (message?.createdAt && 'toDate' in message.createdAt) {
+            return (message.createdAt as unknown as { toDate: () => Date }).toDate();
+        }
+
+        return new Date();
+    }
+
+    private formatTime(date: Date): string {
         const formatter = new Intl.DateTimeFormat('de-DE', {
             hour: '2-digit',
             minute: '2-digit',
         });
 
-        const nextReply: ThreadMessage = {
-            ...reply,
-            id: this.generateId(),
-            timestamp: formatter.format(timestamp),
-        };
-
-        this.threadSubject.next({ ...current, replies: [...current.replies, nextReply] });
-    }
-
-    reset(): void {
-        this.threadSubject.next(null);
+        return formatter.format(date);
     }
 
     private generateId(): string {

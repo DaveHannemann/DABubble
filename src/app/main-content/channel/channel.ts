@@ -74,10 +74,14 @@ export class ChannelComponent {
     'imgs/users/Property 1=Elias Neumann.svg',
   ];
 
-  protected readonly currentUser = {
-    name: 'Du',
-    avatar: this.memberAvatars[0] ?? 'imgs/users/placeholder.svg',
-  };
+  protected get currentUser() {
+    const user = this.userService.currentUser();
+
+    return {
+      name: user?.name ?? 'Gast',
+      avatar: user?.photoUrl ?? 'imgs/default-profile-picture.png',
+    };
+  }
   private readonly channels$ = this.firestoreService
     .getChannels()
     .pipe(shareReplay({ bufferSize: 1, refCount: true }));
@@ -285,12 +289,18 @@ export class ChannelComponent {
     });
   }
   protected openThread(message: ChannelMessageView): void {
-    this.threadService.openThread({
-      id: message.id,
-      author: message.author,
-      avatar: message.avatar,
-      time: message.time,
-      text: message.text,
+    this.channel$.pipe(take(1)).subscribe((channel) => {
+      if (!channel?.id || !message.id) return;
+
+      this.threadService.openThread({
+        id: message.id,
+        channelId: channel.id,
+        channelTitle: channel.title ?? this.channelDefaults.name,
+        author: message.author,
+        avatar: message.avatar,
+        time: message.time,
+        text: message.text,
+      });
     });
   }
 

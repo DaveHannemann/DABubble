@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { Observable } from 'rxjs';
 import { ThreadContext, ThreadService } from '../../services/thread.service';
+import { UserService } from '../../services/user.service';
 
 @Component({
   selector: 'app-thread',
@@ -14,27 +15,36 @@ import { ThreadContext, ThreadService } from '../../services/thread.service';
 })
 export class Thread {
   private readonly threadService = inject(ThreadService);
+  private readonly userService = inject(UserService);
   protected readonly thread$: Observable<ThreadContext | null> =
     this.threadService.thread$;
 
-  protected readonly currentUser = {
-    name: 'Frederik Beck',
-    avatar: 'imgs/users/Property 1=Frederik Beck.svg',
-  };
-  protected readonly activeChannelTitle = '# Entwicklerteam';
+  protected get currentUser() {
+    const user = this.userService.currentUser();
+
+    return {
+      name: user?.name ?? 'Gast',
+      avatar: user?.photoUrl ?? 'imgs/default-profile-picture.png',
+    };
+  }
   protected draftReply = '';
 
-  protected sendReply(): void {
+  protected async sendReply(): Promise<void> {
     const trimmed = this.draftReply.trim();
     if (!trimmed) return;
 
-    this.threadService.addReply({
-      author: this.currentUser.name,
-      avatar: this.currentUser.avatar,
-      text: trimmed,
-      isOwn: true,
-    });
+    try {
+      await this.threadService.addReply({
+        author: this.currentUser.name,
+        avatar: this.currentUser.avatar,
+        text: trimmed,
+        isOwn: true,
+      });
 
-    this.draftReply = '';
+      this.draftReply = '';
+    } catch (error) {
+      console.error('Reply konnte nicht gespeichert werden', error);
+    }
+
   }
 }
