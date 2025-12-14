@@ -1,12 +1,68 @@
-<div class="absolute right-0 left-0 z-50 max-h-80 overflow-y-auto bg-white shadow-xl">
-  <ng-container *ngIf="results.length; else noResults">
-    <div *ngFor="let item of results" (click)="choose(item)" class="flex items-center cursor-pointer px-4 py-3 hover:bg-gray-100">
-      <img [src]="item.photoUrl" alt="" />
-      {{ item.name }}
-    </div>
+<div class="absolute right-0 left-12 z-50 max-h-80 max-w-90 overflow-y-auto bg-white shadow-xl">
+  <ng-container *ngIf="isUserSearch">
+    <ng-container *ngIf="users.length; else noUsers">
+      <div class="px-10 py-2">
+        <div
+          *ngFor="let user of users"
+          (click)="choose(user)"
+          class="filter-bg flex cursor-pointer items-center px-2 py-3">
+          <img class="mr-3 h-8 w-8 rounded-full" [src]="user.data.photoUrl || 'imgs/default-profile-picture.png'" />
+
+          {{ user.data.name }}
+        </div>
+      </div>
+    </ng-container>
+
+    <ng-template #noUsers>
+      <div class="px-4 py-3 text-gray-400">Diesen User gibt es leider nicht.</div>
+    </ng-template>
   </ng-container>
 
-  <ng-template #noResults>
-    <div class="px-4 py-3 text-gray-400">Keine Ergebnisse</div>
-  </ng-template>
+  <ng-container *ngIf="isChannelSearch">
+    <ng-container *ngIf="channels.length; else noChannels">
+      <div class="px-10 py-2">
+        <div
+          *ngFor="let channel of channels"
+          (click)="choose(channel)"
+          class="filter-bg flex cursor-pointer items-center gap-2 px-6 py-3">
+          <span>#</span><span>{{ channel.data.title }}</span>
+        </div>
+      </div>
+    </ng-container>
+
+    <ng-template #noChannels>
+      <div class="px-4 py-3 text-gray-400">Diesen Channel gibt es leider nicht. Erstelle ihn doch einfach!</div>
+    </ng-template>
+  </ng-container>
+
+  <ng-container *ngIf="!isUserSearch && !isChannelSearch">
+    <ng-container *ngIf="users.length">
+      <div class="px-10 py-2">
+        <div class="px-4 text-sm font-semibold">User</div>
+        <div
+          *ngFor="let user of users"
+          (click)="choose(user)"
+          class="filter-bg flex cursor-pointer items-center px-4 py-3">
+          <img class="mr-3 h-8 w-8 rounded-full" [src]="user.data.photoUrl" />
+          {{ user.data.name }}
+        </div>
+      </div>
+    </ng-container>
+
+    <ng-container *ngIf="channels.length">
+      <div class="px-10 py-2">
+        <div class="px-4 text-xs font-semibold">Channels</div>
+        <div
+          *ngFor="let channel of channels"
+          (click)="choose(channel)"
+          class="filter-bg flex cursor-pointer items-center gap-2 px-4 py-3">
+          <span>#</span><span>{{ channel.data.title }}</span>
+        </div>
+      </div>
+    </ng-container>
+
+    <ng-container *ngIf="!users.length && !channels.length">
+      <div class="px-4 py-3">Keine Ergebnisse</div>
+    </ng-container>
+  </ng-container>
 </div>

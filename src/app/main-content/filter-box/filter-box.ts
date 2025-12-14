@@ -30,4 +30,24 @@ export class FilterBox implements OnChanges {
     this.selectItem.emit(item);
     this.close.emit();
   }
+
+  get users() {
+    return this.results.filter((r) => r.collection === 'users');
+  }
+
+  get channels() {
+    return this.results.filter((r) => r.collection === 'channels');
+  }
+
+  get isUserSearch(): boolean {
+    return this.searchTerm.startsWith('@');
+  }
+
+  get isChannelSearch(): boolean {
+    return this.searchTerm.startsWith('#');
+  }
+
+  get hasResults(): boolean {
+    return this.results.length > 0;
+  }
 }

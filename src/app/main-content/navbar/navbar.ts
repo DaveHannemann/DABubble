@@ -8,10 +8,20 @@ import { UserService } from '../../services/user.service';
 import { CommonModule } from '@angular/common';
 import { FilterBox } from '../filter-box/filter-box';
 import { FormsModule } from '@angular/forms';
+import { ClickOutsideDirective } from '../../classes/click-outside.class';
 
 @Component({
   selector: 'app-navbar',
-  imports: [MatFormFieldModule, MatInputModule, MatIconModule, CommonModule, FilterBox, FormsModule],
+  standalone: true,
+  imports: [
+    MatFormFieldModule,
+    MatInputModule,
+    MatIconModule,
+    CommonModule,
+    FilterBox,
+    FormsModule,
+    ClickOutsideDirective,
+  ],
   templateUrl: './navbar.html',
   styleUrls: ['./navbar.scss'],
 })
@@ -28,8 +38,10 @@ export class Navbar {
     const value = (event.target as HTMLInputElement).value;
     this.searchTerm = value;
 
-    this.dropdownOpen = value.trim().length > 0;
+    this.dropdownOpen = value.trim().length >= 1;
   }
+
+  onFocus() {}
 
   onSelect(item: any) {
     console.log('Ausgewählt:', item);
@@ -37,7 +49,6 @@ export class Navbar {
     this.dropdownOpen = false;
 
     // this.searchTerm = '';
-
   }
 
   openUserMenu(event: Event) {
@@ -52,6 +63,7 @@ export class Navbar {
   }
 
   closeDropdown() {
+    this.searchTerm = '';
     this.dropdownOpen = false;
   }
 }
