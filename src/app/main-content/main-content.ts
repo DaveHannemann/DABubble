@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { Workspace } from './workspace/workspace';
 import { Navbar } from './navbar/navbar';
@@ -8,6 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
 import { NewMessage } from './messages/new-message/new-message';
 import { Messages } from './messages/messages';
+import { ThreadService } from '../services/thread.service';
 @Component({
   selector: 'app-main-content',
   standalone: true,
@@ -17,6 +18,8 @@ import { Messages } from './messages/messages';
   styleUrl: './main-content.scss',
 })
 export class MainContent {
+  private readonly threadService = inject(ThreadService);
+  protected readonly thread$ = this.threadService.thread$;
   protected showNewMessage = false;
 
   protected openNewMessagePanel(): void {

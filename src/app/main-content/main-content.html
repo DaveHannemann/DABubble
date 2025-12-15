@@ -5,7 +5,7 @@
     <mat-sidenav #leftSidenav opened mode="side"
       ><app-workspace (newMessage)="openNewMessagePanel()" (channelSelected)="closeNewMessagePanel()"></app-workspace
     ></mat-sidenav>
-    <mat-sidenav opened mode="side" position="end" *ngIf="!showNewMessage">
+    <mat-sidenav opened mode="side" position="end" *ngIf="!showNewMessage && (thread$ | async)">
       <app-thread></app-thread>
     </mat-sidenav>
 
