@@ -34,9 +34,9 @@
   </article>
 
   <!-- Scrollable conversation stream. -->
-  <section class="message-board__stream" aria-live="polite">
+  <section class="message-board__stream" aria-live="polite" *ngIf="messages$ | async as messages">
     <article
-      *ngFor="let message of messages$ | async"
+      *ngFor="let message of messages"
       class="message-board__bubble"
       [class.message-board__bubble--own]="message.isOwn">
       <div
@@ -86,9 +86,11 @@
         <time class="message-board__bubble-time">{{ formatTimestamp(message.timestamp) }}</time>
       </div>
       <p class="message-board__bubble-text">{{ message.content }}</p>
-      <div class="message-board__bubble-reaction" *ngIf="message.id && messageReactions[message.id]">
-        {{ messageReactions[message.id] }}
-      </div>
+      <ng-container *ngIf="message.id as messageId">
+        <div class="message-board__bubble-reaction" *ngIf="messageReactions[messageId] as reaction">
+          {{ reaction }}
+        </div>
+      </ng-container>
     </article>
   </section>
 
