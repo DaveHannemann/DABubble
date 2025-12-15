@@ -125,6 +125,9 @@ export class ChannelComponent {
     map((channel) => channel?.description ?? this.channelDefaults.summary)
   );
 
+  protected messageReactions: Record<string, string> = {};
+  protected openEmojiPickerFor: string | null = null;
+  protected readonly emojiChoices = ['😀', '😄', '😍', '🎉', '🤔', '👏'];
   protected readonly members$: Observable<ChannelMemberView[]> = this.channel$.pipe(
     switchMap((channel) => {
       if (!channel?.id) {
@@ -342,5 +345,22 @@ export class ChannelComponent {
           data: { channelId: channel?.id, channelTitle: title, members },
         });
       });
+  }
+
+  react(messageId: string | undefined, reaction: string): void {
+    if (!messageId) return;
+
+    this.messageReactions = {
+      ...this.messageReactions,
+      [messageId]: reaction,
+    };
+    this.openEmojiPickerFor = null;
+  }
+
+  toggleEmojiPicker(messageId: string | undefined): void {
+    if (!messageId) return;
+
+    this.openEmojiPickerFor =
+      this.openEmojiPickerFor === messageId ? null : messageId;
   }
 }

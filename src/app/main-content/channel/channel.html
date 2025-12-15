@@ -51,23 +51,50 @@
               <img class="channel__message-avatar" [src]="message.avatar" [alt]="message.author" />
 
               <div class="channel__message-body">
-                <div class="channel__message-actions" aria-label="Nachrichtenaktionen">
-                  <button type="button" class="channel__icon-button" aria-label="Emoji hinzufügen">
-                    <mat-icon>sentiment_satisfied</mat-icon>
+                <div
+                  class="channel__message-actions"
+                  [class.channel__message-actions--visible]="openEmojiPickerFor === message.id"
+                  aria-label="Nachrichtenaktionen">
+                  <button
+                    type="button"
+                    class="channel__message-action"
+                    aria-label="Daumen hoch geben"
+                    (click)="react(message.id, '👍')">
+                    <mat-icon>thumb_up</mat-icon>
                   </button>
                   <button
                     type="button"
-                    class="channel__icon-button channel__icon-button--primary"
+                    class="channel__message-action"
+                    aria-label="Grünen Haken setzen"
+                    (click)="react(message.id, '✅')">
+                    <mat-icon>check_circle</mat-icon>
+                  </button>
+                  <button
+                    type="button"
+                    class="channel__message-action"
+                    aria-label="Emoji-Auswahl öffnen"
+                    (click)="toggleEmojiPicker(message.id)">
+                    <mat-icon>add_reaction</mat-icon>
+                  </button>
+                  <button
+                    type="button"
+                    class="channel__message-action"
                     aria-label="Thread öffnen"
                     (click)="openThread(message)">
                     <mat-icon>reply</mat-icon>
                   </button>
-                  <button type="button" class="channel__icon-button" aria-label="Link teilen">
-                    <mat-icon>link</mat-icon>
+                  <button type="button" class="channel__message-action" aria-label="Weitere Aktionen">
+                    <mat-icon>more_vert</mat-icon>
                   </button>
-                  <button type="button" class="channel__icon-button" aria-label="Weitere Aktionen">
-                    <mat-icon>more_horiz</mat-icon>
-                  </button>
+                  <div class="channel__emoji-picker" *ngIf="openEmojiPickerFor === message.id">
+                    <button
+                      type="button"
+                      *ngFor="let emoji of emojiChoices"
+                      (click)="react(message.id, emoji)"
+                      aria-label="Emoji auswählen">
+                      {{ emoji }}
+                    </button>
+                  </div>
                 </div>
                 <header class="channel__message-header">
                   <div class="channel__message-meta">
@@ -78,6 +105,12 @@
                   </div>
                 </header>
                 <p class="channel__message-text">{{ message.text }}</p>
+
+                <ng-container *ngIf="message.id as messageId">
+                  <div class="channel__message-reaction" *ngIf="messageReactions[messageId] as reaction">
+                    {{ reaction }}
+                  </div>
+                </ng-container>
 
                 <ng-container *ngIf="message.attachment as attachment">
                   <div class="channel__attachment">

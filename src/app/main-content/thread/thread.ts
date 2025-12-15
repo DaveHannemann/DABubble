@@ -19,6 +19,11 @@ export class Thread {
   protected readonly thread$: Observable<ThreadContext | null> =
     this.threadService.thread$;
 
+  protected messageReactions: Record<string, string> = {};
+  protected openEmojiPickerFor: string | null = null;
+  protected readonly emojiChoices = ['😀', '😄', '😍', '🎉', '🤔', '👏'];
+
+
   protected get currentUser() {
     const user = this.userService.currentUser();
 
@@ -46,5 +51,21 @@ export class Thread {
       console.error('Reply konnte nicht gespeichert werden', error);
     }
 
+  }
+  react(messageId: string | undefined, reaction: string): void {
+    if (!messageId) return;
+
+    this.messageReactions = {
+      ...this.messageReactions,
+      [messageId]: reaction,
+    };
+    this.openEmojiPickerFor = null;
+  }
+
+  toggleEmojiPicker(messageId: string | undefined): void {
+    if (!messageId) return;
+
+    this.openEmojiPickerFor =
+      this.openEmojiPickerFor === messageId ? null : messageId;
   }
 }
