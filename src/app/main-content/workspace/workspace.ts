@@ -41,6 +41,8 @@ export class Workspace {
   protected areDirectMessagesCollapsed = false;
   protected isCreateChannelOpen = false;
   protected isAddChannelHovered = false;
+  protected isChannelsHeaderHovered = false;
+  protected isDirectMessagesHeaderHovered = false;
   protected startNewMessage(): void {
     this.newMessage.emit();
   }

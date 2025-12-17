@@ -21,18 +21,26 @@
   <nav class="workspace__nav">
     <div class="workspace__section">
       <div class="workspace__section-header">
-        <div class="workspace__section-title">
-          <button
-            class="workspace__chevron"
-            type="button"
-            (click)="toggleChannels()"
-            [attr.aria-expanded]="!areChannelsCollapsed"
-            aria-controls="workspace-channels">
-            {{ areChannelsCollapsed ? '▸' : '▾' }}
-          </button>
-          <img src="imgs/workspace/channellist img.png" alt="Kanäle" />
-          <span>Channels</span>
-        </div>
+        <button
+          class="workspace__section-toggle"
+          type="button"
+          (click)="toggleChannels()"
+          (mouseenter)="isChannelsHeaderHovered = true"
+          (mouseleave)="isChannelsHeaderHovered = false"
+          [attr.aria-expanded]="!areChannelsCollapsed"
+          aria-controls="workspace-channels">
+          <span class="workspace__chevron">{{ areChannelsCollapsed ? '▸' : '▾' }}</span>
+          <img
+            [src]="
+              isChannelsHeaderHovered
+                ? 'imgs/workspace/channellist img hover.svg'
+                : 'imgs/workspace/channellist img.png'
+            "
+            alt="Kanäle" />
+          <span class="workspace__section-label" [class.workspace__section-label--active]="isChannelsHeaderHovered">
+            Channels
+          </span>
+        </button>
         <button
           class="workspace__icon-btn workspace__icon-btn--ghost"
           type="button"
@@ -53,7 +61,8 @@
               type="button"
               [class.workspace__list-item--active]="(selectedChannelId$ | async) === channel.id"
               (click)="selectChannel(channel.id)">
-              <span># {{ channel.title || 'Unbenannter Channel' }}</span>
+              <span class="workspace__hash">#</span>
+              <span class="workspace__channel-name">{{ channel.title || 'Unbenannter Channel' }}</span>
             </button>
           </li>
         </ul>
@@ -65,18 +74,28 @@
     </div>
     <div class="workspace__section">
       <div class="workspace__section-header">
-        <div class="workspace__section-title">
-          <button
-            class="workspace__chevron"
-            type="button"
-            (click)="toggleDirectMessages()"
-            [attr.aria-expanded]="!areDirectMessagesCollapsed"
-            aria-controls="workspace-direct-messages">
-            {{ areDirectMessagesCollapsed ? '▸' : '▾' }}
-          </button>
-          <img src="imgs/direktnachrichten img.svg" alt="Direktnachrichten" />
-          <span>Direktnachrichten</span>
-        </div>
+        <button
+          class="workspace__section-toggle"
+          type="button"
+          (click)="toggleDirectMessages()"
+          (mouseenter)="isDirectMessagesHeaderHovered = true"
+          (mouseleave)="isDirectMessagesHeaderHovered = false"
+          [attr.aria-expanded]="!areDirectMessagesCollapsed"
+          aria-controls="workspace-direct-messages">
+          <span class="workspace__chevron">{{ areDirectMessagesCollapsed ? '▸' : '▾' }}</span>
+          <img
+            [src]="
+              isDirectMessagesHeaderHovered
+                ? 'imgs/workspace/direct messages img-hover.svg'
+                : 'imgs/workspace/direct messages img.svg'
+            "
+            alt="Direktnachrichten" />
+          <span
+            class="workspace__section-label"
+            [class.workspace__section-label--active]="isDirectMessagesHeaderHovered">
+            Direktnachrichten
+          </span>
+        </button>
       </div>
       <ul
         *ngIf="!areDirectMessagesCollapsed"
@@ -101,7 +120,6 @@
               </div>
               <div class="workspace__user-details">
                 <span class="workspace__user-name">{{ user.name }}</span>
-                <span class="workspace__user-email">{{ user.email || 'Keine E-Mail hinterlegt' }}</span>
               </div>
             </button>
           </li>

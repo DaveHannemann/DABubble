@@ -150,29 +150,54 @@
   gap: 10px;
 }
 
-.workspace__section-title {
-  display: flex;
+.workspace__section-toggle {
+  display: inline-flex;
   align-items: center;
   gap: 10px;
+  padding: 6px 8px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 12px;
+  transition: background-color 0.2s ease;
+}
+
+.workspace__section-toggle:hover,
+.workspace__section-toggle:focus-visible {
+  background: #f8fafc;
+  outline: none;
+}
+
+.workspace__section-toggle img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.workspace__section-label {
   font-weight: 700;
   color: #0f172a;
+  transition: color 0.2s ease;
+}
+
+.workspace__section-label--active,
+.workspace__section-toggle:hover .workspace__section-label,
+.workspace__section-toggle:focus-visible .workspace__section-label {
+  color: #535af1;
 }
 
 .workspace__chevron {
-  border: none;
-  background: transparent;
-  font-size: 18px;
-  line-height: 1;
-  cursor: pointer;
-  padding: 4px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  width: 20px;
+  height: 20px;
+  font-size: 18px;
+  line-height: 1;
   color: #0f172a;
   border-radius: 8px;
-  transition:
-    background-color 0.2s ease,
-    color 0.2s ease;
+
+  transition: color 0.2s ease;
 }
 
 .workspace__chevron:hover,
@@ -198,6 +223,7 @@
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: #cbd5e1 transparent;
+  padding-left: 10px;
 }
 
 .workspace__list::-webkit-scrollbar {
@@ -224,7 +250,26 @@
 
 .workspace__list-item:hover {
   background: #f8fafc;
-  color: #1d4ed8;
+  color: #0f172a;
+}
+
+.workspace__list-item--active {
+  background: #eef2ff;
+}
+
+.workspace__hash {
+  font-weight: 700;
+  color: #0f172a;
+  transition: color 0.2s ease;
+}
+
+.workspace__list-item:hover .workspace__hash,
+.workspace__list-item--active .workspace__hash {
+  color: #535af1;
+}
+
+.workspace__channel-name {
+  color: #0f172a;
 }
 
 .workspace__avatar {
@@ -238,8 +283,9 @@
 .workspace__user-details {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 0px;
   min-width: 0;
+  justify-content: center;
 }
 
 .workspace__user-name {
@@ -250,13 +296,7 @@
   text-overflow: ellipsis;
 }
 
-.workspace__user-email {
-  font-size: 12px;
-  color: #475569;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
+
 .workspace__add-btn {
   display: inline-flex;
   align-items: center;
