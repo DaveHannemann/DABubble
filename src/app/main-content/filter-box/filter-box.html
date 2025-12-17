@@ -3,7 +3,7 @@
     <ng-container *ngIf="users.length; else noUsers">
       <div class="px-10 py-2">
         <div
-          *ngFor="let user of users"
+          *ngFor="let user of sortedUsers"
           (click)="choose(user)"
           class="filter-bg flex cursor-pointer items-center px-2 py-3">
           <img class="mr-3 h-8 w-8 rounded-full" [src]="user.data.photoUrl || 'imgs/default-profile-picture.png'" />
@@ -40,7 +40,7 @@
       <div class="px-10 py-2">
         <div class="px-4 text-sm font-semibold">User</div>
         <div
-          *ngFor="let user of users"
+          *ngFor="let user of sortedUsers"
           (click)="choose(user)"
           class="filter-bg flex cursor-pointer items-center px-4 py-3">
           <img class="mr-3 h-8 w-8 rounded-full" [src]="user.data.photoUrl" />

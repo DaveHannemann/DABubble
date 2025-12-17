@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { SearchResult } from '../../classes/search-result.class';
 import { MatDialog } from '@angular/material/dialog';
 import { MemberDialog } from '../member-dialog/member-dialog';
+import { UserService } from '../../services/user.service';
 
 @Component({
   selector: 'app-filter-box',
@@ -18,8 +19,36 @@ export class FilterBox implements OnChanges {
 
   constructor(
     private searchService: SearchService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private userService: UserService
   ) {}
+
+  get currentUserUid(): string | null {
+    return this.userService.currentUser()?.uid ?? null;
+  }
+
+  /**
+   * Returns the list of users sorted alphabetically by name,
+   * with the current user at the top of the list.
+   * Getter is used to ensure re-evaluation on each access.
+   * */
+  get sortedUsers() {
+    if (!this.users.length) return [];
+
+    const usersCopy = [...this.users];
+    usersCopy.sort((a, b) => a.data.name.localeCompare(b.data.name));
+
+    const currentUid = this.currentUserUid;
+    const currentIndex = usersCopy.findIndex((u) => u.id === currentUid);
+
+    if (currentIndex > -1) {
+      const currentUser = { ...usersCopy.splice(currentIndex, 1)[0] };
+      currentUser.data = { ...currentUser.data, name: currentUser.data.name + ' (Du)' };
+      usersCopy.unshift(currentUser);
+    }
+
+    return usersCopy;
+  }
 
   results: SearchResult[] = [];
 
@@ -47,6 +76,7 @@ export class FilterBox implements OnChanges {
           },
         },
       });
+      this.close.emit();
     } else {
       this.selectItem.emit(item);
       this.close.emit();
