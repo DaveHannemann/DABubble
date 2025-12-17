@@ -1,0 +1,26 @@
+<section class="new-message-drawer">
+  <header class="new-message-drawer__header">
+    <div>
+      <p class="new-message-drawer__eyebrow">Nachrichten</p>
+      <h2>Neue Nachricht</h2>
+    </div>
+    <button type="button" class="new-message-drawer__close" aria-label="Ansicht schließen" (click)="close.emit()">
+      ×
+    </button>
+  </header>
+
+  <label class="new-message-drawer__search" for="new-message-search">
+    <span aria-hidden="true" class="new-message-drawer__search-icon">🔍</span>
+    <input
+      id="new-message-search"
+      type="search"
+      placeholder="Nach Personen, Channels oder E-Mail suchen"
+      autocomplete="off" />
+  </label>
+
+  <div class="new-message-drawer__empty">
+    <div class="new-message-drawer__placeholder"></div>
+    <h3>Starte eine neue Unterhaltung</h3>
+    <p>Wähle links einen Kontakt oder suche hier, um eine Nachricht zu verfassen.</p>
+  </div>
+</section>

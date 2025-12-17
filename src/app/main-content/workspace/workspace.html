@@ -5,8 +5,16 @@
       <img src="imgs/workspace/Workspace logo.png" alt="Workspace Logo" />
       <div class="workspace__titles">
         <h1>Devspace</h1>
-        <p>Organisiere deine Channels</p>
       </div>
+    </div>
+    <div class="workspace__actions">
+      <button
+        class="workspace__icon-btn workspace__icon-btn--solid"
+        type="button"
+        aria-label="Neue Nachricht"
+        (click)="startNewMessage()">
+        <img src="imgs/workspace/new message.svg" alt="Neue Nachricht" />
+      </button>
     </div>
   </header>
 
@@ -23,14 +31,18 @@
             {{ areChannelsCollapsed ? '▸' : '▾' }}
           </button>
           <img src="imgs/workspace/channellist img.png" alt="Kanäle" />
-          <span>Kanäle</span>
+          <span>Channels</span>
         </div>
         <button
           class="workspace__icon-btn workspace__icon-btn--ghost"
           type="button"
           aria-label="Neuen Channel hinzufügen"
-          (click)="openCreateChannel()">
-          <span aria-hidden="true">+</span>
+          (click)="openCreateChannel()"
+          (mouseenter)="isAddChannelHovered = true"
+          (mouseleave)="isAddChannelHovered = false">
+          <img
+            [src]="isAddChannelHovered ? 'imgs/workspace/add channel-hover.svg' : 'imgs/workspace/add channel.svg'"
+            alt="Neuen Channel hinzufügen" />
         </button>
       </div>
       <ng-container *ngIf="!areChannelsCollapsed">
@@ -47,7 +59,7 @@
         </ul>
         <button class="workspace__add-btn" type="button" (click)="openCreateChannel()">
           <img src="imgs/workspace/add new channel.png" alt="Neuen Channel anlegen" />
-          <span>Neuen Channel anlegen</span>
+          <span>Channel hinzufügen</span>
         </button>
       </ng-container>
     </div>

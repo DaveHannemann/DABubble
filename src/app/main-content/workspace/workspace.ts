@@ -40,6 +40,7 @@ export class Workspace {
   protected areChannelsCollapsed = false;
   protected areDirectMessagesCollapsed = false;
   protected isCreateChannelOpen = false;
+  protected isAddChannelHovered = false;
   protected startNewMessage(): void {
     this.newMessage.emit();
   }

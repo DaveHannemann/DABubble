@@ -23,6 +23,12 @@
   gap: 12px;
 }
 
+.workspace__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .workspace__brand img {
   width: 48px;
   height: 48px;
@@ -79,6 +85,12 @@
   color: #0f172a;
   font-size: 22px;
   font-weight: 700;
+}
+
+.workspace__icon-btn--solid {
+  background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+  border-color: #cbd5e1;
+  box-shadow: 0 10px 30px rgba(59, 130, 246, 0.12);
 }
 
 .workspace__nav {

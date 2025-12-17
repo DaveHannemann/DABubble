@@ -1,0 +1,113 @@
+.new-message-drawer {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  height: 100%;
+  padding: 20px 18px;
+  background: linear-gradient(180deg, #f8fbff 0%, #eef2ff 100%);
+  box-shadow: inset 0 1px 0 rgba(15, 23, 42, 0.05);
+}
+
+.new-message-drawer__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.new-message-drawer__eyebrow {
+  margin: 0;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #475569;
+}
+
+.new-message-drawer h2 {
+  margin: 4px 0 0;
+  font-size: 22px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.new-message-drawer__close {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  font-size: 18px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition:
+    transform 0.1s ease,
+    box-shadow 0.2s ease;
+}
+
+.new-message-drawer__close:hover {
+  transform: rotate(90deg) scale(1.02);
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+}
+
+.new-message-drawer__search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  box-shadow: inset 0 1px 0 rgba(15, 23, 42, 0.04);
+}
+
+.new-message-drawer__search-icon {
+  font-size: 16px;
+}
+
+.new-message-drawer__search input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+  background: #f8fafc;
+  padding: 10px 12px;
+  border-radius: 12px;
+}
+
+.new-message-drawer__search input::placeholder {
+  color: #94a3b8;
+}
+
+.new-message-drawer__empty {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  gap: 12px;
+  padding: 24px 16px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.6);
+  color: #0f172a;
+}
+
+.new-message-drawer__placeholder {
+  width: 72px;
+  height: 72px;
+  border-radius: 24px;
+  background: linear-gradient(135deg, #c7d2fe 0%, #a5b4fc 100%);
+  opacity: 0.5;
+}
+
+.new-message-drawer__empty h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.new-message-drawer__empty p {
+  margin: 0;
+  color: #475569;
+}
