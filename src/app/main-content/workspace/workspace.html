@@ -23,13 +23,16 @@
       <div class="workspace__section-header">
         <button
           class="workspace__section-toggle"
+          [class.workspace__section-toggle--hovered]="isChannelsHeaderHovered"
           type="button"
           (click)="toggleChannels()"
           (mouseenter)="isChannelsHeaderHovered = true"
           (mouseleave)="isChannelsHeaderHovered = false"
           [attr.aria-expanded]="!areChannelsCollapsed"
           aria-controls="workspace-channels">
-          <span class="workspace__chevron">{{ areChannelsCollapsed ? '▸' : '▾' }}</span>
+          <span class="workspace__chevron" [class.workspace__chevron--active]="isChannelsHeaderHovered">{{
+            areChannelsCollapsed ? '▸' : '▾'
+          }}</span>
           <img
             [src]="
               isChannelsHeaderHovered
@@ -76,13 +79,16 @@
       <div class="workspace__section-header">
         <button
           class="workspace__section-toggle"
+          [class.workspace__section-toggle--hovered]="isDirectMessagesHeaderHovered"
           type="button"
           (click)="toggleDirectMessages()"
           (mouseenter)="isDirectMessagesHeaderHovered = true"
           (mouseleave)="isDirectMessagesHeaderHovered = false"
           [attr.aria-expanded]="!areDirectMessagesCollapsed"
           aria-controls="workspace-direct-messages">
-          <span class="workspace__chevron">{{ areDirectMessagesCollapsed ? '▸' : '▾' }}</span>
+          <span class="workspace__chevron" [class.workspace__chevron--active]="isDirectMessagesHeaderHovered">{{
+            areDirectMessagesCollapsed ? '▸' : '▾'
+          }}</span>
           <img
             [src]="
               isDirectMessagesHeaderHovered
