@@ -5,10 +5,11 @@ import { User } from '@angular/fire/auth';
 
 import { AuthService } from '../../services/auth.service';
 import { NOTIFICATIONS } from '../../notifications';
+import { AsideContentWrapperComponent } from '../../aside-content/aside-content-wrapper';
 
 @Component({
   selector: 'app-verify-email',
-  imports: [CommonModule],
+  imports: [CommonModule, AsideContentWrapperComponent],
   templateUrl: './verify-email.html',
   styleUrl: './verify-email.scss',
 })
@@ -27,7 +28,7 @@ export class VerifyEmail {
     return this.authService.auth.currentUser?.email ?? null;
   }
 
-  private get isBusy(): boolean {
+  get isBusy(): boolean {
     return this.isChecking || this.isResending;
   }
 
@@ -85,7 +86,6 @@ export class VerifyEmail {
     try {
       const currentUser = this.getCurrentUserOrSetError();
       if (!currentUser) {
-        setTimeout(() => this.router.navigate(['/login']), 1500);
         this.router.navigate(['/login']);
         return;
       }
@@ -97,5 +97,12 @@ export class VerifyEmail {
     } finally {
       this.isResending = false;
     }
+  }
+
+  async onSignOut(): Promise<void> {
+    if (this.isBusy) {
+      return;
+    }
+    await this.authService.signOut();
   }
 }

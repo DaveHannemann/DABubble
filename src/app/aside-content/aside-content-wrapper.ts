@@ -1,14 +1,16 @@
 import { Component, input } from '@angular/core';
+import { Logo } from './logo';
 
 @Component({
   selector: 'app-aside-content-wrapper',
   standalone: true,
+  imports: [Logo],
   template: `
     <section class="max-width m-auto grid min-h-full grid-rows-[1fr_auto_1fr]">
       <header>
         @if (showCardSurroundings()) {
           <div class="flex h-full items-start justify-between px-8 pt-8 sm:px-12 sm:pt-12">
-            <ng-content select="[topLeft]"></ng-content>
+            <app-logo></app-logo>
             <ng-content select="[topRight]"></ng-content>
           </div>
         }
@@ -21,7 +23,10 @@ import { Component, input } from '@angular/core';
       <div>
         @if (showCardSurroundings()) {
           <footer class="flex h-full items-end justify-center px-8 pb-8 sm:px-12 sm:pb-12">
-            <ng-content select="[footer]"></ng-content>
+            <div class="flex justify-between gap-4">
+              <a routerLink="/legal-notice" class="dab-anchor-on-bg">Impressum</a>
+              <a routerLink="/privacy-policy" class="dab-anchor-on-bg">Datenschutz</a>
+            </div>
           </footer>
         }
       </div>

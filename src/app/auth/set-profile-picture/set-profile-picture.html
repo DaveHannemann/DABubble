@@ -2,7 +2,7 @@
   <span class="material-icons">arrow_back</span>
 </button>
 
-<h1 class="mb-10">Wähle deinen Avatar</h1>
+<h1 class="mb-6">Wähle deinen Avatar</h1>
 
 <img
   class="dab-avatar-img mx-auto mb-3 block size-36"
@@ -15,7 +15,7 @@
 
 <div class="paragraph-20 mb-3">Aus der Liste wählen</div>
 
-<div class="mb-10 flex flex-wrap justify-center gap-3">
+<div class="mb-6 flex flex-wrap justify-center gap-3">
   @for (picture of profilePictureOptions; track picture.key) {
     @if (picture.key !== 'default') {
       <button

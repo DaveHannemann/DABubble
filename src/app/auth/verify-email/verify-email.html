@@ -1,63 +1,52 @@
-<section class="min-h-screen flex items-center justify-center px-4">
-  <div
-    class="w-full max-w-xl rounded-[32px] bg-white shadow-lg px-8 py-10 sm:px-12 sm:py-12 text-center"
-  >
-    <h1 class="text-[28px] font-extrabold leading-tight text-[#4A5CF6]">
-      Bitte bestätige deine E-Mail-Adresse
-    </h1>
+<app-aside-content-wrapper>
+  <div topRight class="flex flex-col items-end gap-2">
+    <p>Account wechseln?</p>
+    <button type="button" class="dab-anchor-on-bg -mr-4" (click)="onSignOut()" [disabled]="isBusy">Abmelden</button>
+  </div>
 
-    <p class="mt-4 text-sm sm:text-base text-slate-600">
-      Wir haben dir eine Bestätigungs-E-Mail an deine E-Mail-Adresse @if (currentEmail) {
-      <span class="font-semibold">{{ currentEmail }}</span>
-      } gesendet.
-    </p>
+  <div card>
+    <div class="mb-6">
+      <h1>E-Mail bestätigen</h1>
 
-    <p class="mt-2 text-sm sm:text-base text-slate-500">
-      Öffne die E-Mail und klicke auf den Bestätigungslink, um dein Konto zu aktivieren.
-    </p>
-
-    <div class="mt-6 flex flex-col items-center gap-3">
-      <p class="text-xs sm:text-sm text-slate-500">
-        Du hast deine E-Mail bereits bestätigt, siehst aber noch keine Änderung?
+      <p class="paragraph-20 mb-2">
+        Wir haben dir eine Bestätigungs-E-Mail
+        @if (currentEmail) {
+          an <span class="p-0 font-bold">{{ currentEmail }}</span>
+        }
+        gesendet.
       </p>
 
-      <button
-        type="button"
-        (click)="onRefreshStatus()"
-        [disabled]="isChecking || isResending"
-        class="rounded-full bg-[#4A5CF6] px-6 py-2 text-sm font-semibold text-white shadow-md hover:bg-[#3c4ad1] disabled:opacity-60 disabled:cursor-not-allowed"
-      >
+      <p class="text-center text-dab-purple-1">
+        Öffne die E-Mail und klicke auf den Bestätigungslink, um dein Konto zu aktivieren.
+      </p>
+    </div>
+
+    <div class="flex flex-col items-center gap-4">
+      <button type="button" (click)="onRefreshStatus()" [disabled]="isBusy" class="dab-btn-primary">
         {{ isChecking ? 'Status wird geprüft …' : 'Status aktualisieren' }}
       </button>
 
-      <p class="mt-4 text-xs sm:text-sm text-slate-500">Keine E-Mail erhalten?</p>
-
-      <button
-        type="button"
-        (click)="onResendVerificationEmail()"
-        [disabled]="isResending || isChecking"
-        class="rounded-full border border-[#4A5CF6] px-6 py-2 text-sm font-semibold text-[#4A5CF6] hover:bg-[#f5f6ff] disabled:opacity-60 disabled:cursor-not-allowed"
-      >
+      <button type="button" (click)="onResendVerificationEmail()" [disabled]="isBusy" class="dab-btn-secondary">
         {{ isResending ? 'E-Mail wird erneut gesendet …' : 'E-Mail erneut senden' }}
       </button>
 
       @if (infoMessage) {
-      <p
-        class="text-xs sm:text-sm text-green-700 bg-green-50 border border-green-200 rounded-2xl px-4 py-3 mt-3"
-      >
-        {{ infoMessage }}
-      </p>
-      } @if (statusMessage) {
-      <p class="text-xs sm:text-sm text-slate-600 mt-2">
-        {{ statusMessage }}
-      </p>
-      } @if (errorMessage) {
-      <p
-        class="text-xs sm:text-sm text-red-600 bg-red-50 border border-red-200 rounded-2xl px-4 py-3 mt-2"
-      >
-        {{ errorMessage }}
-      </p>
+        <p class="dab-inline-info">
+          {{ infoMessage }}
+        </p>
+      }
+
+      @if (statusMessage) {
+        <p class="dab-inline-status">
+          {{ statusMessage }}
+        </p>
+      }
+
+      @if (errorMessage) {
+        <p class="dab-inline-error">
+          {{ errorMessage }}
+        </p>
       }
     </div>
   </div>
-</section>
+</app-aside-content-wrapper>

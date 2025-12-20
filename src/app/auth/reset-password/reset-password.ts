@@ -4,10 +4,11 @@ import { FormsModule, NgForm } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { NOTIFICATIONS } from '../../notifications';
+import { AsideContentWrapperComponent } from '../../aside-content/aside-content-wrapper';
 
 @Component({
   selector: 'app-reset-password',
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, AsideContentWrapperComponent],
   templateUrl: './reset-password.html',
   styleUrl: './reset-password.scss',
 })
@@ -76,8 +77,7 @@ export class ResetPassword implements OnInit {
 
     const passwordValidationResult = await this.authService.validateUserPassword(this.newPassword);
     if (!passwordValidationResult.isValid) {
-      this.passwordValidationErrors =
-        this.authService.buildPasswordErrorMessages(passwordValidationResult);
+      this.passwordValidationErrors = this.authService.buildPasswordErrorMessages(passwordValidationResult);
       return;
     }
 

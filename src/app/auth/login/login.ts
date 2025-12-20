@@ -7,11 +7,10 @@ import { NOTIFICATIONS } from '../../notifications';
 import { UserCredential } from 'firebase/auth';
 import { UserService } from '../../services/user.service';
 import { AsideContentWrapperComponent } from '../../aside-content/aside-content-wrapper';
-import { Logo } from '../../aside-content/logo';
 
 @Component({
   selector: 'app-login',
-  imports: [CommonModule, FormsModule, RouterLink, AsideContentWrapperComponent, Logo],
+  imports: [CommonModule, FormsModule, RouterLink, AsideContentWrapperComponent],
   templateUrl: './login.html',
   styleUrl: './login.scss',
 })

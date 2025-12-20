@@ -1,25 +1,14 @@
 <app-aside-content-wrapper [showCardSurroundings]="mode() === 'login'">
   @if (mode() === 'login') {
-    <div topLeft><app-logo></app-logo></div>
-  }
-
-  @if (mode() === 'login') {
     <div topRight class="flex flex-col items-end gap-2">
       <p>Neu bei DABubble?</p>
       <a routerLink="/signup" class="dab-anchor-on-bg -mr-4">Konto erstellen</a>
     </div>
   }
 
-  @if (mode() === 'login') {
-    <div footer class="flex justify-between gap-4">
-      <a routerLink="/legal-notice" class="dab-anchor-on-bg">Impressum</a>
-      <a routerLink="/privacy-policy" class="dab-anchor-on-bg">Datenschutz</a>
-    </div>
-  }
-
   <div card>
     @if (!isResetMode) {
-      <header class="mb-10">
+      <header class="mb-6">
         <h1>
           @if (mode() === 'login') {
             Anmeldung
@@ -38,17 +27,6 @@
       </header>
 
       <form #loginForm="ngForm" (ngSubmit)="onSubmit(loginForm)" novalidate class="dab-form">
-        <!-- @if (errorMessage) {
-          <p class="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-            {{ errorMessage }}
-          </p>
-        }
-        @if (infoMessage) {
-          <p class="rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
-            {{ infoMessage }}
-          </p>
-        } -->
-
         <div>
           <div class="dab-input-field">
             <label for="email" class="sr-only">E-Mail</label>
@@ -119,6 +97,18 @@
           </span>
         </button>
 
+        @if (errorMessage) {
+          <p class="dab-inline-error">
+            {{ errorMessage }}
+          </p>
+        }
+
+        @if (infoMessage) {
+          <p class="dab-inline-info">
+            {{ infoMessage }}
+          </p>
+        }
+
         @if (mode() === 'login') {
           <div class="mt-4 flex justify-center gap-4">
             <button type="submit" [disabled]="isSubmitting || loginForm.invalid" class="dab-btn-primary">
@@ -146,23 +136,12 @@
         <span class="material-icons">arrow_back</span>
       </button>
 
-      <div class="mb-10">
+      <div class="mb-6">
         <h1>Passwort zurücksetzen</h1>
         <p class="paragraph-20">Bitte gib deine E-Mail-Adresse ein.</p>
       </div>
 
       <form #resetForm="ngForm" (ngSubmit)="onSendPasswordReset(resetForm)" novalidate class="dab-form">
-        <!-- @if (errorMessage) {
-          <p class="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-            {{ errorMessage }}
-          </p>
-        }
-        @if (infoMessage) {
-          <p class="rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
-            {{ infoMessage }}
-          </p>
-        } -->
-
         <div>
           <div class="dab-input-field">
             <label for="email" class="sr-only">E-Mail</label>
@@ -183,6 +162,18 @@
           }
         </div>
         <p class="text-center">Wir senden dir eine E-Mail, über die du dein Passwort ändern kannst.</p>
+
+        @if (errorMessage) {
+          <p class="dab-inline-error">
+            {{ errorMessage }}
+          </p>
+        }
+
+        @if (infoMessage) {
+          <p class="dab-inline-info">
+            {{ infoMessage }}
+          </p>
+        }
 
         <button type="submit" [disabled]="isSubmitting || resetForm.invalid" class="dab-btn-primary ml-auto block">
           {{ isSubmitting ? 'E-Mail wird gesendet …' : 'E-Mail senden' }}

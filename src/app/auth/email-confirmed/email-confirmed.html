@@ -1,47 +1,44 @@
-<section class="min-h-screen flex items-center justify-center px-4">
-  <div
-    class="w-full max-w-xl rounded-[32px] bg-white shadow-lg px-8 py-10 sm:px-12 sm:py-12 text-center"
-  >
-    @if (isProcessingVerification) {
-    <h1 class="text-[28px] font-extrabold leading-tight text-[#4A5CF6]">
-      Deine E-Mail-Adresse wird bestätigt
-    </h1>
-
-    <p class="mt-4 text-sm sm:text-base text-slate-600">
-      Bitte warte einen Moment, während wir deinen Bestätigungslink prüfen.
-    </p>
-    } @else { @if (verificationErrorMessage) {
-    <h1 class="text-[28px] font-extrabold leading-tight text-red-600">Bestätigung nicht möglich</h1>
-
-    <p class="mt-4 text-sm sm:text-base text-slate-600">
-      {{ verificationErrorMessage }}
-    </p>
-
-    <div class="mt-8 flex justify-center">
-      <a
-        routerLink="/login"
-        class="rounded-full bg-[#4A5CF6] px-8 py-3 text-sm font-semibold text-white shadow-md hover:bg-[#3c4ad1]"
-      >
-        Zur Anmeldung
-      </a>
-    </div>
-    } @else {
-    <h1 class="text-[28px] font-extrabold leading-tight text-[#4A5CF6]">
-      Deine E-Mail-Adresse wurde bestätigt
-    </h1>
-
-    <p class="mt-4 text-sm sm:text-base text-slate-600">
-      Vielen Dank. Dein Konto ist nun aktiviert.
-    </p>
-
-    <div class="mt-8 flex justify-center">
-      <a
-        routerLink="/main"
-        class="rounded-full bg-[#4A5CF6] px-8 py-3 text-sm font-semibold text-white shadow-md hover:bg-[#3c4ad1]"
-      >
-        Weiter zum Devspace
-      </a>
-    </div>
-    } }
+<app-aside-content-wrapper>
+  <div topRight class="flex flex-col items-end gap-2">
+    <p>Zurück zur Anmeldung?</p>
+    <a routerLink="/login" class="dab-anchor-on-bg -mr-4">Anmelden</a>
   </div>
-</section>
+
+  <div card>
+    @if (isProcessingVerification) {
+      <div class="mb-4">
+        <h1>E-Mail wird bestätigt</h1>
+        <p class="paragraph-20">Bitte warte einen Moment, während wir deinen Bestätigungslink prüfen.</p>
+      </div>
+
+      <div class="flex justify-center">
+        <a routerLink="/login" class="dab-btn-secondary">Zur Anmeldung</a>
+      </div>
+    } @else {
+      @if (verificationErrorMessage) {
+        <div class="mb-4">
+          <h1>Bestätigung nicht möglich</h1>
+
+          <p class="dab-inline-error">
+            {{ verificationErrorMessage }}
+          </p>
+
+          <p class="paragraph-20">Bitte versuche es erneut oder fordere einen neuen Bestätigungslink an.</p>
+        </div>
+
+        <div class="flex justify-center">
+          <a routerLink="/login" class="dab-btn-secondary">Zur Anmeldung</a>
+        </div>
+      } @else {
+        <div class="mb-4">
+          <h1>E-Mail bestätigt</h1>
+          <p class="dab-inline-info">Vielen Dank. Dein Konto ist nun aktiviert.</p>
+        </div>
+
+        <div class="flex justify-center">
+          <a routerLink="/main" class="dab-btn-secondary">Weiter zum Devspace</a>
+        </div>
+      }
+    }
+  </div>
+</app-aside-content-wrapper>

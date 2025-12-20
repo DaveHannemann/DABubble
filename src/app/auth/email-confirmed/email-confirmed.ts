@@ -3,10 +3,11 @@ import { CommonModule } from '@angular/common';
 import { RouterLink, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { NOTIFICATIONS } from '../../notifications';
+import { AsideContentWrapperComponent } from '../../aside-content/aside-content-wrapper';
 
 @Component({
   selector: 'app-email-confirmed',
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, AsideContentWrapperComponent],
   templateUrl: './email-confirmed.html',
   styleUrl: './email-confirmed.scss',
 })

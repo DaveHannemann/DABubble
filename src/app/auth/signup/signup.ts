@@ -8,20 +8,11 @@ import { SetProfilePicture, PROFILE_PICTURE_URLS } from '../set-profile-picture/
 import { ProfilePictureKey } from '../../types';
 import { UserService } from '../../services/user.service';
 import { AsideContentWrapperComponent } from '../../aside-content/aside-content-wrapper';
-import { Logo } from '../../aside-content/logo';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 
 @Component({
   selector: 'app-signup',
-  imports: [
-    CommonModule,
-    FormsModule,
-    RouterLink,
-    SetProfilePicture,
-    AsideContentWrapperComponent,
-    Logo,
-    MatCheckboxModule,
-  ],
+  imports: [CommonModule, FormsModule, RouterLink, SetProfilePicture, AsideContentWrapperComponent, MatCheckboxModule],
   templateUrl: './signup.html',
   styleUrl: './signup.scss',
 })
@@ -53,6 +44,7 @@ export class Signup {
 
     try {
       const passwordValidationResult = await this.authenticationService.validateUserPassword(this.password);
+      console.log(passwordValidationResult);
 
       if (!passwordValidationResult.isValid) {
         this.passwordValidationErrors = this.authenticationService.buildPasswordErrorMessages(passwordValidationResult);

@@ -88,8 +88,12 @@
     }
   }
 
+  .dab-btn-primary,
+  .dab-btn-secondary {
+    @apply w-full rounded-full border border-transparent px-4 py-2 font-medium text-white transition sm:w-fit sm:px-6;
+  }
+
   .dab-btn-primary {
-    @apply rounded-full border border-transparent px-4 py-2 font-medium text-white transition sm:px-8;
     @apply bg-dab-purple-1 disabled:bg-dab-gray;
 
     &:is(:hover, :focus-visible):not(:disabled) {
@@ -102,7 +106,7 @@
   }
 
   .dab-btn-secondary {
-    @apply rounded-full border border-dab-purple-1 px-4 py-2 font-medium text-dab-purple-1 transition sm:px-8;
+    @apply border-dab-purple-1 text-dab-purple-1;
 
     &:is(:hover, :focus-visible):not(:disabled) {
       @apply bg-dab-purple-3 text-white outline-none;
@@ -135,5 +139,23 @@
 
   .paragraph-20 {
     @apply text-center text-base sm:text-lg;
+  }
+
+  .dab-inline-info,
+  .dab-inline-status,
+  .dab-inline-error {
+    @apply mx-2 my-4 rounded-xl bg-dab-bg px-4 py-3 text-center text-sm sm:mx-4 sm:my-6 sm:text-base;
+  }
+
+  .dab-inline-info {
+    @apply bg-dab-bg text-dab-purple-1;
+  }
+
+  .dab-inline-status {
+    @apply text-dab-gray;
+  }
+
+  .dab-inline-error {
+    @apply bg-rose-50 text-dab-rosa-error;
   }
 }
