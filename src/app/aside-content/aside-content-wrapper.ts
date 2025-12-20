@@ -1,10 +1,11 @@
 import { Component, input } from '@angular/core';
 import { Logo } from './logo';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-aside-content-wrapper',
   standalone: true,
-  imports: [Logo],
+  imports: [Logo, RouterLink],
   template: `
     <section class="max-width m-auto grid min-h-full grid-rows-[1fr_auto_1fr]">
       <header>
