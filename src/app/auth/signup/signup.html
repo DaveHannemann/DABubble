@@ -96,7 +96,7 @@
             #privacyModel="ngModel"
             class="custom-checkbox">
             Ich stimme der
-            <a routerLink="/privacy-policy" class="dab-anchor-on-white-inline">Datenschutzerklärung</a>
+            <button class="dab-anchor-on-white-inline" (click)="openPrivacyOverlay()">Datenschutzerklärung</button>
             zu.
           </mat-checkbox>
           @if (privacyModel.invalid && privacyModel.touched) {

@@ -31,7 +31,7 @@ import { NgTemplateOutlet } from '@angular/common';
 
     @if (showCardSurroundings()) {
       @if (isSmallScreen()) {
-        <section class="max-width m-auto grid min-h-full grid-rows-[1fr_auto_1fr] px-4">
+        <section class="aside-content-wrapper">
           <header>
             <div class="flex h-full justify-center px-8 pt-6 pb-4 sm:px-10 sm:pt-10">
               <app-logo></app-logo>
@@ -47,7 +47,7 @@ import { NgTemplateOutlet } from '@angular/common';
           <ng-container [ngTemplateOutlet]="footer"></ng-container>
         </section>
       } @else {
-        <section class="max-width m-auto grid min-h-full grid-rows-[1fr_auto_1fr] px-4">
+        <section class="aside-content-wrapper">
           <header>
             <div class="flex h-full items-start justify-between px-8 pt-6 pb-4 sm:px-10 sm:pt-10">
               <app-logo></app-logo>

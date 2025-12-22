@@ -53,3 +53,11 @@ input:is(:-webkit-autofill, :autofill) {
   box-shadow: 0 0 0 calc(1px * infinity) inset var(--dab-bg);
   -webkit-text-fill-color: black;
 }
+
+.privacy-policy-overlay-pane {
+  margin: 0 16px;
+}
+
+.privacy-policy-overlay-pane-backdrop {
+  background-color: rgb(0, 0, 0, 0.4);
+}

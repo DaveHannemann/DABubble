@@ -1,7 +1,11 @@
 :host ::ng-deep .dab-page-card {
-  max-width: 90%;
-
   @media (min-width: 40rem) {
     max-width: 70%;
+  }
+}
+
+:host.embedded ::ng-deep .dab-page-card {
+  @media (min-width: 40rem) {
+    max-width: 100%;
   }
 }

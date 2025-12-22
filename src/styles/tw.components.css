@@ -1,4 +1,8 @@
 @layer components {
+  .aside-content-wrapper {
+    @apply m-auto grid min-h-full grid-rows-[1fr_auto_1fr] px-4;
+  }
+
   .dab-card {
     @apply mx-auto w-full bg-white px-4 py-8 shadow-md sm:rounded-3xl sm:p-10 lg:p-12;
   }
@@ -11,18 +15,26 @@
       @apply mb-6 text-center text-3xl font-bold text-dab-purple-1 sm:text-4xl;
     }
 
-    &:has(.back-btn) {
+    &:has(.back-btn, .top-right-btn) {
       h1 {
         @apply px-2 sm:px-12;
       }
     }
 
+    .top-right-btn,
     .back-btn {
       @apply absolute sm:top-10 sm:left-10 lg:top-12 lg:left-12;
       @media (width < 40rem) {
         position: static;
         display: block;
         margin-bottom: 1rem;
+      }
+    }
+
+    .top-right-btn {
+      @apply sm:right-10 sm:left-[unset] lg:right-12 lg:left-[unset];
+      @media (width < 40rem) {
+        margin-left: auto;
       }
     }
 

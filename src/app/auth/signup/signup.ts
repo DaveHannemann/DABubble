@@ -9,6 +9,8 @@ import { ProfilePictureKey } from '../../types';
 import { UserService } from '../../services/user.service';
 import { AsideContentWrapperComponent } from '../../aside-content/aside-content-wrapper';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatDialog } from '@angular/material/dialog';
+import { PrivacyPolicyOverlay } from '../../aside-content/privacy-policy-overlay';
 
 @Component({
   selector: 'app-signup',
@@ -20,6 +22,7 @@ export class Signup {
   private authenticationService = inject(AuthService);
   private userService = inject(UserService);
   private router = inject(Router);
+  private overlayDialog = inject(MatDialog);
 
   name = '';
   emailAddress = '';
@@ -61,6 +64,14 @@ export class Signup {
 
   onProfilePictureChange(key: ProfilePictureKey): void {
     this.selectedProfilePictureKey = key;
+  }
+
+  openPrivacyOverlay() {
+    this.overlayDialog.open(PrivacyPolicyOverlay, {
+      panelClass: 'privacy-policy-overlay-pane',
+      backdropClass: 'privacy-policy-overlay-pane-backdrop',
+      maxWidth: 800,
+    });
   }
 
   async onCompleteSignup(): Promise<void> {
