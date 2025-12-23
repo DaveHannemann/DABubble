@@ -1,7 +1,9 @@
 .channel-members {
   width: 320px;
   background: #ffffff;
-  border-radius: 16px;
+  border-bottom-left-radius: 16px;
+  border-bottom-right-radius: 16px;
+  border-top-left-radius: 16px;
   box-shadow: 0 20px 80px rgba(15, 23, 42, 0.18);
   padding: 16px;
   border: 1px solid #e2e8f0;

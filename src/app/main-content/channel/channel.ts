@@ -444,6 +444,7 @@ private toViewMessage(
       .subscribe(([channel, title, members]) => {
         this.overlayService.open(ChannelMembers, {
           target: target ?? undefined,
+          offsetX: -200,
           offsetY: 8,
           data: { channelId: channel?.id, title, members },
         });
@@ -458,6 +459,7 @@ private toViewMessage(
       .subscribe(([channel, title, members]) => {
         this.overlayService.open(AddToChannel, {
           target: target ?? undefined,
+          offsetX: -370,
           offsetY: 8,
           data: { channelId: channel?.id, channelTitle: title, members },
         });

@@ -1,7 +1,9 @@
 .add-to-channel {
   width: 420px;
   background: #ffffff;
-  border-radius: 18px;
+  border-bottom-left-radius: 18px;
+  border-bottom-right-radius: 18px;
+  border-top-left-radius: 18px;
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
   padding: 16px;
   border: 1px solid #e2e8f0;
@@ -34,7 +36,9 @@
   justify-content: center;
   cursor: pointer;
   color: #0f172a;
-  transition: background-color 0.2s ease, transform 0.1s ease;
+  transition:
+    background-color 0.2s ease,
+    transform 0.1s ease;
 }
 
 .add-to-channel__close:hover {
