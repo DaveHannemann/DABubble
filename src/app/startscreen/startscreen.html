@@ -1,16 +1,17 @@
-<section class="startscreen" [@fadeOut]="fadeState">
+<section class="startscreen">
+  <div class="bg-layer" [@fadeOut]="fadeState"></div>
   <div
     #splashWrapper
-    class="logo-wrapper"
-    [@logoMove]="{ value: logoState, params: { transform: logoTransform } }"
-    style="position: relative; display: inline-block">
-    <app-logo [withText]="false"></app-logo>
+    class="flex items-center gap-3"
+    [@logoMove]="{ value: logoState, params: { transform: logoTransform } }">
+    <img src="imgs/logo.svg" alt="DABubble Logo" class="logo-img" />
     <span
-      *ngIf="showText"
-      @textSlide
-      class="absolute top-1/2 left-full -z-10 ml-3 -translate-y-1/2 transform text-4xl font-bold sm:text-3xl">
-      DABubble
-    </span>
+      [@textSlide]="showText ? 'visible' : 'hidden'"
+      [ngClass]="textColorClass"
+      class="ml-3 text-4xl font-bold"
+      [style.opacity]="showText ? 1 : 0"
+      >DABubble</span
+    >
   </div>
 
   <!-- Hidden target logo -->

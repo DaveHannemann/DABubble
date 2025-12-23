@@ -11,27 +11,21 @@ import { CommonModule } from '@angular/common';
   styleUrl: './startscreen.scss',
   animations: [
     trigger('logoMove', [
-      state(
-        'center',
-        style({
-          transform: 'translate(0, 0) scale(2)',
-        })
-      ),
-      state(
-        'move',
-        style({
-          transform: '{{ transform }}',
-        }),
-        { params: { transform: 'translate(0,0) scale(1)' } }
-      ),
-      transition('center => move', animate('700ms cubic-bezier(0.4, 0.0, 0.2, 1)')),
+      state('center', style({ transform: 'translate(60px, 0) scale(2)' })),
+      state('textIn', style({ transform: 'translate(-20px, 0) scale(2)' })),
+      state('move', style({ transform: '{{ transform }}' }), { params: { transform: 'translate(0,0) scale(1)' } }),
+
+      transition('center => textIn', animate('600ms cubic-bezier(0.25, 0.8, 0.25, 1)')),
+
+      transition('textIn => move', animate('700ms cubic-bezier(0.4, 0.0, 0.2, 1)')),
     ]),
+
     trigger('textSlide', [
-      transition(':enter', [
-        style({ opacity: 0, transform: 'translateX(-50px)' }),
-        animate('1200ms 300ms ease-out', style({ opacity: 1, transform: 'translateX(0)' })),
-      ]),
+      state('hidden', style({ opacity: 0, transform: 'translateX(-50px)' })),
+      state('visible', style({ opacity: 1, transform: 'translateX(0)' })),
+      transition('hidden => visible', animate('1200ms 300ms ease-out')),
     ]),
+
     trigger('fadeOut', [
       state(
         'visible',
@@ -45,7 +39,7 @@ import { CommonModule } from '@angular/common';
           opacity: 0,
         })
       ),
-      transition('visible => hidden', animate('400ms ease-out')),
+      transition('visible => hidden', animate('1200ms ease-in-out', style({ opacity: 0 }))),
     ]),
   ],
 })
@@ -58,14 +52,21 @@ export class Startscreen implements AfterViewInit {
 
   private router = inject(Router);
 
-  logoState: 'center' | 'move' = 'center';
+  logoState: 'center' | 'textIn' | 'move' = 'center';
   logoTransform = '';
   showText = false;
   fadeState: 'visible' | 'hidden' = 'visible';
+  textColorClass = 'text-white';
 
   ngAfterViewInit() {
     // show text
-    setTimeout(() => (this.showText = true), 900);
+    setTimeout(() => {
+      this.logoState = 'textIn';
+    }, 500);
+
+    setTimeout(() => {
+      this.showText = true;
+    }, 1000);
 
     // moving logo
     setTimeout(() => {
@@ -77,16 +78,20 @@ export class Startscreen implements AfterViewInit {
 
       this.logoTransform = `translate(${translateX}px, ${translateY}px) scale(1)`;
       this.logoState = 'move';
-    }, 2000);
+    }, 2600);
 
     // fade before end
     setTimeout(() => {
       this.fadeState = 'hidden';
-    }, 2200);
+    }, 2600);
+
+    setTimeout(() => {
+      this.textColorClass = 'text-black';
+    }, 2900);
 
     // routing while fading out
     setTimeout(() => {
       this.router.navigate(['/login']);
-    }, 2000);
+    }, 3200);
   }
 }

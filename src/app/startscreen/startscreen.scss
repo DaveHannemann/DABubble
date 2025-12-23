@@ -4,27 +4,31 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(
-    180deg,
-    #5a63f6 0%,
-    #444DF2 60%,
-    #3c45e0 100%
-  );
-  z-index: 1000;
-  color: white;
-  will-change: opacity;
+
+    .bg-layer {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, #5a63f6 0%, #444df2 60%, #3c45e0 100%);
+    z-index: 0; // hinter Logo
+    will-change: opacity;
+  }
 
   .logo-wrapper {
     will-change: transform;
-    display: inline-block;
-    position: relative;
+    z-index: 1; // über Hintergrund
+  }
+
+  .logo-img {
+    width: 80px;
+    height: 80px;
+    transition: transform 0.5s ease-in-out;
   }
 }
 
 .target-logo {
   position: fixed;
-  top: 24px;
-  left: 24px;
+  top: 0px;
+  left: -100px;
   opacity: 0;
   pointer-events: none;
 }
