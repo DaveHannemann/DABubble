@@ -14,14 +14,8 @@ import {
   orderBy,
   query,
 } from '@angular/fire/firestore';
-import {
-  Observable,
-  catchError,
-  combineLatest,
-  map,
-  of,
-  switchMap,
-} from 'rxjs';
+import { Observable, catchError, combineLatest, map, of, switchMap } from 'rxjs';
+import { AppUser } from './user.service';
 export interface Channel {
   id?: string;
   title?: string;
@@ -55,9 +49,9 @@ export interface ThreadDocument {
 
 export interface ChannelMessage {
   id?: string;
-  author?: string;
-  avatar?: string;
+  authorId: string;
   createdAt?: Timestamp;
+  updatedAt?: Timestamp;
   text?: string;
   replies?: number;
   lastReplyAt?: Timestamp;
@@ -99,9 +93,7 @@ export class FirestoreService {
   getChannels(): Observable<Channel[]> {
     const channelsCollection = collection(this.firestore, 'channels');
 
-    return collectionData(channelsCollection, { idField: 'id' }).pipe(
-      map((channels) => channels as Channel[])
-    );
+    return collectionData(channelsCollection, { idField: 'id' }).pipe(map((channels) => channels as Channel[]));
   }
 
   getChannelsForUser(userId: string): Observable<Channel[]> {
@@ -113,11 +105,7 @@ export class FirestoreService {
 
         const channelsWithMembers$ = channels
           .filter((channel): channel is Channel & { id: string } => !!channel.id)
-          .map((channel) =>
-            this.getChannelMembers(channel.id).pipe(
-              map((members) => ({ channel, members }))
-            )
-          );
+          .map((channel) => this.getChannelMembers(channel.id).pipe(map((members) => ({ channel, members }))));
 
         if (!channelsWithMembers$.length) {
           return of<Channel[]>([]);
@@ -126,11 +114,7 @@ export class FirestoreService {
         return combineLatest(channelsWithMembers$).pipe(
           map((results) =>
             results
-              .filter(
-                ({ members }) =>
-                  members.length > 0 &&
-                  members.some((member) => member.id === userId)
-              )
+              .filter(({ members }) => members.length > 0 && members.some((member) => member.id === userId))
               .map(({ channel }) => channel)
           )
         );
@@ -139,20 +123,15 @@ export class FirestoreService {
   }
 
   getChannelMessages(channelId: string): Observable<ChannelMessage[]> {
-    const messagesCollection = collection(
-      this.firestore,
-      `channels/${channelId}/messages`
-    );
+    const messagesCollection = collection(this.firestore, `channels/${channelId}/messages`);
 
     return collectionData(messagesCollection, { idField: 'id' }).pipe(
       map((messages) =>
         (messages as Array<Record<string, unknown>>).map((message) => ({
           id: message['id'] as string,
-          author: (message['author'] as string) ?? 'Unbekannter Nutzer',
-          avatar:
-            (message['avatar'] as string) ??
-            'imgs/users/Property 1=Frederik Beck.svg',
+          authorId: message['authorId'] as string,
           createdAt: message['createdAt'] as Timestamp,
+          updatedAt: message['updatedAt'] as Timestamp,
           text: (message['text'] as string) ?? '',
           replies: (message['replies'] as number) ?? 0,
           lastReplyAt: message['lastReplyAt'] as Timestamp,
@@ -163,20 +142,14 @@ export class FirestoreService {
     );
   }
 
-  async addChannelMessage(
-    channelId: string,
-    message: Partial<ChannelMessage> &
-      Pick<ChannelMessage, 'text' | 'author' | 'avatar'>
-  ): Promise<void> {
-    const messagesCollection = collection(
-      this.firestore,
-      `channels/${channelId}/messages`
-    );
+  async addChannelMessage(channelId: string, message: Pick<ChannelMessage, 'text' | 'authorId'>): Promise<void> {
+    const messagesCollection = collection(this.firestore, `channels/${channelId}/messages`);
 
     await addDoc(messagesCollection, {
-      ...message,
+      authorId: message.authorId,
+      text: message.text,
       createdAt: serverTimestamp(),
-      replies: message.replies ?? 0,
+      replies: 0,
     });
   }
 
@@ -185,10 +158,7 @@ export class FirestoreService {
     messageId: string,
     payload: Partial<Pick<ChannelMessage, 'text'>>
   ): Promise<void> {
-    const messageDoc = doc(
-      this.firestore,
-      `channels/${channelId}/messages/${messageId}`
-    );
+    const messageDoc = doc(this.firestore, `channels/${channelId}/messages/${messageId}`);
 
     await updateDoc(messageDoc, {
       ...payload,
@@ -196,6 +166,19 @@ export class FirestoreService {
     });
   }
 
+  getChannelMessagesResolved(
+    channelId: string,
+    users$: Observable<AppUser[]>
+  ): Observable<(ChannelMessage & { author?: AppUser })[]> {
+    return combineLatest([this.getChannelMessages(channelId), users$]).pipe(
+      map(([messages, users]) =>
+        messages.map((msg) => ({
+          ...msg,
+          author: users.find((u) => u.uid === msg.authorId),
+        }))
+      )
+    );
+  }
 
   getFirstChannelTitle(): Observable<string> {
     return this.getChannels().pipe(
@@ -228,15 +211,9 @@ export class FirestoreService {
     );
   }
 
-  getDirectConversationMessages(
-    currentUserId: string,
-    otherUserId: string
-  ): Observable<DirectMessageEntry[]> {
+  getDirectConversationMessages(currentUserId: string, otherUserId: string): Observable<DirectMessageEntry[]> {
     const conversationId = this.buildConversationId(currentUserId, otherUserId);
-    const messagesCollection = collection(
-      this.firestore,
-      `directMessages/${conversationId}/messages`
-    );
+    const messagesCollection = collection(this.firestore, `directMessages/${conversationId}/messages`);
     const messagesQuery = query(messagesCollection, orderBy('createdAt', 'asc'));
 
     return collectionData(messagesQuery, { idField: 'id' }).pipe(
@@ -245,8 +222,7 @@ export class FirestoreService {
           id: message['id'] as string,
           authorId: message['authorId'] as string,
           authorName: (message['authorName'] as string) ?? 'Unbekannter Nutzer',
-          authorAvatar:
-            (message['authorAvatar'] as string) ?? 'imgs/default-profile-picture.png',
+          authorAvatar: (message['authorAvatar'] as string) ?? 'imgs/default-profile-picture.png',
           text: (message['text'] as string) ?? '',
           createdAt: message['createdAt'] as Timestamp,
         }))
@@ -256,18 +232,11 @@ export class FirestoreService {
   }
 
   async sendDirectMessage(
-    currentUser: Pick<DirectMessageEntry, 'authorId' | 'authorName' | 'authorAvatar'> &
-    { text: string },
+    currentUser: Pick<DirectMessageEntry, 'authorId' | 'authorName' | 'authorAvatar'> & { text: string },
     recipientId: string
   ): Promise<void> {
-    const conversationId = this.buildConversationId(
-      currentUser.authorId ?? '',
-      recipientId
-    );
-    const messagesCollection = collection(
-      this.firestore,
-      `directMessages/${conversationId}/messages`
-    );
+    const conversationId = this.buildConversationId(currentUser.authorId ?? '', recipientId);
+    const messagesCollection = collection(this.firestore, `directMessages/${conversationId}/messages`);
 
     await addDoc(messagesCollection, {
       ...currentUser,
@@ -279,7 +248,6 @@ export class FirestoreService {
   private buildConversationId(userA: string, userB: string): string {
     return [userA, userB].sort((a, b) => a.localeCompare(b)).join('__');
   }
-
 
   async createChannel(title: string, description?: string): Promise<string> {
     const trimmedTitle = title.trim();
@@ -300,10 +268,7 @@ export class FirestoreService {
     return newChannel.id;
   }
 
-  async updateChannel(
-    channelId: string,
-    payload: Partial<Pick<Channel, 'title' | 'description'>>
-  ): Promise<void> {
+  async updateChannel(channelId: string, payload: Partial<Pick<Channel, 'title' | 'description'>>): Promise<void> {
     const updates: Record<string, unknown> = {};
 
     if (payload.title !== undefined) {
@@ -323,18 +288,14 @@ export class FirestoreService {
   }
 
   getChannelMembers(channelId: string): Observable<ChannelMember[]> {
-    const membersCollection = collection(
-      this.firestore,
-      `channels/${channelId}/members`
-    );
+    const membersCollection = collection(this.firestore, `channels/${channelId}/members`);
 
     return collectionData(membersCollection, { idField: 'id' }).pipe(
       map((members) =>
         (members as Array<Record<string, unknown>>).map((member) => ({
           id: (member['id'] as string) ?? 'unbekannt',
           name: (member['name'] as string) ?? 'Unbenannter Nutzer',
-          avatar:
-            (member['avatar'] as string) ?? 'imgs/users/placeholder.svg',
+          avatar: (member['avatar'] as string) ?? 'imgs/users/placeholder.svg',
           subtitle: member['subtitle'] as string | undefined,
           addedAt: member['addedAt'] as Timestamp | undefined,
         }))
@@ -346,10 +307,7 @@ export class FirestoreService {
     channelId: string,
     member: Pick<ChannelMember, 'id' | 'name' | 'avatar' | 'subtitle'>
   ): Promise<void> {
-    const memberDoc = doc(
-      this.firestore,
-      `channels/${channelId}/members/${member.id}`
-    );
+    const memberDoc = doc(this.firestore, `channels/${channelId}/members/${member.id}`);
 
     await setDoc(
       memberDoc,
@@ -361,14 +319,8 @@ export class FirestoreService {
     );
   }
 
-  getThreadReplies(
-    channelId: string,
-    messageId: string
-  ): Observable<ThreadReply[]> {
-    const repliesCollection = collection(
-      this.firestore,
-      `channels/${channelId}/messages/${messageId}/threads`
-    );
+  getThreadReplies(channelId: string, messageId: string): Observable<ThreadReply[]> {
+    const repliesCollection = collection(this.firestore, `channels/${channelId}/messages/${messageId}/threads`);
 
     const repliesQuery = query(repliesCollection, orderBy('createdAt', 'asc'));
 
@@ -391,20 +343,14 @@ export class FirestoreService {
     messageId: string,
     reply: Pick<ThreadReply, 'author' | 'avatar' | 'text' | 'isOwn'>
   ): Promise<void> {
-    const repliesCollection = collection(
-      this.firestore,
-      `channels/${channelId}/messages/${messageId}/threads`
-    );
+    const repliesCollection = collection(this.firestore, `channels/${channelId}/messages/${messageId}/threads`);
 
     await addDoc(repliesCollection, {
       ...reply,
       createdAt: serverTimestamp(),
     });
 
-    const messageDoc = doc(
-      this.firestore,
-      `channels/${channelId}/messages/${messageId}`
-    );
+    const messageDoc = doc(this.firestore, `channels/${channelId}/messages/${messageId}`);
 
     await updateDoc(messageDoc, {
       replies: increment(1),
@@ -417,10 +363,7 @@ export class FirestoreService {
     replyId: string,
     payload: Partial<Pick<ThreadReply, 'text'>>
   ): Promise<void> {
-    const replyDoc = doc(
-      this.firestore,
-      `channels/${channelId}/messages/${messageId}/threads/${replyId}`
-    );
+    const replyDoc = doc(this.firestore, `channels/${channelId}/messages/${messageId}/threads/${replyId}`);
 
     await updateDoc(replyDoc, {
       ...payload,
@@ -464,10 +407,7 @@ export class FirestoreService {
     });
   }
 
-  getThread(
-    channelId: string,
-    messageId: string
-  ): Observable<ThreadDocument | null> {
+  getThread(channelId: string, messageId: string): Observable<ThreadDocument | null> {
     const threadDocRef = doc(
       this.firestore,
       `channels/${channelId}/messages/${messageId}/thread/${FirestoreService.THREAD_DOC_ID}`

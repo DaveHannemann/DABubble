@@ -2,17 +2,7 @@ import { Component, DestroyRef, ElementRef, ViewChild, inject } from '@angular/c
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
-import {
-  Observable,
-  combineLatest,
-  from,
-  map,
-  of,
-  shareReplay,
-  switchMap,
-  take,
-  tap,
-} from 'rxjs';
+import { Observable, combineLatest, from, map, of, shareReplay, switchMap, take, tap } from 'rxjs';
 import {
   Channel,
   ChannelAttachment,
@@ -23,7 +13,7 @@ import {
 import { OverlayService } from '../../services/overlay.service';
 import { ChannelDescription } from '../messages/channel-description/channel-description';
 import { ChannelSelectionService } from '../../services/channel-selection.service';
-import { UserService } from '../../services/user.service';
+import { AppUser, UserService } from '../../services/user.service';
 import { ChannelMembers } from './channel-members/channel-members';
 import { AddToChannel } from './add-to-channel/add-to-channel';
 import { ThreadService } from '../../services/thread.service';
@@ -69,8 +59,7 @@ export class ChannelComponent {
   @ViewChild('messageTextarea') private messageTextarea?: ElementRef<HTMLTextAreaElement>;
   protected readonly channelDefaults = {
     name: 'Entwicklerteam',
-    summary:
-      'Gruppe zum Austausch über technische Fragen und das laufende Redesign des Devspace.',
+    summary: 'Gruppe zum Austausch über technische Fragen und das laufende Redesign des Devspace.',
   };
 
   protected readonly memberAvatars = [
@@ -89,9 +78,7 @@ export class ChannelComponent {
     };
   }
   private readonly channels$ = this.currentUser$.pipe(
-    switchMap((user) =>
-      user ? this.firestoreService.getChannelsForUser(user.uid) : of([])
-    ),
+    switchMap((user) => (user ? this.firestoreService.getChannelsForUser(user.uid) : of([]))),
     shareReplay({ bufferSize: 1, refCount: true })
   );
   protected messageText = '';
@@ -107,9 +94,7 @@ export class ChannelComponent {
     this.channels$,
   ]).pipe(
     tap(([selectedChannelId, channels]) => {
-      const activeSelectionExists = channels.some(
-        (channel) => channel.id === selectedChannelId
-      );
+      const activeSelectionExists = channels.some((channel) => channel.id === selectedChannelId);
 
       if ((!selectedChannelId || !activeSelectionExists) && channels.length > 0) {
         const firstChannelId = channels[0]?.id;
@@ -119,9 +104,7 @@ export class ChannelComponent {
     map(([selectedChannelId, channels]) => {
       if (!channels.length) return undefined;
       if (selectedChannelId) {
-        const activeChannel = channels.find(
-          (channel) => channel.id === selectedChannelId
-        );
+        const activeChannel = channels.find((channel) => channel.id === selectedChannelId);
 
         if (activeChannel) return activeChannel;
       }
@@ -130,7 +113,6 @@ export class ChannelComponent {
     }),
     shareReplay({ bufferSize: 1, refCount: true })
   );
-
 
   protected readonly channelTitle$: Observable<string> = this.channel$.pipe(
     map((channel) => channel?.title ?? this.channelDefaults.name)
@@ -165,24 +147,27 @@ export class ChannelComponent {
     }),
     shareReplay({ bufferSize: 1, refCount: true })
   );
-  protected readonly messagesByDay$: Observable<ChannelDay[]> = this.channel$.pipe(
-    switchMap((channel) => {
-      if (!channel?.id) {
-        return of<ChannelDay[]>([]);
-      }
-      return this.firestoreService.getChannelMessages(channel.id).pipe(
-        map((messages) => this.groupMessagesByDay(messages))
-      );
-    })
-  );
+  
+protected readonly messagesByDay$: Observable<ChannelDay[]> = this.channel$.pipe(
+  switchMap((channel) => {
+    if (!channel?.id) {
+      return of<ChannelDay[]>([]);
+    }
+
+    return this.firestoreService
+      .getChannelMessagesResolved(
+        channel.id,
+        this.userService.getAllUsers()
+      )
+      .pipe(map((messages) => this.groupMessagesByDay(messages)));
+  })
+);
 
   constructor() {
-    this.members$
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((members) => {
-        this.cachedMembers = members;
-        this.updateMentionSuggestions();
-      });
+    this.members$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((members) => {
+      this.cachedMembers = members;
+      this.updateMentionSuggestions();
+    });
   }
   private groupMessagesByDay(messages: ChannelMessage[]): ChannelDay[] {
     const grouped = new Map<string, ChannelDay>();
@@ -281,6 +266,9 @@ export class ChannelComponent {
     const text = this.messageText.trim();
     if (!text || this.isSending) return;
 
+    const currentUser = this.userService.currentUser();
+    if (!currentUser?.uid) return;
+
     this.isSending = true;
 
     this.channel$
@@ -293,8 +281,7 @@ export class ChannelComponent {
           return from(
             this.firestoreService.addChannelMessage(channel.id, {
               text,
-              author: this.currentUser.name,
-              avatar: this.currentUser.avatar,
+              authorId: currentUser.uid,
             })
           );
         })
@@ -313,28 +300,38 @@ export class ChannelComponent {
       });
   }
 
-  private toViewMessage(message: ChannelMessage): ChannelMessageView {
-    const createdAt = this.timestampToDate(message.createdAt) ?? new Date();
-    const lastReplyAt = this.timestampToDate(message.lastReplyAt);
-    const currentUserName = this.currentUser.name;
-    return {
-      id: message.id,
-      author: message.author ?? 'Unbekannter Nutzer',
-      avatar:
-        message.avatar ?? this.memberAvatars[0] ?? 'imgs/users/placeholder.svg',
-      createdAt,
-      time: this.formatTime(createdAt),
-      text: message.text ?? '',
-      replies: message.replies ?? 0,
-      lastReplyAt: lastReplyAt,
-      lastReplyTime: lastReplyAt ? this.formatTime(lastReplyAt) : undefined,
-      tag: message.tag,
-      attachment: message.attachment,
-      isOwn: (message.author ?? '').trim() === currentUserName,
-    };
-  }
+private toViewMessage(
+  message: ChannelMessage & { author?: AppUser }
+): ChannelMessageView {
+  const createdAt = this.timestampToDate(message.createdAt) ?? new Date();
+  const lastReplyAt = this.timestampToDate(message.lastReplyAt);
+  const currentUserId = this.userService.currentUser()?.uid;
 
+  return {
+    id: message.id,
+    author: message.author?.name ?? 'Unbekannter Nutzer',
+    avatar:
+      message.author?.photoUrl ??
+      this.memberAvatars[0] ??
+      'imgs/users/placeholder.svg',
 
+    createdAt,
+    time: this.formatTime(createdAt),
+
+    text: message.text ?? '',
+    replies: message.replies ?? 0,
+
+    lastReplyAt,
+    lastReplyTime: lastReplyAt
+      ? this.formatTime(lastReplyAt)
+      : undefined,
+
+    tag: message.tag,
+    attachment: message.attachment,
+
+    isOwn: message.authorId === currentUserId,
+  };
+}
 
   private timestampToDate(value: unknown): Date | undefined {
     if (!value) {
@@ -456,7 +453,8 @@ export class ChannelComponent {
   protected openAddToChannel(event: Event): void {
     const target = event.currentTarget as HTMLElement | null;
 
-    combineLatest([this.channel$, this.channelTitle$, this.members$]).pipe(take(1))
+    combineLatest([this.channel$, this.channelTitle$, this.members$])
+      .pipe(take(1))
       .subscribe(([channel, title, members]) => {
         this.overlayService.open(AddToChannel, {
           target: target ?? undefined,
@@ -479,7 +477,6 @@ export class ChannelComponent {
   toggleEmojiPicker(messageId: string | undefined): void {
     if (!messageId) return;
 
-    this.openEmojiPickerFor =
-      this.openEmojiPickerFor === messageId ? null : messageId;
+    this.openEmojiPickerFor = this.openEmojiPickerFor === messageId ? null : messageId;
   }
 }
