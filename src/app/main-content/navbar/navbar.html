@@ -15,7 +15,7 @@
       [searchTerm]="searchTerm"
       (close)="closeDropdown()"></app-filter-box>
   </div>
-  <div class="hover-me flex items-center gap-4" (click)="openUserMenu($event)">
+  <div class="hover-me flex items-center gap-4" (click)="openUserMenu()">
     <p class="font-nunito text-3xl font-bold">{{ currentUser()?.name || 'Gast' }}</p>
     <div class="relative">
       <img class="size-16 rounded-full" [src]="currentUser()?.photoUrl || 'imgs/default-profile-picture.png'" />

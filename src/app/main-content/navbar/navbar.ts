@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, ElementRef, inject, ViewChild } from '@angular/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -29,6 +29,9 @@ export class Navbar {
   private overlayService = inject(OverlayService);
   private userService = inject(UserService);
 
+  @ViewChild('menuBtn', { read: ElementRef })
+  menuBtn!: ElementRef<HTMLElement>;
+
   dropdownOpen = false;
   searchTerm: string = '';
 
@@ -43,13 +46,13 @@ export class Navbar {
 
   onFocus() {}
 
-  openUserMenu(event: Event) {
-    const target = event.currentTarget as HTMLElement;
+  openUserMenu() {
+    const target = this.menuBtn.nativeElement;
 
     this.overlayService.open(NavbarDialog, {
       target,
-      offsetX: -10,
-      offsetY: 20,
+      offsetX: -225,
+      offsetY: 40,
       data: { originTarget: target },
     });
   }
