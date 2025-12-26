@@ -10,6 +10,7 @@ import { DirectMessageSelectionService } from '../../services/direct-message-sel
 import { toObservable } from '@angular/core/rxjs-interop';
 
 type DirectMessageUser = AppUser & { displayName: string; unreadCount: number };
+type ChannelListItem = Channel & { unreadCount: number };
 
 @Component({
   selector: 'app-workspace',
@@ -33,6 +34,44 @@ export class Workspace {
       user ? this.firestoreService.getChannelsForUser(user.uid) : of([])
     )
   );
+  protected readonly channelsWithUnread$: Observable<ChannelListItem[]> =
+    combineLatest([
+      this.channels$,
+      this.currentUser$,
+      this.channelSelectionService.selectedChannelId$,
+    ]).pipe(
+      switchMap(([channels, currentUser, selectedChannelId]) => {
+        if (!currentUser || !channels.length) {
+          return of([]);
+        }
+
+        const channelObservables = channels.map((channel) => {
+          const channelId = channel.id;
+          if (!channelId) {
+            return of({ ...channel, unreadCount: 0 });
+          }
+
+          if (selectedChannelId === channelId) {
+            this.setChannelLastRead(currentUser.uid, channelId);
+            return of({ ...channel, unreadCount: 0 });
+          }
+
+          return this.firestoreService.getChannelMessages(channelId).pipe(
+            map((messages) => {
+              const lastRead = this.getChannelLastRead(currentUser.uid, channelId);
+              const unreadCount = messages.filter((message) => {
+                const createdAtMs = message.createdAt?.toMillis?.() ?? 0;
+                return message.authorId !== currentUser.uid && createdAtMs > lastRead;
+              }).length;
+
+              return { ...channel, unreadCount };
+            })
+          );
+        });
+
+        return channelObservables.length ? combineLatest(channelObservables) : of([]);
+      })
+    );
   protected readonly directMessageUsers$: Observable<DirectMessageUser[]> =
     combineLatest([this.userService.getAllUsers(), this.currentUser$]).pipe(
       switchMap(([users, currentUser]) => {
@@ -97,6 +136,11 @@ export class Workspace {
     this.channelSelectionService.selectChannel(channelId);
     this.directMessageSelectionService.selectUser(null);
     this.channelSelected.emit();
+
+    const currentUser = this.userService.currentUser();
+    if (currentUser?.uid && channelId) {
+      this.setChannelLastRead(currentUser.uid, channelId);
+    }
   }
 
   protected toggleDirectMessages(): void {
@@ -140,5 +184,21 @@ export class Workspace {
         return { ...user, displayName, unreadCount };
       })
     );
+  }
+  private getChannelLastRead(userId: string, channelId: string): number {
+    if (typeof localStorage === 'undefined') return 0;
+    const key = this.getChannelLastReadKey(userId, channelId);
+    const value = localStorage.getItem(key);
+    return value ? Number(value) : 0;
+  }
+
+  private setChannelLastRead(userId: string, channelId: string): void {
+    if (typeof localStorage === 'undefined') return;
+    const key = this.getChannelLastReadKey(userId, channelId);
+    localStorage.setItem(key, Date.now().toString());
+  }
+
+  private getChannelLastReadKey(userId: string, channelId: string): string {
+    return `channelLastRead:${userId}:${channelId}`;
   }
 }

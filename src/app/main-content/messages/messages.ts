@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject } from '@angular/core';
+import { Component, DestroyRef, ElementRef, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Observable, combineLatest, map, of, switchMap } from 'rxjs';
 import { FirestoreService } from '../../services/firestore.service';
@@ -64,6 +64,16 @@ export class Messages {
   protected messageReactions: Record<string, string> = {};
   protected openEmojiPickerFor: string | null = null;
   protected readonly emojiChoices = ['😀', '😄', '😍', '🎉', '🤔', '👏'];
+  protected editingMessageId: string | null = null;
+  protected editMessageText = '';
+  protected isSavingEdit = false;
+  private messageStream?: ElementRef<HTMLElement>;
+
+  @ViewChild('messageStream')
+  set messageStreamRef(ref: ElementRef<HTMLElement> | undefined) {
+    this.messageStream = ref;
+    this.scrollToBottom();
+  }
 
   constructor() {
     this.currentUser$
@@ -82,6 +92,9 @@ export class Messages {
           recipient.uid
         );
       });
+    this.messages$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.scrollToBottom());
   }
 
   protected sendMessage(): void {
@@ -102,6 +115,7 @@ export class Messages {
       .finally(() => {
         this.isSending = false;
         this.draftMessage = '';
+        this.scrollToBottom();
       });
   }
 
@@ -176,11 +190,50 @@ export class Messages {
     this.openEmojiPickerFor = null;
   }
 
+  protected startEditing(message: MessageBubble): void {
+    if (!message.id || !message.isOwn) return;
+    this.editingMessageId = message.id;
+    this.editMessageText = message.content;
+  }
+
+  protected cancelEditing(): void {
+    this.editingMessageId = null;
+    this.editMessageText = '';
+  }
+
+  protected saveEditing(messageId: string): void {
+    const trimmed = this.editMessageText.trim();
+    if (!trimmed || !this.currentUser || !this.selectedRecipient) return;
+    if (this.isSavingEdit) return;
+
+    this.isSavingEdit = true;
+    this.firestoreService
+      .updateDirectMessage(
+        this.currentUser.uid,
+        this.selectedRecipient.uid,
+        messageId,
+        { text: trimmed }
+      )
+      .finally(() => {
+        this.isSavingEdit = false;
+        this.cancelEditing();
+      });
+  }
+
   toggleEmojiPicker(messageId: string | undefined): void {
     if (!messageId) return;
 
     this.openEmojiPickerFor =
       this.openEmojiPickerFor === messageId ? null : messageId;
+  }
+
+  private scrollToBottom(): void {
+    const element = this.messageStream?.nativeElement;
+    if (!element) return;
+
+    requestAnimationFrame(() => {
+      element.scrollTop = element.scrollHeight;
+    });
   }
 
   private getDateKey(timestamp?: Timestamp): string {

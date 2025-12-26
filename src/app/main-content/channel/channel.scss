@@ -175,6 +175,7 @@
   flex-direction: column;
   gap: 16px;
   min-height: 0;
+  flex: 1;
 }
 
 .channel__day {
@@ -215,6 +216,7 @@
 
 .channel__message--own {
   align-self: flex-end;
+  flex-direction: row-reverse;
 }
 
 .channel__message-actions {
@@ -272,6 +274,12 @@
   background: #eef2ff;
   color: #4338ca;
   transform: translateY(-1px);
+}
+
+.channel__message-action--active {
+  background: #eef2ff;
+  color: #4338ca;
+  box-shadow: inset 0 0 0 1px #c7d2fe;
 }
 
 .channel__emoji-picker {
@@ -347,6 +355,9 @@
   color: #1f2937;
 }
 
+.channel__message--own .channel__author-line {
+  flex-direction: row-reverse;
+}
 .channel__author-line strong {
   font-size: 15px;
 }
@@ -382,6 +393,54 @@
   max-width: min(85%, 640px);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
+}
+
+.channel__message-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(100%, 560px);
+}
+
+.channel__message-edit textarea {
+  width: 100%;
+  border: 1px solid #d0d5dd;
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 14px;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.channel__message-edit-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.channel__message-edit-cancel {
+  border-radius: 999px;
+  padding: 8px 18px;
+  border: 1px solid #434df2;
+  background: #ffffff;
+  color: #434df2;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.channel__message-edit-save {
+  border-radius: 999px;
+  padding: 8px 18px;
+  border: none;
+  background: #434df2;
+  color: #ffffff;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.channel__message-edit-save:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .channel__message--own .channel__message-text {

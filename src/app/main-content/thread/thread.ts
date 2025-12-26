@@ -1,12 +1,11 @@
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, ViewChild, inject } from '@angular/core';
+import { Component, DestroyRef, ElementRef, ViewChild, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { Observable } from 'rxjs';
 import { ThreadContext, ThreadService } from '../../services/thread.service';
 import { UserService } from '../../services/user.service';
-import { OverlayService } from '../../services/overlay.service';
-import { MessageEditor } from '../shared/message-editor/message-editor';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 
 @Component({
@@ -19,13 +18,22 @@ import { MessageEditor } from '../shared/message-editor/message-editor';
 export class Thread {
   private readonly threadService = inject(ThreadService);
   private readonly userService = inject(UserService);
-  private readonly overlayService = inject(OverlayService);
+  private readonly destroyRef = inject(DestroyRef);
   protected readonly thread$: Observable<ThreadContext | null> =
     this.threadService.thread$;
   @ViewChild('replyTextarea') replyTextarea?: ElementRef<HTMLTextAreaElement>;
+  private threadScrollArea?: ElementRef<HTMLElement>;
+  @ViewChild('threadScrollArea')
+  set threadScrollAreaRef(ref: ElementRef<HTMLElement> | undefined) {
+    this.threadScrollArea = ref;
+    this.scrollToBottom();
+  }
   protected messageReactions: Record<string, string> = {};
   protected openEmojiPickerFor: string | null = null;
   protected readonly emojiChoices = ['😀', '😄', '😍', '🎉', '🤔', '👏'];
+  protected editingMessageId: string | null = null;
+  protected editMessageText = '';
+  protected isSavingEdit = false;
 
 
   protected get currentUser() {
@@ -37,6 +45,12 @@ export class Thread {
     };
   }
   protected draftReply = '';
+
+  constructor() {
+    this.thread$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.scrollToBottom());
+  }
 
   protected closeThread(): void {
     this.threadService.reset();
@@ -85,30 +99,46 @@ export class Thread {
     this.replyTextarea?.nativeElement.focus();
   }
 
-  protected openEditOverlay(
-    event: Event,
-    message: { id?: string; text: string },
-    isRoot = false
-  ): void {
-    const trigger = event.currentTarget as HTMLElement | null;
+  protected startEditing(message: { id?: string; text: string; isOwn?: boolean }): void {
+    if (!message.id || !message.isOwn) return;
+    this.editingMessageId = message.id;
+    this.editMessageText = message.text;
+  }
 
-    this.overlayService.open(MessageEditor, {
-      target: trigger ?? undefined,
-      offsetY: 8,
-      data: {
-        title: 'Nachricht bearbeiten',
-        initialText: message.text,
-        onSave: async (newText: string) => {
-          if (isRoot) {
-            await this.threadService.updateRootMessage(newText);
-            return;
-          }
+  protected startEditingRoot(message: { text: string; isOwn?: boolean; id?: string }): void {
+    if (!message.isOwn) return;
+    this.editingMessageId = message.id ?? 'root';
+    this.editMessageText = message.text;
+  }
 
-          if (message.id) {
-            await this.threadService.updateReply(message.id, newText);
-          }
-        },
-      },
+  protected cancelEditing(): void {
+    this.editingMessageId = null;
+    this.editMessageText = '';
+  }
+
+  protected async saveEditing(message: { id?: string; isOwn?: boolean }, isRoot = false): Promise<void> {
+    const trimmed = this.editMessageText.trim();
+    if (!trimmed || this.isSavingEdit) return;
+    this.isSavingEdit = true;
+
+    try {
+      if (isRoot) {
+        await this.threadService.updateRootMessage(trimmed);
+      } else if (message.id) {
+        await this.threadService.updateReply(message.id, trimmed);
+      }
+      this.cancelEditing();
+    } finally {
+      this.isSavingEdit = false;
+    }
+  }
+
+  private scrollToBottom(): void {
+    const element = this.threadScrollArea?.nativeElement;
+    if (!element) return;
+
+    requestAnimationFrame(() => {
+      element.scrollTop = element.scrollHeight;
     });
   }
 }

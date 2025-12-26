@@ -56,9 +56,12 @@
             alt="Neuen Channel hinzufügen" />
         </button>
       </div>
-      <ng-container *ngIf="!areChannelsCollapsed">
+       <ng-container *ngIf="!areChannelsCollapsed">
         <ul class="workspace__list" id="workspace-channels">
-          <li *ngFor="let channel of channels$ | async">
+          <li
+            *ngFor="let channel of channelsWithUnread$ | async"
+            class="workspace__list-item"
+            [class.workspace__list-item--unread]="channel.unreadCount > 0">
             <button
               class="workspace__list-item"
               type="button"
@@ -66,6 +69,9 @@
               (click)="selectChannel(channel.id)">
               <span class="workspace__hash">#</span>
               <span class="workspace__channel-name">{{ channel.title || 'Unbenannter Channel' }}</span>
+              <span *ngIf="channel.unreadCount > 0" class="workspace__unread-badge">
+                {{ channel.unreadCount }}
+              </span>
             </button>
           </li>
         </ul>

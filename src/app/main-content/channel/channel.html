@@ -39,7 +39,7 @@
   </header>
 
   <section class="channel__panel">
-    <div class="channel__messages" aria-live="polite">
+    <div class="channel__messages" aria-live="polite" #channelMessages>
       <ng-container *ngIf="messagesByDay$ | async as messagesByDay">
         <ng-container *ngIf="messagesByDay.length; else noMessages">
           <ng-container *ngFor="let day of messagesByDay">
@@ -62,6 +62,7 @@
                     type="button"
                     class="channel__message-action"
                     aria-label="Grünen Haken setzen"
+                    [class.channel__message-action--active]="message.id && messageReactions[message.id] === '✅'"
                     (click)="react(message.id, '✅')">
                     <mat-icon>check_circle</mat-icon>
                   </button>
@@ -69,6 +70,7 @@
                     type="button"
                     class="channel__message-action"
                     aria-label="Daumen hoch geben"
+                    [class.channel__message-action--active]="message.id && messageReactions[message.id] === '👍'"
                     (click)="react(message.id, '👍')">
                     <mat-icon>thumb_up</mat-icon>
                   </button>
@@ -91,7 +93,7 @@
                     type="button"
                     class="channel__message-action"
                     aria-label="Weitere Aktionen"
-                    (click)="openEditMessage($event, message)">
+                    (click)="startEditingMessage(message)">
                     <mat-icon>more_vert</mat-icon>
                   </button>
                   <div class="channel__emoji-picker" *ngIf="openEmojiPickerFor === message.id">
@@ -112,7 +114,26 @@
                     </div>
                   </div>
                 </header>
-                <p class="channel__message-text">{{ message.text }}</p>
+                <ng-container *ngIf="editingMessageId !== message.id; else editChannelMessage">
+                  <p class="channel__message-text">{{ message.text }}</p>
+                </ng-container>
+                <ng-template #editChannelMessage>
+                  <div class="channel__message-edit">
+                    <textarea rows="3" [(ngModel)]="editMessageText" aria-label="Nachricht bearbeiten"></textarea>
+                    <div class="channel__message-edit-actions">
+                      <button type="button" class="channel__message-edit-cancel" (click)="cancelEditingMessage()">
+                        Abbrechen
+                      </button>
+                      <button
+                        type="button"
+                        class="channel__message-edit-save"
+                        [disabled]="!editMessageText.trim() || isSavingEdit"
+                        (click)="message.id && saveEditingMessage(message.id)">
+                        Speichern
+                      </button>
+                    </div>
+                  </div>
+                </ng-template>
 
                 <ng-container *ngIf="message.id as messageId">
                   <div class="channel__message-reaction" *ngIf="messageReactions[messageId] as reaction">

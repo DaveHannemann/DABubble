@@ -17,7 +17,6 @@ import { AppUser, UserService } from '../../services/user.service';
 import { ChannelMembers } from './channel-members/channel-members';
 import { AddToChannel } from './add-to-channel/add-to-channel';
 import { ThreadService } from '../../services/thread.service';
-import { MessageEditor } from '../shared/message-editor/message-editor';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 type ChannelDay = {
   label: string;
@@ -125,6 +124,16 @@ export class ChannelComponent {
   protected messageReactions: Record<string, string> = {};
   protected openEmojiPickerFor: string | null = null;
   protected readonly emojiChoices = ['😀', '😄', '😍', '🎉', '🤔', '👏'];
+  protected editingMessageId: string | null = null;
+  protected editMessageText = '';
+  protected isSavingEdit = false;
+  private channelMessages?: ElementRef<HTMLElement>;
+
+  @ViewChild('channelMessages')
+  set channelMessagesRef(ref: ElementRef<HTMLElement> | undefined) {
+    this.channelMessages = ref;
+    this.scrollToBottom();
+  }
   protected readonly members$: Observable<ChannelMemberView[]> = this.channel$.pipe(
     switchMap((channel) => {
       if (!channel?.id) {
@@ -188,6 +197,10 @@ export class ChannelComponent {
       this.cachedMembers = members;
       this.updateMentionSuggestions();
     });
+
+    this.messagesByDay$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.scrollToBottom());
   }
   private groupMessagesByDay(messages: ChannelMessage[]): ChannelDay[] {
     const grouped = new Map<string, ChannelDay>();
@@ -434,26 +447,46 @@ export class ChannelComponent {
     });
   }
 
-  protected openEditMessage(event: Event, message: ChannelMessageView): void {
-    const trigger = event.currentTarget as HTMLElement | null;
+  protected startEditingMessage(message: ChannelMessageView): void {
+    if (!message.id || !message.isOwn) return;
+    this.editingMessageId = message.id;
+    this.editMessageText = message.text;
+  }
 
-    this.channel$.pipe(take(1)).subscribe((channel) => {
-      if (!channel?.id || !message.id) return;
+  protected cancelEditingMessage(): void {
+    this.editingMessageId = null;
+    this.editMessageText = '';
+  }
 
-      this.overlayService.open(MessageEditor, {
-        target: trigger ?? undefined,
-        offsetY: 8,
-        data: {
-          title: 'Nachricht bearbeiten',
-          initialText: message.text,
-          onSave: async (newText: string) => {
-            await this.firestoreService.updateChannelMessage(channel.id!, message.id!, {
-              text: newText,
-            });
-          },
+  protected saveEditingMessage(messageId: string): void {
+    const trimmed = this.editMessageText.trim();
+    if (!trimmed || this.isSavingEdit) return;
+
+    this.isSavingEdit = true;
+    this.channel$
+      .pipe(
+        take(1),
+        switchMap((channel) => {
+          if (!channel?.id) {
+            return of(null);
+          }
+
+          return from(
+            this.firestoreService.updateChannelMessage(channel.id, messageId, {
+              text: trimmed,
+            })
+          );
+        })
+      )
+      .subscribe({
+        complete: () => {
+          this.isSavingEdit = false;
+          this.cancelEditingMessage();
+        },
+        error: () => {
+          this.isSavingEdit = false;
         },
       });
-    });
   }
 
   protected openChannelMembers(event: Event): void {
@@ -505,5 +538,15 @@ export class ChannelComponent {
     if (!messageId) return;
 
     this.openEmojiPickerFor = this.openEmojiPickerFor === messageId ? null : messageId;
+  }
+
+
+  private scrollToBottom(): void {
+    const element = this.channelMessages?.nativeElement;
+    if (!element) return;
+
+    requestAnimationFrame(() => {
+      element.scrollTop = element.scrollHeight;
+    });
   }
 }

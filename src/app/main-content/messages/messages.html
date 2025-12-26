@@ -18,7 +18,7 @@
 
   <ng-container *ngIf="messages$ | async as messages">
     <!-- Scrollable conversation stream. -->
-    <section class="message-board__stream" aria-live="polite" *ngIf="messages.length">
+    <section class="message-board__stream" aria-live="polite" *ngIf="messages.length" #messageStream>
       <ng-container *ngFor="let message of messages; let i = index">
         <div class="message-board__divider" *ngIf="shouldShowDateDivider(messages, i)">
           <span>{{ formatDateLabel(message.timestamp) }}</span>
@@ -31,6 +31,7 @@
               type="button"
               class="message-board__bubble-action"
               aria-label="Daumen hoch geben"
+              [class.message-board__bubble-action--active]="message.id && messageReactions[message.id] === '👍'"
               (click)="react(message.id, '👍')">
               <mat-icon>thump_up</mat-icon>
             </button>
@@ -38,6 +39,7 @@
               type="button"
               class="message-board__bubble-action"
               aria-label="Grünen Haken setzen"
+              [class.message-board__bubble-action--active]="message.id && messageReactions[message.id] === '✅'"
               (click)="react(message.id, '✅')">
               <mat-icon>check_circle</mat-icon>
             </button>
@@ -48,7 +50,12 @@
               (click)="toggleEmojiPicker(message.id)">
               <mat-icon>add_reaction</mat-icon>
             </button>
-            <button type="button" class="message-board__bubble-action" aria-label="Weitere Optionen">
+            <button
+              *ngIf="message.isOwn"
+              type="button"
+              class="message-board__bubble-action"
+              aria-label="Nachricht bearbeiten"
+              (click)="startEditing(message)">
               <mat-icon>more_vert</mat-icon>
             </button>
 
@@ -71,7 +78,30 @@
                 <time class="message-board__bubble-time">{{ formatTimestamp(message.timestamp) }}</time>
               </div>
               <div class="message-board__bubble-content">
-                <p class="message-board__bubble-text">{{ message.content }}</p>
+                <ng-container *ngIf="editingMessageId !== message.id; else editMessage">
+                  <p class="message-board__bubble-text">{{ message.content }}</p>
+                </ng-container>
+                <ng-template #editMessage>
+                  <div class="message-board__bubble-edit">
+                    <textarea
+                      name="edit-message"
+                      [(ngModel)]="editMessageText"
+                      rows="3"
+                      aria-label="Nachricht bearbeiten"></textarea>
+                    <div class="message-board__bubble-edit-actions">
+                      <button type="button" class="message-board__bubble-edit-cancel" (click)="cancelEditing()">
+                        Abbrechen
+                      </button>
+                      <button
+                        type="button"
+                        class="message-board__bubble-edit-save"
+                        [disabled]="!editMessageText.trim() || isSavingEdit"
+                        (click)="message.id && saveEditing(message.id)">
+                        Speichern
+                      </button>
+                    </div>
+                  </div>
+                </ng-template>
               </div>
               <ng-container *ngIf="message.id as messageId">
                 <div class="message-board__bubble-reaction" *ngIf="messageReactions[messageId] as reaction">

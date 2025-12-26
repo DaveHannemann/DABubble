@@ -276,6 +276,20 @@ export class FirestoreService {
     });
   }
 
+  async updateDirectMessage(
+    currentUserId: string,
+    otherUserId: string,
+    messageId: string,
+    payload: Partial<Pick<DirectMessageEntry, 'text'>>
+  ): Promise<void> {
+    const conversationId = this.buildConversationId(currentUserId, otherUserId);
+    const messageDoc = doc(this.firestore, `directMessages/${conversationId}/messages/${messageId}`);
+
+    await updateDoc(messageDoc, {
+      ...payload,
+      updatedAt: serverTimestamp(),
+    });
+  }
   private buildConversationId(userA: string, userB: string): string {
     return [userA, userB].sort((a, b) => a.localeCompare(b)).join('__');
   }

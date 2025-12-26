@@ -11,134 +11,177 @@
       </button>
     </div>
   </header>
-
-  <article class="thread__root" [class.thread__root--own]="thread.root.isOwn">
-    <img class="thread__avatar" [src]="thread.root.avatar" [alt]="thread.root.author" />
-    <div class="thread__body">
-      <div
-        class="thread__bubble-actions"
-        [class.thread__bubble-actions--visible]="openEmojiPickerFor === thread.root.id"
-        aria-label="Aktionen für die Ausgangsnachricht">
-        <button
-          type="button"
-          class="thread__bubble-action"
-          aria-label="Grünen Haken setzen"
-          (click)="react(thread.root.id, '✅')">
-          <mat-icon>check_circle</mat-icon>
-        </button>
-        <button
-          type="button"
-          class="thread__bubble-action"
-          aria-label="Daumen hoch geben"
-          (click)="react(thread.root.id, '👍')">
-          <mat-icon>thumb_up</mat-icon>
-        </button>
-        <button
-          type="button"
-          class="thread__bubble-action"
-          aria-label="Emoji-Auswahl öffnen"
-          (click)="toggleEmojiPicker(thread.root.id)">
-          <mat-icon>add_reaction</mat-icon>
-        </button>
-        <button type="button" class="thread__bubble-action" aria-label="Antwort verfassen" (click)="focusComposer()">
-          <mat-icon>chat_bubble</mat-icon>
-        </button>
-        <button
-          *ngIf="thread.root.isOwn"
-          type="button"
-          class="thread__bubble-action"
-          aria-label="Weitere Aktionen"
-          (click)="openEditOverlay($event, thread.root, true)">
-          <mat-icon>more_vert</mat-icon>
-        </button>
-
-        <div class="thread__emoji-picker" *ngIf="openEmojiPickerFor === thread.root.id">
-          <button
-            type="button"
-            *ngFor="let emoji of emojiChoices"
-            (click)="react(thread.root.id, emoji)"
-            aria-label="Emoji auswählen">
-            {{ emoji }}
-          </button>
-        </div>
-      </div>
-      <div class="thread__meta">
-        <strong>{{ thread.root.author }}</strong>
-        <time>{{ thread.root.timestamp }}</time>
-      </div>
-      <p class="thread__text">{{ thread.root.text }}</p>
-      <div class="thread__bubble-reaction" *ngIf="messageReactions[thread.root.id] as reaction">
-        {{ reaction }}
-      </div>
-      <div class="thread__chip">Thread</div>
-    </div>
-  </article>
-
-  <div class="thread__divider">
-    <span>{{ thread.replies.length }} Antworten</span>
-  </div>
-
-  <div class="thread__replies">
-    <article *ngFor="let reply of thread.replies" class="thread__reply" [class.thread__reply--own]="reply.isOwn">
-      <img class="thread__avatar" [src]="reply.avatar" [alt]="reply.author" />
+  <div class="thread__scroll-area" #threadScrollArea>
+    <article class="thread__root" [class.thread__root--own]="thread.root.isOwn">
+      <img class="thread__avatar" [src]="thread.root.avatar" [alt]="thread.root.author" />
       <div class="thread__body">
         <div
           class="thread__bubble-actions"
-          [class.thread__bubble-actions--visible]="openEmojiPickerFor === reply.id"
-          aria-label="Aktionen für die Antwort">
+          [class.thread__bubble-actions--visible]="openEmojiPickerFor === thread.root.id"
+          aria-label="Aktionen für die Ausgangsnachricht">
           <button
             type="button"
             class="thread__bubble-action"
             aria-label="Grünen Haken setzen"
-            (click)="react(reply.id, '✅')">
+            [class.thread__bubble-action--active]="messageReactions[thread.root.id] === '✅'"
+            (click)="react(thread.root.id, '✅')">
             <mat-icon>check_circle</mat-icon>
           </button>
           <button
             type="button"
             class="thread__bubble-action"
             aria-label="Daumen hoch geben"
-            (click)="react(reply.id, '👍')">
+            [class.thread__bubble-action--active]="messageReactions[thread.root.id] === '👍'"
+            (click)="react(thread.root.id, '👍')">
             <mat-icon>thumb_up</mat-icon>
           </button>
           <button
             type="button"
             class="thread__bubble-action"
             aria-label="Emoji-Auswahl öffnen"
-            (click)="toggleEmojiPicker(reply.id)">
+            (click)="toggleEmojiPicker(thread.root.id)">
             <mat-icon>add_reaction</mat-icon>
           </button>
           <button type="button" class="thread__bubble-action" aria-label="Antwort verfassen" (click)="focusComposer()">
             <mat-icon>chat_bubble</mat-icon>
           </button>
           <button
-            *ngIf="reply.isOwn"
+            *ngIf="thread.root.isOwn"
             type="button"
             class="thread__bubble-action"
             aria-label="Weitere Aktionen"
-            (click)="openEditOverlay($event, reply)">
+            (click)="startEditingRoot(thread.root)">
             <mat-icon>more_vert</mat-icon>
           </button>
 
-          <div class="thread__emoji-picker" *ngIf="openEmojiPickerFor === reply.id">
+          <div class="thread__emoji-picker" *ngIf="openEmojiPickerFor === thread.root.id">
             <button
               type="button"
               *ngFor="let emoji of emojiChoices"
-              (click)="react(reply.id, emoji)"
+              (click)="react(thread.root.id, emoji)"
               aria-label="Emoji auswählen">
               {{ emoji }}
             </button>
           </div>
         </div>
         <div class="thread__meta">
-          <strong>{{ reply.author }}</strong>
-          <time>{{ reply.timestamp }}</time>
+          <strong>{{ thread.root.author }}</strong>
+          <time>{{ thread.root.timestamp }}</time>
         </div>
-        <p class="thread__text">{{ reply.text }}</p>
-        <div class="thread__bubble-reaction" *ngIf="messageReactions[reply.id ?? ''] as reaction">
+        <ng-container *ngIf="editingMessageId !== thread.root.id; else editRootMessage">
+          <p class="thread__text">{{ thread.root.text }}</p>
+        </ng-container>
+        <ng-template #editRootMessage>
+          <div class="thread__edit">
+            <textarea rows="3" [(ngModel)]="editMessageText" aria-label="Nachricht bearbeiten"></textarea>
+            <div class="thread__edit-actions">
+              <button type="button" class="thread__edit-cancel" (click)="cancelEditing()">Abbrechen</button>
+              <button
+                type="button"
+                class="thread__edit-save"
+                [disabled]="!editMessageText.trim() || isSavingEdit"
+                (click)="saveEditing(thread.root, true)">
+                Speichern
+              </button>
+            </div>
+          </div>
+        </ng-template>
+        <div class="thread__bubble-reaction" *ngIf="messageReactions[thread.root.id] as reaction">
           {{ reaction }}
         </div>
+        <div class="thread__chip">Thread</div>
       </div>
     </article>
+
+    <div class="thread__divider">
+      <span>{{ thread.replies.length }} Antworten</span>
+    </div>
+
+    <div class="thread__replies">
+      <article *ngFor="let reply of thread.replies" class="thread__reply" [class.thread__reply--own]="reply.isOwn">
+        <img class="thread__avatar" [src]="reply.avatar" [alt]="reply.author" />
+        <div class="thread__body">
+          <div
+            class="thread__bubble-actions"
+            [class.thread__bubble-actions--visible]="openEmojiPickerFor === reply.id"
+            aria-label="Aktionen für die Antwort">
+            <button
+              type="button"
+              class="thread__bubble-action"
+              aria-label="Grünen Haken setzen"
+              [class.thread__bubble-action--active]="messageReactions[reply.id] === '✅'"
+              (click)="react(reply.id, '✅')">
+              <mat-icon>check_circle</mat-icon>
+            </button>
+            <button
+              type="button"
+              class="thread__bubble-action"
+              aria-label="Daumen hoch geben"
+              [class.thread__bubble-action--active]="messageReactions[reply.id] === '👍'"
+              (click)="react(reply.id, '👍')">
+              <mat-icon>thumb_up</mat-icon>
+            </button>
+            <button
+              type="button"
+              class="thread__bubble-action"
+              aria-label="Emoji-Auswahl öffnen"
+              (click)="toggleEmojiPicker(reply.id)">
+              <mat-icon>add_reaction</mat-icon>
+            </button>
+            <button
+              type="button"
+              class="thread__bubble-action"
+              aria-label="Antwort verfassen"
+              (click)="focusComposer()">
+              <mat-icon>chat_bubble</mat-icon>
+            </button>
+            <button
+              *ngIf="reply.isOwn"
+              type="button"
+              class="thread__bubble-action"
+              aria-label="Weitere Aktionen"
+              (click)="startEditing(reply)">
+              <mat-icon>more_vert</mat-icon>
+            </button>
+
+            <div class="thread__emoji-picker" *ngIf="openEmojiPickerFor === reply.id">
+              <button
+                type="button"
+                *ngFor="let emoji of emojiChoices"
+                (click)="react(reply.id, emoji)"
+                aria-label="Emoji auswählen">
+                {{ emoji }}
+              </button>
+            </div>
+          </div>
+          <div class="thread__meta">
+            <strong>{{ reply.author }}</strong>
+            <time>{{ reply.timestamp }}</time>
+          </div>
+          <ng-container *ngIf="editingMessageId !== reply.id; else editReplyMessage">
+            <p class="thread__text">{{ reply.text }}</p>
+          </ng-container>
+          <ng-template #editReplyMessage>
+            <div class="thread__edit">
+              <textarea rows="3" [(ngModel)]="editMessageText" aria-label="Nachricht bearbeiten"></textarea>
+              <div class="thread__edit-actions">
+                <button type="button" class="thread__edit-cancel" (click)="cancelEditing()">Abbrechen</button>
+                <button
+                  type="button"
+                  class="thread__edit-save"
+                  [disabled]="!editMessageText.trim() || isSavingEdit"
+                  (click)="saveEditing(reply)">
+                  Speichern
+                </button>
+              </div>
+            </div>
+          </ng-template>
+          <div class="thread__bubble-reaction" *ngIf="messageReactions[reply.id] as reaction">
+            {{ reaction }}
+          </div>
+        </div>
+      </article>
+    </div>
   </div>
 
   <form class="thread__composer" (ngSubmit)="sendReply()" #replyForm="ngForm">
