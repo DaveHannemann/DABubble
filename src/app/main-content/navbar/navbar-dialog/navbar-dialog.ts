@@ -4,6 +4,7 @@ import { ProfileMenu } from '../profile-menu/profile-menu';
 import { AuthService } from '../../../services/auth.service';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { CommonModule } from '@angular/common';
+import { BrandStateService } from '../../../services/brand-state.service';
 
 @Component({
   selector: 'app-navbar-dialog',
@@ -27,7 +28,8 @@ export class NavbarDialog {
 
   constructor(
     private authService: AuthService,
-    private overlayService: OverlayService
+    private overlayService: OverlayService,
+    public brandState: BrandStateService
   ) {}
 
   openProfileDialog(event: Event) {
@@ -53,5 +55,6 @@ export class NavbarDialog {
     this.authService.signOut();
     console.log('User logged out');
     this.startCloseAnimation();
+    this.brandState.resetSplash();
   }
 }

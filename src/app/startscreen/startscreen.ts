@@ -140,7 +140,7 @@ export class Startscreen implements AfterViewInit {
 
     setTimeout(() => {
       this.logoOpacity = 0;
-      this.brandState.splashDone.set(true);
+      this.brandState.markSplashDone();
     }, 1700);
   }
 }

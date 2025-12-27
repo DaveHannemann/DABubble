@@ -2,6 +2,7 @@ import { Component, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { Startscreen } from "./startscreen/startscreen";
 import { CommonModule } from '@angular/common';
+import { BrandStateService } from './services/brand-state.service';
 
 @Component({
   selector: 'app-root',
@@ -10,6 +11,6 @@ import { CommonModule } from '@angular/common';
   styleUrl: './app.scss',
 })
 export class App {
+  constructor(public brandState: BrandStateService) {}
   protected readonly title = signal('daBubble');
-  showSplash = true;
 }
