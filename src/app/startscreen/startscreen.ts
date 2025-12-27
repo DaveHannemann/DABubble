@@ -1,29 +1,59 @@
 import { animate, state, style, transition, trigger } from '@angular/animations';
-import { AfterViewInit, Component, ElementRef, inject, ViewChild } from '@angular/core';
-import { Router } from '@angular/router';
-import { Logo } from '../aside-content/logo';
+import { AfterViewInit, Component, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-startscreen',
-  imports: [Logo, CommonModule],
+  imports: [CommonModule],
   templateUrl: './startscreen.html',
   styleUrl: './startscreen.scss',
   animations: [
     trigger('logoMove', [
-      state('center', style({ transform: 'translate(60px, 0) scale(2)' })),
-      state('textIn', style({ transform: 'translate(-20px, 0) scale(2)' })),
+      state('center', style({ transform: 'translate(0, 0) scale(2)' })),
+      state('textIn', style({ transform: 'translate(-40px, 0) scale(2)' })),
       state('move', style({ transform: '{{ transform }}' }), { params: { transform: 'translate(0,0) scale(1)' } }),
 
-      transition('center => textIn', animate('600ms cubic-bezier(0.25, 0.8, 0.25, 1)')),
+      transition('center => textIn', animate('900ms cubic-bezier(0.22, 1, 0.36, 1)')),
 
       transition('textIn => move', animate('700ms cubic-bezier(0.4, 0.0, 0.2, 1)')),
     ]),
 
+    trigger('textMask', [
+      state(
+        'hidden',
+        style({
+          width: '0px',
+        })
+      ),
+      state(
+        'visible',
+        style({
+          width: '*',
+        })
+      ),
+      transition('hidden => visible', animate('500ms cubic-bezier(0.25, 0.8, 0.25, 1)')),
+    ]),
+
     trigger('textSlide', [
-      state('hidden', style({ opacity: 0, transform: 'translateX(-50px)' })),
-      state('visible', style({ opacity: 1, transform: 'translateX(0)' })),
-      transition('hidden => visible', animate('1200ms 300ms ease-out')),
+      state('hidden', style({ opacity: 1 })),
+      state('visible', style({ opacity: 1 })),
+      transition('hidden => visible', animate('500ms')),
+    ]),
+
+    trigger('textColor', [
+      state(
+        'light',
+        style({
+          color: '#ffffff',
+        })
+      ),
+      state(
+        'dark',
+        style({
+          color: '#000000',
+        })
+      ),
+      transition('light => dark', animate('700ms cubic-bezier(0.4, 0.0, 0.2, 1)')),
     ]),
 
     trigger('fadeOut', [
@@ -46,52 +76,63 @@ import { CommonModule } from '@angular/common';
 export class Startscreen implements AfterViewInit {
   @ViewChild('splashWrapper', { read: ElementRef })
   splashWrapper!: ElementRef<HTMLElement>;
+  logoOpacity: any;
 
-  @ViewChild('targetLogo', { read: ElementRef })
-  targetLogo!: ElementRef<HTMLElement>;
-
-  private router = inject(Router);
+  private getTargetLogoRect(): DOMRect | null {
+    const img = document.querySelector('app-logo img') as HTMLElement;
+    return img ? img.getBoundingClientRect() : null;
+  }
 
   logoState: 'center' | 'textIn' | 'move' = 'center';
   logoTransform = '';
   showText = false;
   fadeState: 'visible' | 'hidden' = 'visible';
-  textColorClass = 'text-white';
+  textColorState: 'light' | 'dark' = 'light';
 
   ngAfterViewInit() {
     // show text
     setTimeout(() => {
       this.logoState = 'textIn';
-    }, 500);
+    }, 200);
 
     setTimeout(() => {
       this.showText = true;
-    }, 1000);
+    }, 500);
 
     // moving logo
     setTimeout(() => {
+      const targetRect = this.getTargetLogoRect();
+      if (!targetRect) return;
+
       const splashRect = this.splashWrapper.nativeElement.getBoundingClientRect();
-      const targetRect = this.targetLogo.nativeElement.getBoundingClientRect();
 
-      const translateX = targetRect.left - splashRect.left;
-      const translateY = targetRect.top - splashRect.top;
+      const splashCenterX = splashRect.left + splashRect.width / 2;
+      const splashCenterY = splashRect.top + splashRect.height / 2;
 
-      this.logoTransform = `translate(${translateX}px, ${translateY}px) scale(1)`;
+      const targetCenterX = targetRect.left + targetRect.width / 2;
+      const targetCenterY = targetRect.top + targetRect.height / 2;
+
+      const translateX = targetCenterX - splashCenterX;
+      const translateY = targetCenterY - splashCenterY;
+
+      this.logoTransform = `
+      translate(${translateX + 50}px, ${translateY}px)
+      scale(1)
+    `;
+
       this.logoState = 'move';
-    }, 2600);
+    }, 1000);
 
-    // fade before end
     setTimeout(() => {
       this.fadeState = 'hidden';
-    }, 2600);
+    }, 1000);
 
     setTimeout(() => {
-      this.textColorClass = 'text-black';
-    }, 2900);
+      this.textColorState = 'dark';
+    }, 1100);
 
-    // routing while fading out
     setTimeout(() => {
-      this.router.navigate(['/login']);
-    }, 3200);
+      this.logoOpacity = 0;
+    }, 1700);
   }
 }

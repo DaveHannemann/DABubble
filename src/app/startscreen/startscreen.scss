@@ -4,18 +4,24 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 9999;
+  pointer-events: none;
 
   .bg-layer {
     position: absolute;
     inset: 0;
     background: var(--dab-purple-transition);
-    z-index: 0; // hinter Logo
+    z-index: 0;
     will-change: opacity;
   }
 
   .logo-wrapper {
+    display: flex;
+    align-items: center;
+    position: absolute;
+    transform-origin: center;
     will-change: transform;
-    z-index: 1; // über Hintergrund
+    z-index: 1;
   }
 
   .logo-img {
@@ -23,12 +29,17 @@
     height: 80px;
     transition: transform 0.5s ease-in-out;
   }
-}
 
-.target-logo {
-  position: fixed;
-  top: 0px;
-  left: -100px;
-  opacity: 0;
-  pointer-events: none;
+  .text-mask {
+    overflow: hidden;
+    white-space: nowrap;
+    display: flex;
+    justify-content: flex-start;
+    transform-origin: left center;
+  }
+
+  .logo-text {
+    display: inline-block;
+    color: white;
+  }
 }

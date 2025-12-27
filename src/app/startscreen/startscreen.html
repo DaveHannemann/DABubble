@@ -3,17 +3,11 @@
   <div
     #splashWrapper
     class="flex items-center gap-3"
+    [style.opacity]="logoOpacity"
     [@logoMove]="{ value: logoState, params: { transform: logoTransform } }">
     <img src="imgs/logo.svg" alt="DABubble Logo" class="logo-img" />
-    <span
-      [@textSlide]="showText ? 'visible' : 'hidden'"
-      [ngClass]="textColorClass"
-      class="ml-3 text-4xl font-bold"
-      [style.opacity]="showText ? 1 : 0"
-      >DABubble</span
-    >
+    <div class="text-mask" [@textMask]="showText ? 'visible' : 'hidden'">
+      <span class="logo-text text-4xl font-bold" [@textColor]="textColorState">DABubble</span>
+    </div>
   </div>
-
-  <!-- Hidden target logo -->
-  <app-logo #targetLogo class="target-logo" [withText]="true"></app-logo>
 </section>
