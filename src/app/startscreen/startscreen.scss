@@ -36,6 +36,7 @@
     display: flex;
     justify-content: flex-start;
     transform-origin: left center;
+    flex-direction: row-reverse;
   }
 
   .logo-text {
