@@ -37,7 +37,7 @@ export class ToastOutletComponent {
     {
       key: 'bottom',
       containerClass:
-        'pointer-events-none fixed bottom-6 left-1/2 z-50 flex w-[calc(100vw-2rem)] -translate-x-1/2 flex-col-reverse items-center-safe gap-3 max-sm:bottom-4 overflow-auto [scrollbar-width:none]',
+        'pointer-events-none fixed bottom-6 w-full left-0 px-2 z-50 flex flex-col-reverse items-center-safe gap-3 max-sm:bottom-4 overflow-auto [scrollbar-width:none]',
     },
   ];
 

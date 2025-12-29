@@ -41,12 +41,11 @@
 
     @if (toast.showCloseButton) {
       <button
-        type="button"
-        class="dab-toast-btn flex size-9 items-center justify-center"
+        class="dab-toast-btn flex size-9 shrink-0 items-center justify-center"
         [ngClass]="toast.variant === 'error' ? 'focus-visible:border-black' : 'focus-visible:border-white'"
         (click)="dismiss(toast.id)"
         aria-label="Schließen">
-        <span class="material-icons">close_outlined</span>
+        <span class="material-icons">close</span>
       </button>
     }
   </div>
