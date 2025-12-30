@@ -1,5 +1,6 @@
-<section @dialogAnim
-  class="flex h-140 w-100 flex-col items-center justify-center gap-8 rounded-tl-2xl rounded-br-2xl rounded-bl-2xl bg-white p-6 shadow-xl">
+<section
+  @dialogAnim
+  class="flex h-140 w-[280px] flex-col items-center justify-center gap-8 rounded-tl-2xl rounded-br-2xl rounded-bl-2xl bg-white p-6 shadow-xl min-[420px]:w-[360px] lg:w-[440px]">
   <div class="flex w-full items-center justify-between">
     <h2>Profil</h2>
     <mat-icon class="close cursor-pointer" (click)="close()">close</mat-icon>
@@ -30,6 +31,8 @@
   </div>
 
   <div class="mt-4 flex w-full justify-center">
-    <button class="message-button" (click)="openDirectMessage()"><img src="/imgs/member dialog/message_icon.png">Nachricht</button>
+    <button class="message-button" (click)="openDirectMessage()">
+      <img src="/imgs/member dialog/message_icon.png" />Nachricht
+    </button>
   </div>
 </section>
