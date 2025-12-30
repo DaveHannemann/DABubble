@@ -5,6 +5,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { NOTIFICATIONS } from '../../notifications';
 import { AsideContentWrapperComponent } from '../../aside-content/aside-content-wrapper';
+import { ToastService } from '../../toast/toast.service';
 
 @Component({
   selector: 'app-reset-password',
@@ -16,6 +17,7 @@ export class ResetPassword implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly activatedRoute = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly toastService = inject(ToastService);
 
   newPassword = '';
   confirmPassword = '';
@@ -87,6 +89,8 @@ export class ResetPassword implements OnInit {
       await this.authService.confirmPasswordReset(this.outOfBandCode, this.newPassword);
 
       await this.authService.signInWithEmailAndPassword(this.emailFromResetCode, this.newPassword);
+
+      this.toastService.success(NOTIFICATIONS.TOAST_PASSWORD_RESET_SUCCESS);
 
       await this.router.navigate(['/main']);
     } catch (error: any) {

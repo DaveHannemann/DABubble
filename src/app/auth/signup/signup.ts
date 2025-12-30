@@ -11,6 +11,7 @@ import { AsideContentWrapperComponent } from '../../aside-content/aside-content-
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDialog } from '@angular/material/dialog';
 import { PrivacyPolicyOverlay } from '../../aside-content/privacy-policy-overlay';
+import { ToastService } from '../../toast/toast.service';
 
 @Component({
   selector: 'app-signup',
@@ -23,6 +24,7 @@ export class Signup {
   private userService = inject(UserService);
   private router = inject(Router);
   private overlayDialog = inject(MatDialog);
+  private toastService = inject(ToastService);
 
   name = '';
   emailAddress = '';
@@ -97,6 +99,9 @@ export class Signup {
       });
 
       await this.authenticationService.sendEmailVerificationLink(userCredential.user);
+
+      this.toastService.success(NOTIFICATIONS.TOAST_SIGNUP_SUCCESS);
+
       this.router.navigate(['/verify-email']);
     } catch (error: any) {
       this.errorMessage = error?.message ?? NOTIFICATIONS.SIGNUP_ERROR;
