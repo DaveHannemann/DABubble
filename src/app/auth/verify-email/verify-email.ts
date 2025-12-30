@@ -6,6 +6,7 @@ import { User } from '@angular/fire/auth';
 import { AuthService } from '../../services/auth.service';
 import { NOTIFICATIONS } from '../../notifications';
 import { AsideContentWrapperComponent } from '../../aside-content/aside-content-wrapper';
+import { ToastService } from '../../toast/toast.service';
 
 @Component({
   selector: 'app-verify-email',
@@ -16,6 +17,7 @@ import { AsideContentWrapperComponent } from '../../aside-content/aside-content-
 export class VerifyEmail {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly toastService = inject(ToastService);
 
   isChecking = false;
   isResending = false;
@@ -38,10 +40,10 @@ export class VerifyEmail {
     this.errorMessage = null;
   }
 
-  private getCurrentUserOrSetError(): User | null {
+  private getCurrentUserOrShowError(): User | null {
     const currentUser = this.authService.auth.currentUser;
     if (!currentUser) {
-      this.errorMessage = NOTIFICATIONS.NO_USER_LOGGED_IN;
+      this.toastService.error(NOTIFICATIONS.NO_USER_LOGGED_IN);
       return null;
     }
     return currentUser;
@@ -56,20 +58,22 @@ export class VerifyEmail {
     this.resetMessages();
 
     try {
-      const currentUser = this.getCurrentUserOrSetError();
+      let currentUser = this.getCurrentUserOrShowError();
       if (!currentUser) {
-        setTimeout(() => this.router.navigate(['/login']), 1500);
+        this.router.navigate(['/login']);
         return;
       }
 
       await currentUser.reload();
-      if (currentUser.emailVerified) {
+      currentUser = this.authService.auth.currentUser;
+      if (currentUser?.emailVerified) {
         this.router.navigate(['/email-confirmed']);
       } else {
         this.statusMessage = NOTIFICATIONS.EMAIL_VERIFICATION_NOT_YET_CONFIRMED;
       }
     } catch (error: any) {
-      this.errorMessage = error?.message ?? NOTIFICATIONS.EMAIL_VERIFICATION_STATUS_REFRESH_ERROR;
+      const message = error?.message ?? NOTIFICATIONS.EMAIL_VERIFICATION_STATUS_REFRESH_ERROR;
+      this.toastService.error(message);
     } finally {
       this.isChecking = false;
     }
@@ -84,16 +88,18 @@ export class VerifyEmail {
     this.resetMessages();
 
     try {
-      const currentUser = this.getCurrentUserOrSetError();
+      const currentUser = this.getCurrentUserOrShowError();
       if (!currentUser) {
         this.router.navigate(['/login']);
         return;
       }
 
       await this.authService.sendEmailVerificationLink(currentUser);
-      this.infoMessage = NOTIFICATIONS.EMAIL_VERIFICATION_RESENT_SUCCESS;
+
+      this.toastService.info(NOTIFICATIONS.TOAST_EMAIL_RESENT, { icon: 'send' });
     } catch (error: any) {
-      this.errorMessage = error?.message ?? NOTIFICATIONS.GENERAL_ERROR;
+      const message = error?.message ?? NOTIFICATIONS.GENERAL_ERROR;
+      this.toastService.error(message);
     } finally {
       this.isResending = false;
     }
@@ -103,6 +109,13 @@ export class VerifyEmail {
     if (this.isBusy) {
       return;
     }
-    await this.authService.signOut();
+
+    try {
+      await this.authService.signOut();
+      this.toastService.info(NOTIFICATIONS.TOAST_LOGOUT_SUCCESS);
+    } catch (error: any) {
+      const message = error?.message ?? NOTIFICATIONS.GENERAL_ERROR;
+      this.toastService.error(message);
+    }
   }
 }

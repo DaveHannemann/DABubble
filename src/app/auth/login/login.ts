@@ -7,6 +7,7 @@ import { NOTIFICATIONS } from '../../notifications';
 import { UserCredential } from 'firebase/auth';
 import { UserService } from '../../services/user.service';
 import { AsideContentWrapperComponent } from '../../aside-content/aside-content-wrapper';
+import { ToastService } from '../../toast/toast.service';
 
 @Component({
   selector: 'app-login',
@@ -18,6 +19,7 @@ export class Login {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly userService = inject(UserService);
+  private readonly toastService = inject(ToastService);
 
   mode = input<'login' | 'reauth'>('login');
   embedded = input(false);
@@ -51,7 +53,10 @@ export class Login {
     try {
       const credential = await loginAction();
       await this.userService.ensureUserDocumentForCurrentUser(credential);
-      await this.router.navigate(['/main']);
+
+      this.toastService.info(NOTIFICATIONS.TOAST_LOGIN_SUCCESS, { durationMs: 2000 });
+
+      this.router.navigate(['/main']);
       this.completed.emit('login');
     } catch (error: any) {
       this.errorMessage = error?.message ?? NOTIFICATIONS.SIGNUP_ERROR;
@@ -160,7 +165,7 @@ export class Login {
 
     try {
       await this.authService.sendPasswordResetEmail(this.email);
-      this.infoMessage = NOTIFICATIONS.PASSWORD_RESET_EMAIL_SENT;
+      this.toastService.info(NOTIFICATIONS.TOAST_EMAIL_SENT, { icon: 'send' });
     } catch (error: any) {
       this.errorMessage = error?.message ?? NOTIFICATIONS.SIGNUP_ERROR;
     } finally {

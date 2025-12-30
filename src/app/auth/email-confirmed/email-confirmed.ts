@@ -4,6 +4,7 @@ import { RouterLink, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { NOTIFICATIONS } from '../../notifications';
 import { AsideContentWrapperComponent } from '../../aside-content/aside-content-wrapper';
+import { ToastService } from '../../toast/toast.service';
 
 @Component({
   selector: 'app-email-confirmed',
@@ -14,6 +15,7 @@ import { AsideContentWrapperComponent } from '../../aside-content/aside-content-
 export class EmailConfirmed implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly activatedRoute = inject(ActivatedRoute);
+  private readonly toastService = inject(ToastService);
 
   isProcessingVerification = true;
   verificationErrorMessage: string | null = null;
@@ -39,7 +41,9 @@ export class EmailConfirmed implements OnInit {
 
     try {
       await this.authService.verifyEmail(outOfBandCode);
+
       this.verificationErrorMessage = null;
+      this.toastService.info(NOTIFICATIONS.TOAST_EMAIL_CONFIRMED);
     } catch (error: any) {
       this.verificationErrorMessage = error?.message ?? NOTIFICATIONS.GENERAL_ERROR;
     } finally {

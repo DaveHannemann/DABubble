@@ -14,8 +14,7 @@ export const NOTIFICATIONS = {
   FIREBASE_INVALID_LOGIN_CREDENTIALS: 'Ungültige Anmeldedaten.',
   FIREBASE_POPUP_CLOSED_BY_USER: 'Popup geschlossen. Anmeldung abgebrochen.',
   FIREBASE_EXPIRED_OOB_CODE: 'Der Link ist abgelaufen. Bitte fordere eine neue E-Mail an.',
-  FIREBASE_INVALID_OOB_CODE:
-    'Der Link ist ungültig oder wurde bereits verwendet. Bitte fordere eine neue E-Mail an.',
+  FIREBASE_INVALID_OOB_CODE: 'Der Link ist ungültig oder wurde bereits verwendet. Bitte fordere eine neue E-Mail an.',
   FIREBASE_TOO_MANY_REQUESTS: 'Bitte warte einen Moment und versuche es dann erneut.',
   FIREBASE_REQUIRES_RECENT_LOGIN: 'Bitte melde dich aus Sicherheitsgründen erneut an.',
 
@@ -26,9 +25,15 @@ export const NOTIFICATIONS = {
 
   EMAIL_VERIFICATION_NOT_YET_CONFIRMED:
     'Email noch nicht bestätigt. Bitte prüfe deinen Spam-Ornder und klicke den Link in der Bestätigungs-E-Mail.',
-  EMAIL_VERIFICATION_STATUS_REFRESH_ERROR:
-    'Der Status konnte nicht aktualisiert werden. Bitte versuche es erneut oder melde dich neu an.',
-  EMAIL_VERIFICATION_RESENT_SUCCESS: 'Wir haben dir die Bestätigungs-E-Mail erneut gesendet.',
+  EMAIL_VERIFICATION_STATUS_REFRESH_ERROR: 'Der Status konnte nicht aktualisiert werden. Bitte versuche es erneut.',
 
   ACCOUNT_DELETION_SUCCESS: 'Dein Konto wurde dauerhaft gelöscht.',
+
+  TOAST_LOGIN_SUCCESS: 'Anmeldung erfolgreich',
+  TOAST_LOGOUT_SUCCESS: 'Du wurdest abgemeldet',
+  TOAST_SIGNUP_SUCCESS: 'Konto erfolgreich erstellt!',
+  TOAST_EMAIL_SENT: 'E-Mail gesendet',
+  TOAST_PASSWORD_RESET_SUCCESS: 'Passwort geändert',
+  TOAST_EMAIL_RESENT: 'E-Mail erneut gesendet',
+  TOAST_EMAIL_CONFIRMED: 'E-Mail wurde bestätigt',
 } as const;
