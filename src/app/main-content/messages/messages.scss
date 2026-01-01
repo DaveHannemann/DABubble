@@ -347,6 +347,8 @@
   display: flex;
   align-items: center;
   gap: 16px;
+  flex:1;
+  min-height:0;
 }
 
 .message-board__intro-avatar {
@@ -378,6 +380,7 @@
   border-radius: 16px;
   padding: 12px;
   border: 1px solid #e2e8f0;
+  width: 100%;
 }
 
 .message-board__composer textarea {
@@ -389,6 +392,7 @@
   color: #0f172a;
   padding: 8px;
   outline: none;
+  width:100%;
 }
 
 .message-board__composer-actions {
