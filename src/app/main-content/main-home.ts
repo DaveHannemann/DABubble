@@ -6,7 +6,7 @@ import { Workspace } from './workspace/workspace';
 import { ScreenService } from '../services/screen.service';
 import { FirestoreService } from '../services/firestore.service';
 import { UserService } from '../services/user.service';
-import { of, switchMap } from 'rxjs';
+import { catchError, distinctUntilChanged, map, of, switchMap, tap } from 'rxjs';
 
 @Component({
   selector: 'app-main-home',
@@ -45,6 +45,7 @@ export class MainHome {
   private readonly screenService = inject(ScreenService);
   private readonly firestoreService = inject(FirestoreService);
   private readonly userService = inject(UserService);
+
   private readonly currentUser$ = toObservable(this.userService.currentUser);
 
   protected readonly isSmallScreen = this.screenService.isSmallScreen;
@@ -56,14 +57,27 @@ export class MainHome {
 
     this.currentUser$
       .pipe(
-        switchMap((user) => (user ? this.firestoreService.getChannelsForUser(user.uid) : of([]))),
+        map((user) => user?.uid ?? null),
+        distinctUntilChanged(),
+        tap((uid) => {
+          this.isLoading.set(true);
+          if (!uid) this.hasChannels.set(false);
+        }),
+        switchMap((uid) => {
+          if (!uid) return of(null);
+          return this.firestoreService.getChannelsForUser(uid).pipe(catchError(() => of([])));
+        }),
         takeUntilDestroyed(this.destroyRef)
       )
       .subscribe((channels) => {
+        if (channels === null) {
+          return;
+        }
+
         this.isLoading.set(false);
         this.hasChannels.set(channels.length > 0);
 
-        const firstChannelId = channels.find((c) => !!c.id)?.id;
+        const firstChannelId = channels.find((c) => !!c.id)?.id ?? null;
         if (!this.isSmallScreen() && firstChannelId) {
           void this.router.navigate(['/main/channels', firstChannelId], { replaceUrl: true });
         }
