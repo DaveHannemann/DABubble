@@ -18,6 +18,7 @@ import { DestroyRef } from '@angular/core';
 })
 export class FilterBox implements OnInit, OnChanges {
   @Input() searchTerm: string = '';
+  @Input() isFocused = false;
   @Output() selectItem = new EventEmitter<any>();
   @Output() close = new EventEmitter<void>();
 
@@ -29,6 +30,12 @@ export class FilterBox implements OnInit, OnChanges {
   ) {}
 
   private destroyRef = inject(DestroyRef);
+
+  private emptyStateTimer?: number;
+  showEmptyState = false;
+
+  containerVisible = false;
+  private containerTimer?: number;
 
   get currentUserUid(): string | null {
     return this.userService.currentUser()?.uid ?? null;
@@ -60,16 +67,23 @@ export class FilterBox implements OnInit, OnChanges {
   results: SearchResult[] = [];
 
   ngOnChanges(changes: SimpleChanges) {
-    if (!changes['searchTerm']) return;
-
     const term = this.searchTerm.trim();
 
-    if (term === '@' || term === '#') {
-      this.searchService.smartSearch$(term).subscribe((results) => {
-        this.results = results ?? [];
-      });
+    if (!term) {
+      this.results = [];
+      this.showEmptyState = false;
+      clearTimeout(this.emptyStateTimer);
       return;
     }
+
+    if (changes['isFocused'] && !this.isFocused) {
+      this.showEmptyState = false;
+      return;
+    }
+
+    if (!this.isFocused) return;
+
+    if (this.isGuidance) return;
 
     this.searchTerm$.next(term);
   }
@@ -85,6 +99,8 @@ export class FilterBox implements OnInit, OnChanges {
       )
       .subscribe((results) => {
         this.results = results ?? [];
+
+        this.handleEmptyState(this.searchTerm.trim());
       });
   }
 
@@ -137,11 +153,21 @@ export class FilterBox implements OnInit, OnChanges {
     return this.searchTerm.startsWith('#');
   }
 
-  get hasResults(): boolean {
-    return this.results.length > 0;
+  get isGuidance(): boolean {
+    return this.isFocused && this.searchTerm.trim().length === 0;
   }
 
-  get shouldShowResults(): boolean {
-    return this.searchTerm.trim().length > 0;
+  get hasRenderableContent(): boolean {
+    return this.isGuidance || this.results.length > 0 || this.showEmptyState;
+  }
+
+  private handleEmptyState(term: string) {
+    clearTimeout(this.emptyStateTimer);
+
+    if (!term || this.results.length > 0) return;
+
+    this.emptyStateTimer = window.setTimeout(() => {
+      this.showEmptyState = true;
+    }, 400);
   }
 }

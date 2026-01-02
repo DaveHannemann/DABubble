@@ -1,8 +1,19 @@
-<div class="absolute right-0 left-12 top-8 z-50 max-w-[360px] bg-white shadow-xl box-border"
-     *ngIf="shouldShowResults">
+<div
+  class="absolute top-8 right-0 left-12 z-50 box-border max-w-[360px] scale-100 bg-white opacity-100 shadow-xl transition-all duration-150 ease-out"
+  *ngIf="hasRenderableContent">
+  <ng-container *ngIf="isGuidance">
+    <div class="px-6 py-4 text-sm text-gray-500">
+      <div class="flex flex-col gap-1">
+        <span><strong class="text-purple-400/60">@</strong> für User</span>
+        <span><strong class="text-purple-400/60">#</strong> für Channel</span>
+        <span><strong class="text-purple-400/60">Text</strong> für alles im Workspace</span>
+      </div>
+    </div>
+  </ng-container>
+
   <ng-container *ngIf="isUserSearch">
     <ng-container *ngIf="users.length; else noUsers">
-      <div class="scroll-container px-10 py-2 overflow-y-auto max-h-[400px] pr-2 pb-2">
+      <div class="scroll-container max-h-[400px] overflow-y-auto px-10 py-2 pr-2 pb-2">
         <div
           *ngFor="let user of sortedUsers"
           (click)="choose(user)"
@@ -32,14 +43,14 @@
     </ng-container>
 
     <ng-template #noChannels>
-      <div class="px-4 py-3 text-gray-400">Diesen Channel gibt es leider nicht. Erstelle ihn doch einfach!</div>
+      <div class="px-4 py-3 text-gray-400">Diesen Channel gibt es leider (noch) nicht. Erstelle ihn doch einfach!</div>
     </ng-template>
   </ng-container>
 
   <ng-container *ngIf="!isUserSearch && !isChannelSearch">
     <ng-container *ngIf="users.length">
       <div class="px-10 py-2">
-        <div class="filter-color px-2 text-xs font-semibold text-decoration-line: underline">User</div>
+        <div class="filter-color text-decoration-line: px-2 text-xs font-semibold underline">User</div>
         <div
           *ngFor="let user of sortedUsers"
           (click)="choose(user)"
@@ -52,7 +63,7 @@
 
     <ng-container *ngIf="channels.length">
       <div class="px-10 py-2">
-        <div class="filter-color px-4 text-xs font-semibold text-decoration-line: underline">Channels</div>
+        <div class="filter-color text-decoration-line: px-4 text-xs font-semibold underline">Channels</div>
         <div
           *ngFor="let channel of channels"
           (click)="choose(channel)"
@@ -64,8 +75,7 @@
 
     <ng-container *ngIf="messages.length">
       <div class="px-10 py-2">
-        <div class="filter-color px-4 text-xs font-semibold text-decoration-line: underline">Messages</div>
-
+        <div class="filter-color text-decoration-line: px-4 text-xs font-semibold underline">Messages</div>
         <div
           *ngFor="let message of messages"
           (click)="choose(message)"
@@ -83,8 +93,11 @@
       </div>
     </ng-container>
 
-    <ng-container *ngIf="!users.length && !channels.length && !messages.length">
-      <div class="px-4 py-3">Keine Ergebnisse</div>
+    <ng-container *ngIf="showEmptyState">
+      <div class="px-4 py-3 text-gray-400">
+        🔍 Leider nichts gefunden.
+        <div class="mt-1 text-xs text-purple-400/60">Vielleicht ein anderer Begriff?</div>
+      </div>
     </ng-container>
   </ng-container>
 </div>

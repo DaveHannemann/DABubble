@@ -43,17 +43,22 @@ export class Navbar {
 
   dropdownOpen = false;
   searchTerm: string = '';
+  isSearchFocused = false;
 
   currentUser = this.userService.currentUser;
 
   onSearchInput(event: Event) {
-    const value = (event.target as HTMLInputElement).value;
-    this.searchTerm = value;
-
-    this.dropdownOpen = value.trim().length >= 1;
+    this.searchTerm = (event.target as HTMLInputElement).value;
   }
 
-  onFocus() {}
+  onFocus() {
+    this.isSearchFocused = true;
+    this.dropdownOpen = true;
+  }
+
+  onBlur() {
+    this.isSearchFocused = false;
+  }
 
   openUserMenu() {
     if (this.isDesktop) {
