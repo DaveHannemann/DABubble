@@ -158,7 +158,6 @@ export class ChannelComponent {
   @ViewChild('channelMessages')
   set channelMessagesRef(ref: ElementRef<HTMLElement> | undefined) {
     this.channelMessages = ref;
-    this.scrollToBottom();
   }
 
   @ViewChild('threadSidenav')
@@ -230,10 +229,16 @@ export class ChannelComponent {
       this.updateMentionSuggestions();
     });
 
-    this.messagesByDay$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((days) => {
-      if (this.shouldAutoScroll(days)) {
+    this.messagesByDay$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      if (this.isNearBottom()) {
         this.scrollToBottom();
       }
+    });
+
+    this.highlightRequest$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((highlightId) => {
+      if (!highlightId) return;
+
+      this.scrollToHighlightedMessage(highlightId);
     });
 
     this.router.events
@@ -651,4 +656,63 @@ export class ChannelComponent {
       this.threadService.reset();
     }
   }
+
+  private scrollToHighlightedMessage(messageId: string): void {
+    const tryScroll = (attempt = 0) => {
+      const el = document.getElementById(`message-${messageId}`);
+      const container = this.channelMessages?.nativeElement;
+
+      if (!el || !container) {
+        if (attempt < 10) {
+          requestAnimationFrame(() => tryScroll(attempt + 1));
+        }
+        return;
+      }
+
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const containerRect = container.getBoundingClientRect();
+          const elRect = el.getBoundingClientRect();
+
+          const offset =
+            elRect.top - containerRect.top + container.scrollTop - container.clientHeight / 2 + el.clientHeight / 2;
+
+          container.scrollTo({
+            top: offset,
+            behavior: 'smooth',
+          });
+
+          el.classList.add('highlight');
+
+          setTimeout(() => {
+            el.classList.remove('highlight');
+          }, 800);
+
+          void this.router.navigate([], {
+            relativeTo: this.route,
+            queryParams: {},
+            replaceUrl: true,
+          });
+        });
+      });
+    };
+
+    tryScroll();
+  }
+
+  protected trackByMessageId(_: number, msg: ChannelMessageView): string | undefined {
+    return msg.id;
+  }
+
+  private isNearBottom(threshold = 40): boolean {
+    const el = this.channelMessages?.nativeElement;
+    if (!el) return true;
+
+    return el.scrollHeight - el.scrollTop - el.clientHeight < threshold;
+  }
+
+  private readonly highlightRequest$ = combineLatest([this.route.queryParamMap, this.messagesByDay$]).pipe(
+    map(([params]) => params.get('highlight')),
+    shareReplay(1)
+  );
 }
