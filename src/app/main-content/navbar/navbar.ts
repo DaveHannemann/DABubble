@@ -1,4 +1,4 @@
-import { Component, ElementRef, inject, ViewChild } from '@angular/core';
+import { Component, ElementRef, EventEmitter, inject, Input, Output, ViewChild } from '@angular/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -26,6 +26,9 @@ import { ClickOutsideDirective } from '../../classes/click-outside.class';
   styleUrls: ['./navbar.scss'],
 })
 export class Navbar {
+  @Input() showBackButton = false;
+  @Output() back = new EventEmitter<void>();
+
   private overlayService = inject(OverlayService);
   private userService = inject(UserService);
 
@@ -89,5 +92,9 @@ export class Navbar {
   closeDropdown() {
     this.searchTerm = '';
     this.dropdownOpen = false;
+  }
+
+  onBackClick() {
+    this.back.emit();
   }
 }

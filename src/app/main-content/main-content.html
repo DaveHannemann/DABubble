@@ -1,15 +1,9 @@
 <section class="relative pr-[calc((100%-1440px)/2)] pl-[calc((100%-1440px)/2)]">
-  <app-navbar></app-navbar>
+  <app-navbar [showBackButton]="showMobileBackButton()" (back)="navigateUp()"></app-navbar>
 
   <ng-container *ngIf="isTabletScreen(); else desktopLayout">
-    <div class="main-content__mobile">
-      <div class="main-content__mobile-header" *ngIf="showMobileBackButton()">
-        <button type="button" class="main-content__back" aria-label="Zur vorherigen Ansicht" (click)="navigateUp()">
-          <span class="main-content__back-icon">&#8592;</span>
-          <span class="main-content__back-text">Zurück</span>
-        </button>
-      </div>
-      <div class="main-content__mobile-body" [@mobileRoute]="prepareRoute(mobileOutlet)">
+    <div class="main-content__mobile ">
+      <div class="main-content__mobile-body h-[calc(100vh-80px)]" [@mobileRoute]="prepareRoute(mobileOutlet)">
         <router-outlet #mobileOutlet="outlet"></router-outlet>
       </div>
     </div>

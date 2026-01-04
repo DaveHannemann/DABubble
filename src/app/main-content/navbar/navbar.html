@@ -1,8 +1,20 @@
 <section class="navbar mx-auto flex max-w-[1440px] items-center justify-between gap-6 p-4 px-4 lg:gap-12">
-  <div class="flex items-center gap-3 pl-4">
-    <img class="size-12 lg:size-20" src="/imgs/logo.svg" /><span class="cursor-default text-2xl font-bold md:text-3xl"
-      >DABubble</span
-    >
+  <div class="flex items-center gap-3 lg:pl-4">
+    <button
+      *ngIf="showBackButton && !isDesktop"
+      type="button"
+      class="flex items-center gap-1 text-2xl font-bold md:text-3xl"
+      (click)="onBackClick()"
+      aria-label="Zur vorherigen Ansicht">
+      <mat-icon>keyboard_arrow_left</mat-icon>
+      <img class="size-12 rounded-full" src="/imgs/workspace/Workspace logo.png" />
+      Devspace
+    </button>
+
+    <ng-container *ngIf="!showBackButton">
+      <img class="size-12 lg:size-20" src="/imgs/logo.svg" />
+      <span class="cursor-default text-2xl font-bold md:text-3xl"> DABubble </span>
+    </ng-container>
   </div>
   <div clickOutside (clickOutside)="closeDropdown()" class="relative hidden grow sm:block">
     <input
@@ -13,8 +25,8 @@
       (focus)="onFocus()"
       (blur)="onBlur()"
       (input)="onSearchInput($event)"
-      class="h-12 w-full rounded-full bg-white py-2 pr-10 pl-3 lg:pl-12 text-gray-500 focus:outline-none" />
-    <mat-icon class="absolute top-1/2 right-4 lg:right-8 -translate-y-1/2"> search </mat-icon>
+      class="h-12 w-full rounded-full bg-white py-2 pr-10 pl-3 text-gray-500 focus:outline-none lg:pl-12" />
+    <mat-icon class="absolute top-1/2 right-4 -translate-y-1/2 lg:right-8"> search </mat-icon>
     <app-filter-box
       *ngIf="dropdownOpen"
       [isFocused]="true"
@@ -22,7 +34,7 @@
       (close)="closeDropdown()"></app-filter-box>
   </div>
   <div class="hover-me flex items-center gap-4" (click)="openUserMenu()">
-    <p class="font-nunito hidden font-bold md:block text-2xl lg:text-3xl">{{ currentUser()?.name || 'Gast' }}</p>
+    <p class="font-nunito hidden text-2xl font-bold md:block lg:text-3xl">{{ currentUser()?.name || 'Gast' }}</p>
     <div class="relative">
       <img
         class="size-10 rounded-full md:size-14 lg:size-16"
