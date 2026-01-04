@@ -2,8 +2,8 @@
   <app-navbar [showBackButton]="showMobileBackButton()" (back)="navigateUp()"></app-navbar>
 
   <ng-container *ngIf="isTabletScreen(); else desktopLayout">
-    <div class="main-content__mobile">
-      <div class="main-content__mobile-body h-full">
+    <div class="h-[calc(100%-80px)]">
+      <div class="relative h-full overflow-hidden">
         <router-outlet></router-outlet>
       </div>
     </div>

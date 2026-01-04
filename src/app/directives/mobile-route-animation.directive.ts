@@ -6,13 +6,13 @@ import { MobileRouteAnimationService } from '../services/mobile-route-animation.
   selector: '[appMobileRouteAnimation]',
   standalone: true,
   host: {
-    '[class.mobile-route-surface]': 'isTablet()',
+    '[class.mobile-route-surface]': 'this.screenService.isTabletScreen()',
     '[animate.enter]': 'enterClass',
     '[animate.leave]': 'leaveClass',
   },
 })
 export class MobileRouteAnimationDirective {
-  private readonly screenService = inject(ScreenService);
+  protected readonly screenService = inject(ScreenService);
   private readonly mobileRouteAnimation = inject(MobileRouteAnimationService);
 
   constructor() {
@@ -33,9 +33,5 @@ export class MobileRouteAnimationDirective {
     }
 
     return this.mobileRouteAnimation.leaveClass();
-  }
-
-  protected isTablet(): boolean {
-    return this.screenService.isTabletScreen();
   }
 }
