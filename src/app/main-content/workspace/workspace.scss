@@ -437,6 +437,56 @@
   .workspace__nav {
     gap: 16px;
   }
+
+  .workspace__brand img {
+    width: 58px;
+    height: 58px;
+  }
+
+  .workspace__titles h1 {
+    font-size: 22px;
+  }
+
+  .workspace__titles p {
+    font-size: 16px;
+  }
+
+  .workspace__icon-btn {
+    width: 48px;
+    height: 48px;
+  }
+
+  .workspace__icon-btn img {
+    width: 24px;
+    height: 24px;
+  }
+
+  .workspace__section-toggle img {
+    width: 29px;
+    height: 29px;
+  }
+
+  .workspace__section-label {
+    font-size: 18px;
+  }
+
+  .workspace__list-item {
+    font-size: 18px;
+  }
+
+  .workspace__avatar {
+    width: 60px;
+    height: 60px;
+  }
+
+  .workspace__add-btn {
+    padding: 12px 16px;
+  }
+
+  .workspace__add-btn img {
+    width: 24px;
+    height: 24px;
+  }
 }
 @media (max-width: 768px) {
   .workspace {
