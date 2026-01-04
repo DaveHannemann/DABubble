@@ -430,10 +430,6 @@
     display: none;
   }
 
-  .workspace__search {
-    display: block;
-  }
-
   .workspace__nav {
     gap: 16px;
   }
@@ -496,5 +492,11 @@
   .workspace__header {
     flex-direction: column;
     align-items: flex-start;
+  }
+}
+
+@media (max-width: 640px) {
+  .workspace__search {
+    display: block;
   }
 }

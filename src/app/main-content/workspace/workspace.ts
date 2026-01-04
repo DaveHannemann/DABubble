@@ -6,6 +6,9 @@ import { toObservable } from '@angular/core/rxjs-interop';
 import { CreateChannel } from './create-channel/create-channel';
 import { Channel, FirestoreService } from '../../services/firestore.service';
 import { AppUser, UserService } from '../../services/user.service';
+import { FormsModule } from '@angular/forms';
+import { FilterBox } from '../filter-box/filter-box';
+import { ClickOutsideDirective } from '../../classes/click-outside.class';
 
 type DirectMessageUser = AppUser & { displayName: string; unreadCount: number };
 type ChannelListItem = Channel & { unreadCount: number };
@@ -13,11 +16,15 @@ type ChannelListItem = Channel & { unreadCount: number };
 @Component({
   selector: 'app-workspace',
   standalone: true,
-  imports: [CommonModule, CreateChannel],
+  imports: [CommonModule, CreateChannel, FormsModule, FilterBox, ClickOutsideDirective],
   templateUrl: './workspace.html',
   styleUrl: './workspace.scss',
 })
 export class Workspace {
+  dropdownOpen = false;
+  searchTerm: string = '';
+  isSearchFocused = false;
+
   private readonly firestoreService = inject(FirestoreService);
   private readonly userService = inject(UserService);
   private readonly router = inject(Router);
@@ -183,5 +190,23 @@ export class Workspace {
 
   protected trackDirectUser(index: number, user: DirectMessageUser): string {
     return user.uid ?? `${index}`;
+  }
+
+  onSearchInput(event: Event) {
+    this.searchTerm = (event.target as HTMLInputElement).value;
+  }
+
+  onFocus() {
+    this.isSearchFocused = true;
+    this.dropdownOpen = true;
+  }
+
+  onBlur() {
+    this.isSearchFocused = false;
+  }
+
+  closeDropdown() {
+    this.searchTerm = '';
+    this.dropdownOpen = false;
   }
 }

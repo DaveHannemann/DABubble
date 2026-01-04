@@ -16,9 +16,22 @@
         <img src="imgs/workspace/new message.svg" alt="Neue Nachricht" />
       </button>
     </div>
-     <div class="workspace__search">
-      <input type="text" placeholder="Gehe zu..." aria-label="Workspace durchsuchen" />
+    <div clickOutside (clickOutside)="closeDropdown()" class="workspace__search relative">
+      <input
+        matInput
+        [(ngModel)]="searchTerm"
+        (focus)="onFocus()"
+        (blur)="onBlur()"
+        (input)="onSearchInput($event)"
+        type="text"
+        placeholder="Gehe zu..."
+        aria-label="Workspace durchsuchen" />
       <span class="workspace__search-icon material-icons" aria-hidden="true">search</span>
+      <app-filter-box
+        *ngIf="dropdownOpen"
+        [isFocused]="true"
+        [searchTerm]="searchTerm"
+        (close)="closeDropdown()"></app-filter-box>
     </div>
   </header>
 
