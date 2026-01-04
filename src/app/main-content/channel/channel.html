@@ -50,8 +50,9 @@
                 </div>
 
                 <article
-                  *ngFor="let message of day.messages"
+                  *ngFor="let message of day.messages; trackBy: trackByMessageId"
                   class="channel__message"
+                  [id]="'message-' + message.id"
                   [class.channel__message--own]="message.isOwn">
                   <img class="channel__message-avatar" [src]="message.avatar" [alt]="message.author" />
 

@@ -672,6 +672,11 @@
   font-weight: 600;
 }
 
+.channel__message.highlight {
+  background-color: #eceefe;
+  transition: background-color 0.4s ease;
+}
+
 @media (max-width: 1250px) {
   .channel-layout__thread {
     width: 100%;

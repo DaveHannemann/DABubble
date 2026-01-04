@@ -128,7 +128,9 @@ export class FilterBox implements OnInit, OnChanges {
       this.close.emit();
     } else if (item.collection === 'messages') {
       if (item.channelId && item.id) {
-        void this.router.navigate(['/main/channels', item.channelId, 'threads', item.id]);
+        void this.router.navigate(['/main/channels', item.channelId], {
+          queryParams: { highlight: item.id },
+        });
       }
       this.selectItem.emit(item);
       this.close.emit();
