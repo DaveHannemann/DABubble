@@ -68,7 +68,7 @@
             *ngFor="let channel of channels"
             (click)="choose(channel)"
             class="filter-bg flex cursor-pointer items-center gap-2 px-2 py-3">
-            <span>#</span><span>{{ channel.data.title }}</span>
+            <span>#</span><span class="bg-yellow-100">{{ channel.data.title }}</span>
             <span class="ml-2 rounded bg-green-100 px-2 py-0.5 text-xs text-green-700"> Channel </span>
           </div>
         </div>
@@ -79,24 +79,27 @@
           <div
             *ngFor="let message of messages"
             (click)="choose(message)"
-            class="filter-bg flex cursor-pointer items-start gap-3 px-4 py-3">
+            class="filter-bg flex cursor-pointer gap-1 px-6 py-1.5">
             <div class="flex w-full flex-col gap-1">
-              <div class="line-clamp-2">
-                <span class="text-sm text-gray-700">
+              <div class="flex items-center gap-2">
+                <p class="line-clamp-2 text-sm leading-snug text-gray-800 bg-yellow-100">
                   {{ message.data.text }}
-                </span>
-              </div>
-              <div class="flex flex-wrap items-center gap-1 text-xs text-gray-500">
-                <span class="font-semibold"> von {{ getAuthor(message)?.name }} </span>
-
-                <span>in #{{ message.channelTitle }}</span>
-                <span *ngIf="message.parentMessageId" class="ml-2 rounded bg-purple-100 px-2 py-0.5 text-purple-700">
+                </p>
+                <span
+                  *ngIf="message.parentMessageId"
+                  class="mt-0.5 shrink-0 rounded bg-purple-100 px-2 py-0.5 text-[11px] font-medium text-purple-700">
                   Thread
                 </span>
 
-                <span *ngIf="!message.parentMessageId" class="ml-2 rounded bg-yellow-100 px-2 py-0.5 text-yellow-700">
+                <span
+                  *ngIf="!message.parentMessageId"
+                  class="mt-0.5 shrink-0 rounded bg-yellow-100 px-2 py-0.5 text-[11px] font-medium text-yellow-700">
                   Message
                 </span>
+              </div>
+              <div class="flex flex-col text-xs text-gray-500">
+                <span class="truncate">von {{ getAuthor(message)?.name }}</span>
+                <span class="truncate">in #{{ message.channelTitle }}</span>
               </div>
             </div>
           </div>
