@@ -77,10 +77,14 @@ export class ThreadService {
               isOwn,
               ...mapUser(root.authorId),
             },
-            replies: replies.map((r) => ({
-              ...this.toThreadMessage(r),
-              ...mapUser(r.authorId),
-            })),
+            replies: replies.map((r) => {
+              const message = this.toThreadMessage(r);
+              return {
+                ...message,
+                isOwn: r.authorId === authUser.uid,
+                ...mapUser(r.authorId),
+              };
+            }),
           };
         })
       );
@@ -141,7 +145,6 @@ export class ThreadService {
     await this.firestoreService.addThreadReply(current.channelId, current.root.id, {
       authorId: user.uid,
       text,
-      isOwn: true,
     });
   }
 
@@ -202,7 +205,6 @@ export class ThreadService {
       authorId: reply.authorId,
       timestamp: this.formatTime(createdAt),
       text: reply.text ?? '',
-      isOwn: reply.isOwn,
     };
   }
 

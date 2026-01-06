@@ -4,9 +4,7 @@ import {
   Timestamp,
   addDoc,
   collection,
-  collectionGroup,
   collectionData,
-  collectionSnapshots,
   deleteDoc,
   doc,
   docData,
@@ -20,7 +18,7 @@ import {
   query,
   where,
 } from '@angular/fire/firestore';
-import { Observable, catchError, combineLatest, map, of, shareReplay } from 'rxjs';
+import { Observable, catchError, combineLatest, map, of, shareReplay, switchMap } from 'rxjs';
 import type { AppUser } from './user.service';
 export interface Channel {
   id?: string;
@@ -42,7 +40,6 @@ export interface ThreadReply {
   authorId: string;
   text: string;
   createdAt?: any;
-  isOwn?: boolean;
 }
 
 export interface ThreadDocument {
@@ -107,7 +104,6 @@ export class FirestoreService {
   private channelMessageCache = new Map<string, Observable<ChannelMessage | null>>();
   private channels$?: Observable<Channel[]>;
   private channelCache = new Map<string, Observable<Channel | null>>();
-  private channelMembershipCache = new Map<string, Observable<Set<string>>>();
 
   private readonly firestore = inject(Firestore);
   private readonly injector = inject(EnvironmentInjector);
@@ -157,45 +153,29 @@ export class FirestoreService {
   }
 
   getChannelsForUser(userId: string): Observable<Channel[]> {
-    return combineLatest([this.getChannels(), this.getChannelIdsForUser(userId)]).pipe(
-      map(([channels, channelIds]) =>
-        channels.filter((channel): channel is Channel & { id: string } => !!channel.id && channelIds.has(channel.id))
-      )
-    );
-  }
+    return this.getChannels().pipe(
+      switchMap((channels) => {
+        if (!channels.length) {
+          return of<Channel[]>([]);
+        }
 
-  getChannelIdsForUser(userId: string): Observable<Set<string>> {
-    if (!this.channelMembershipCache.has(userId)) {
-      const stream$ = runInInjectionContext(this.injector, () => {
-        const membersCollection = collectionGroup(this.firestore, 'members');
-        const idQuery = query(membersCollection, where('id', '==', userId));
+        const channelsWithMembers$ = channels
+          .filter((channel): channel is Channel & { id: string } => !!channel.id)
+          .map((channel) => this.getChannelMembers(channel.id).pipe(map((members) => ({ channel, members }))));
 
-        return collectionSnapshots(idQuery).pipe(
-          map((userIdSnapshots) => {
-            const uniqueByPath = new Map(userIdSnapshots.map((snapshot) => [snapshot.ref.path, snapshot]));
+        if (!channelsWithMembers$.length) {
+          return of<Channel[]>([]);
+        }
 
-            const ids = Array.from(uniqueByPath.values())
-              .filter((snapshot) => snapshot.ref.parent.parent?.parent?.id === 'channels')
-              .map((snapshot) => {
-                const data = snapshot.data() as Record<string, unknown>;
-                return (data['channelId'] as string | undefined) ?? snapshot.ref.parent.parent?.id ?? null;
-              })
-              .filter((id): id is string => !!id);
-
-            return new Set(ids);
-          }),
-          catchError((error) => {
-            console.error(error);
-            return of(new Set<string>());
-          }),
-          shareReplay({ bufferSize: 1, refCount: false })
+        return combineLatest(channelsWithMembers$).pipe(
+          map((results) =>
+            results
+              .filter(({ members }) => members.length > 0 && members.some((member) => member.id === userId))
+              .map(({ channel }) => channel)
+          )
         );
-      });
-
-      this.channelMembershipCache.set(userId, stream$);
-    }
-
-    return this.channelMembershipCache.get(userId)!;
+      })
+    );
   }
 
   getChannelMessages(channelId: string): Observable<ChannelMessage[]> {
@@ -655,7 +635,6 @@ export class FirestoreService {
               authorId: reply.authorId,
               text: reply.text ?? '',
               createdAt: reply.createdAt,
-              isOwn: reply.isOwn,
             }))
           ),
           shareReplay({ bufferSize: 1, refCount: false })
@@ -671,7 +650,7 @@ export class FirestoreService {
   async addThreadReply(
     channelId: string,
     messageId: string,
-    reply: Pick<ThreadReply, 'authorId' | 'text' | 'isOwn'>
+    reply: Pick<ThreadReply, 'authorId' | 'text'>
   ): Promise<void> {
     const repliesCollection = collection(this.firestore, `channels/${channelId}/messages/${messageId}/threads`);
 
@@ -680,7 +659,6 @@ export class FirestoreService {
       parentMessageId: messageId,
       authorId: reply.authorId,
       text: reply.text,
-      isOwn: reply.isOwn ?? false,
       createdAt: serverTimestamp(),
     });
 
