@@ -1,19 +1,19 @@
 import { EnvironmentInjector, Injectable, inject, signal, runInInjectionContext } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
 import {
-  DocumentSnapshot,
   Firestore,
   collection,
   collectionData,
   doc,
+  docData,
+  getDoc,
+  getDocs,
   serverTimestamp,
   setDoc,
   updateDoc,
-  getDoc,
-  onSnapshot,
 } from '@angular/fire/firestore';
 import { User as FirebaseUser, UserCredential } from 'firebase/auth';
-import { Observable, map, shareReplay } from 'rxjs';
+import { Observable, Subscription, catchError, map, of, shareReplay } from 'rxjs';
 import { PROFILE_PICTURE_URLS } from '../auth/set-profile-picture/set-profile-picture';
 import { FirestoreService } from './firestore.service';
 import { AuthService } from './auth.service';
@@ -37,10 +37,12 @@ export class UserService {
   private authService = inject(AuthService);
   private firestore = inject(Firestore);
   private firestoreService = inject(FirestoreService);
-  private userSnapshotUnsubscribe?: () => void;
+  private userDocSubscription?: Subscription;
+  private allUsers$?: Observable<AppUser[]>;
+  private userDocCache = new Map<string, Observable<AppUser | null>>();
 
   currentUser = signal<AppUser | null>(null);
-  readonly currentUser$ = toObservable(this.currentUser).pipe(shareReplay({ bufferSize: 1, refCount: true }));
+  readonly currentUser$ = toObservable(this.currentUser).pipe(shareReplay({ bufferSize: 1, refCount: false }));
 
   constructor() {
     this.authService.authState$.subscribe((firebaseUser) => {
@@ -66,24 +68,21 @@ export class UserService {
    * from Auth to Firestore.
    */
   private async handleSignInState(firebaseUser: FirebaseUser): Promise<void> {
-    await runInInjectionContext(this.injector, async () => {
-      const userRef = doc(this.firestore, `users/${firebaseUser.uid}`);
-      const snap = await getDoc(userRef);
+    const appUser = await this.getUserOnce(firebaseUser.uid);
 
-      // If no user document exists, do NOT create one automatically.
-      if (!snap.exists()) {
-        return;
-      }
+    // If no user document exists, do NOT create one automatically.
+    if (!appUser) {
+      return;
+    }
 
-      const appUser = snap.data() as AppUser;
-      await updateDoc(userRef, {
-        onlineStatus: true,
-        lastSeen: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-      });
-      await this.firestoreService.ensureDefaultChannelMembership(appUser);
-      await this.firestoreService.ensureDefaultChannelMembershipForAllUsers();
+    const userRef = doc(this.firestore, `users/${firebaseUser.uid}`);
+    await updateDoc(userRef, {
+      onlineStatus: true,
+      lastSeen: serverTimestamp(),
+      updatedAt: serverTimestamp(),
     });
+    await this.firestoreService.ensureDefaultChannelMembership(appUser);
+    await this.firestoreService.ensureDefaultChannelMembershipForAllUsers();
   }
 
   /**
@@ -127,18 +126,15 @@ export class UserService {
    */
   private listenToUserDocument(uid: string): void {
     this.unsubscribeFromUserDocument();
-    const userRef = doc(this.firestore, `users/${uid}`);
 
-    this.userSnapshotUnsubscribe = runInInjectionContext(this.injector, () =>
-      onSnapshot(userRef, (snap: DocumentSnapshot<any>) => {
-        if (!snap.exists()) {
-          this.currentUser.set(null);
-          return;
-        }
+    this.userDocSubscription = this.getUserDoc(uid).subscribe((user) => {
+      if (!user) {
+        this.currentUser.set(null);
+        return;
+      }
 
-        this.currentUser.set(snap.data() as AppUser);
-      })
-    );
+      this.currentUser.set(user);
+    });
   }
 
   private async handleSignOutState(): Promise<void> {
@@ -150,17 +146,15 @@ export class UserService {
         onlineStatus: false,
         lastSeen: serverTimestamp(),
         updatedAt: serverTimestamp(),
-      }).catch(() => { });
+      }).catch(() => {});
     }
 
     this.currentUser.set(null);
   }
 
   private unsubscribeFromUserDocument(): void {
-    if (this.userSnapshotUnsubscribe) {
-      this.userSnapshotUnsubscribe();
-      this.userSnapshotUnsubscribe = undefined;
-    }
+    this.userDocSubscription?.unsubscribe();
+    this.userDocSubscription = undefined;
   }
 
   /**
@@ -178,27 +172,72 @@ export class UserService {
    * Streams all users so they can be displayed (e.g., in the workspace menu).
    */
   getAllUsers(): Observable<AppUser[]> {
-    return runInInjectionContext(this.injector, () => {
-      const usersCollection = collection(this.firestore, 'users');
+    if (!this.allUsers$) {
+      this.allUsers$ = runInInjectionContext(this.injector, () => {
+        const usersCollection = collection(this.firestore, 'users');
 
-      return collectionData(usersCollection, { idField: 'uid' }).pipe(
-        map((users) =>
-          (users as Array<Partial<AppUser> & { uid?: string }>).map((user) => ({
-            uid: user.uid ?? 'unbekannt',
-            name: user.name ?? 'Unbenannter Nutzer',
-            email: user.email ?? null,
-            photoUrl: user.photoUrl || 'imgs/default-profile-picture.png',
-            onlineStatus: user.onlineStatus ?? false,
-            lastSeen: user.lastSeen,
-            updatedAt: user.updatedAt,
-            createdAt: user.createdAt,
-          }))
-        ),
-        shareReplay({ bufferSize: 1, refCount: true })
-      );
+        return collectionData(usersCollection, { idField: 'uid' }).pipe(
+          map((users) =>
+            (users as Array<Partial<AppUser> & { uid?: string }>).map((user) => ({
+              uid: user.uid ?? 'unbekannt',
+              name: user.name ?? 'Unbenannter Nutzer',
+              email: user.email ?? null,
+              photoUrl: user.photoUrl || 'imgs/default-profile-picture.png',
+              onlineStatus: user.onlineStatus ?? false,
+              lastSeen: user.lastSeen,
+              updatedAt: user.updatedAt,
+              createdAt: user.createdAt,
+            }))
+          ),
+          shareReplay({ bufferSize: 1, refCount: false })
+        );
+      });
+    }
+
+    return this.allUsers$;
+  }
+
+  async getUserDocs(): Promise<Array<{ id: string; data: AppUser }>> {
+    return runInInjectionContext(this.injector, async () => {
+      const usersCollection = collection(this.firestore, 'users');
+      const snapshot = await getDocs(usersCollection);
+
+      return snapshot.docs.map((docSnap) => {
+        const data = docSnap.data() as Partial<AppUser>;
+        return {
+          id: docSnap.id,
+          data: {
+            uid: data.uid ?? docSnap.id,
+            name: data.name ?? 'Unbenannter Nutzer',
+            email: data.email ?? null,
+            photoUrl: data.photoUrl || 'imgs/default-profile-picture.png',
+            onlineStatus: data.onlineStatus ?? false,
+            lastSeen: data.lastSeen,
+            updatedAt: data.updatedAt,
+            createdAt: data.createdAt,
+          },
+        };
+      });
     });
   }
 
+  private getUserDoc(uid: string): Observable<AppUser | null> {
+    if (!this.userDocCache.has(uid)) {
+      const stream$ = runInInjectionContext(this.injector, () => {
+        const userDoc = doc(this.firestore, `users/${uid}`);
+
+        return docData(userDoc).pipe(
+          map((data) => (data as AppUser) ?? null),
+          catchError(() => of(null)),
+          shareReplay({ bufferSize: 1, refCount: false })
+        );
+      });
+
+      this.userDocCache.set(uid, stream$);
+    }
+
+    return this.userDocCache.get(uid)!;
+  }
 
   /**
    * Since Google Login registers a user, if not already present, we must ensure creation of user object in firestore

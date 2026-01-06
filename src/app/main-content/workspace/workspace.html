@@ -60,6 +60,11 @@
           <span class="workspace__section-label" [class.workspace__section-label--active]="isChannelsHeaderHovered">
             Channels
           </span>
+          <ng-container *ngIf="channelUnreadTotalCount$ | async as unreadTotal">
+            <span class="workspace__section-badge workspace__section-badge--active" *ngIf="unreadTotal > 0">
+              {{ unreadTotal }}
+            </span>
+          </ng-container>
         </button>
         <button
           class="workspace__icon-btn workspace__icon-btn--ghost"
@@ -75,13 +80,13 @@
       </div>
       <ng-container *ngIf="!areChannelsCollapsed">
         <ul class="workspace__list" id="workspace-channels">
-          <li *ngFor="let channel of channelsWithUnread$ | async; trackBy: trackChannel">
+          <li *ngFor="let channel of channelsWithUnreadCount$ | async; trackBy: trackChannel">
             <button
               class="workspace__list-item"
               type="button"
               [class.workspace__list-item--active]="activeChannelId() === channel.id"
               [class.workspace__list-item--unread]="channel.unreadCount > 0"
-              (click)="selectChannel(channel.id)">
+              (click)="selectChannel(channel)">
               <span class="workspace__hash">#</span>
               <span class="workspace__channel-name">{{ channel.title || 'Unbenannter Channel' }}</span>
               <span *ngIf="channel.unreadCount > 0" class="workspace__unread-badge">
@@ -122,7 +127,7 @@
             [class.workspace__section-label--active]="isDirectMessagesHeaderHovered">
             Direktnachrichten
           </span>
-          <ng-container *ngIf="directMessageUnreadTotal$ | async as unreadTotal">
+          <ng-container *ngIf="directMessageUnreadTotalCount$ | async as unreadTotal">
             <span class="workspace__section-badge workspace__section-badge--active" *ngIf="unreadTotal > 0">
               {{ unreadTotal }}
             </span>
@@ -133,7 +138,7 @@
         *ngIf="!areDirectMessagesCollapsed"
         class="workspace__list workspace__list--direct"
         id="workspace-direct-messages">
-        <ng-container *ngIf="directMessageUsers$ | async as users">
+        <ng-container *ngIf="directMessageUsersWithUnreadCount$ | async as users">
           <li *ngFor="let user of users; trackBy: trackDirectUser">
             <button
               type="button"

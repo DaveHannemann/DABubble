@@ -10,6 +10,7 @@ import { ScreenService } from '../services/screen.service';
 import { ThreadCloseService } from '../services/thread-close.service';
 import { WorkspaceToggleButton } from './workspace-toggle-button/workspace-toggle-button';
 import { MobileRouteAnimationService } from '../services/mobile-route-animation.service';
+import { UnreadMessagesService } from '../services/unread-messages.service';
 
 @Component({
   selector: 'app-main-content',
@@ -25,6 +26,7 @@ export class MainContent {
   private readonly screenService = inject(ScreenService);
   private readonly threadCloseService = inject(ThreadCloseService);
   private readonly mobileRouteAnimation = inject(MobileRouteAnimationService);
+  private readonly unreadMessagesService = inject(UnreadMessagesService);
 
   protected readonly isTabletScreen = this.screenService.isTabletScreen;
   protected readonly activeChannelId = signal<string | null>(null);
@@ -107,6 +109,8 @@ export class MainContent {
       this.activeChannelId.set(null);
       this.activeDmId.set(null);
       this.activeThreadId.set(null);
+      this.unreadMessagesService.setActiveChannelId(null);
+      this.unreadMessagesService.setActiveDmId(null);
       this.updateMobileRouteDirection(previousView, 'home');
       this.activeView.set('home');
       return;
@@ -140,6 +144,8 @@ export class MainContent {
     this.activeChannelId.set(channelId);
     this.activeDmId.set(dmId);
     this.activeThreadId.set(threadId);
+    this.unreadMessagesService.setActiveChannelId(channelId);
+    this.unreadMessagesService.setActiveDmId(dmId);
     this.activeView.set(view);
   }
 

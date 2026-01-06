@@ -5,7 +5,6 @@ import {
   catchError,
   combineLatest,
   distinctUntilChanged,
-  filter,
   from,
   map,
   of,
@@ -13,7 +12,7 @@ import {
   switchMap,
   tap,
 } from 'rxjs';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { FirestoreService } from '../../services/firestore.service';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
@@ -48,7 +47,6 @@ export class Messages {
   private readonly userService = inject(UserService);
   private readonly dialog = inject(MatDialog);
   private readonly route = inject(ActivatedRoute);
-  private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
 
   private readonly currentUser$ = this.userService.currentUser$;
@@ -132,44 +130,6 @@ export class Messages {
     this.selectedRecipient$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((recipient) => (this.selectedRecipient = recipient));
-
-    combineLatest([this.currentUser$, this.dmUserId$])
-      .pipe(
-        takeUntilDestroyed(this.destroyRef),
-        filter(([currentUser, dmId]) => !!currentUser && !!dmId),
-        distinctUntilChanged(([u1, d1], [u2, d2]) => u1?.uid === u2?.uid && d1 === d2),
-        switchMap(([currentUser, dmId]) =>
-          from(this.firestoreService.updateDirectMessageReadStatus(currentUser!.uid, dmId!)).pipe(
-            catchError(() => of(null))
-          )
-        )
-      )
-      .subscribe();
-
-    combineLatest([this.currentUser$, this.dmUserId$, this.rawMessages$])
-      .pipe(
-        takeUntilDestroyed(this.destroyRef),
-        filter(([currentUser, dmId]) => !!currentUser && !!dmId),
-        map(([currentUser, dmId, messages]) => {
-          const lastMessage = messages.length ? messages[messages.length - 1] : null;
-          const lastMessageMillis = lastMessage?.timestamp?.toMillis?.() ?? null;
-          return { currentUser, dmId, lastMessage, lastMessageMillis };
-        }),
-        distinctUntilChanged(
-          (a, b) =>
-            a.currentUser?.uid === b.currentUser?.uid &&
-            a.dmId === b.dmId &&
-            a.lastMessageMillis === b.lastMessageMillis &&
-            a.lastMessage?.isOwn === b.lastMessage?.isOwn
-        ),
-        filter((state) => !!state.lastMessage && state.lastMessage!.isOwn === false),
-        switchMap((state) =>
-          from(this.firestoreService.updateDirectMessageReadStatus(state.currentUser!.uid, state.dmId!)).pipe(
-            catchError(() => of(null))
-          )
-        )
-      )
-      .subscribe();
   }
 
   protected sendMessage(): void {

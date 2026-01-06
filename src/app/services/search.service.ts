@@ -1,12 +1,14 @@
-import { EnvironmentInjector, inject, Injectable, runInInjectionContext } from '@angular/core';
-import { Firestore, collection, collectionGroup, getDocs, QuerySnapshot, DocumentData } from '@angular/fire/firestore';
+import { EnvironmentInjector, Injectable, inject, runInInjectionContext } from '@angular/core';
+import { DocumentData, Firestore, collection, collectionGroup, getDocs } from '@angular/fire/firestore';
 import { SearchCollection, SearchResult, MessageDoc, ThreadDoc } from '../classes/search-result.class';
 import { ChannelMembershipService } from './membership.service';
+import { UserService } from './user.service';
 import { from, Observable, of, switchMap } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class SearchService {
-  private injector = inject(EnvironmentInjector);
+  private readonly firestore = inject(Firestore);
+  private readonly injector = inject(EnvironmentInjector);
 
   private async buildChannelMap(): Promise<Map<string, string>> {
     const channels = await this.getAllFromCollection('channels');
@@ -14,7 +16,7 @@ export class SearchService {
   }
 
   constructor(
-    private firestore: Firestore,
+    private userService: UserService,
     private channelMembershipService: ChannelMembershipService
   ) {}
 
@@ -82,34 +84,30 @@ export class SearchService {
 
   private async searchMessagesForUser(term: string, allowedChannelIds: Set<string>): Promise<SearchResult[]> {
     const lowerTerm = term.toLowerCase();
+    const [messageResults, threadResults] = await Promise.all([
+      this.searchChannelMessages(lowerTerm, allowedChannelIds),
+      this.searchThreadMessages(lowerTerm, allowedChannelIds),
+    ]);
 
-    return runInInjectionContext(this.injector, async () => {
-      const [messageResults, threadResults] = await Promise.all([
-        this.searchChannelMessages(lowerTerm, allowedChannelIds),
-        this.searchThreadMessages(lowerTerm, allowedChannelIds),
-      ]);
-
-      return [...messageResults, ...threadResults];
-    });
+    return [...messageResults, ...threadResults];
   }
 
   private async searchChannelMessages(lowerTerm: string, allowedChannelIds: Set<string>): Promise<SearchResult[]> {
-    const messagesRef = collectionGroup(this.firestore, 'messages');
-    const snapshot = await getDocs(messagesRef);
+    const messages = await this.getChannelMessageDocs();
 
     const channelMap = await this.buildChannelMap();
 
-    return snapshot.docs
-      .map((doc) => {
-        const channelId = doc.ref.parent.parent?.id;
+    return messages
+      .map((message) => {
+        const channelId = message.channelId;
         if (!channelId || !allowedChannelIds.has(channelId)) return null;
 
-        const data = doc.data() as MessageDoc;
+        const data = message.data as MessageDoc;
 
         if (!data.text?.toLowerCase().includes(lowerTerm)) return null;
 
         return {
-          id: doc.id,
+          id: message.id,
           collection: 'messages',
           channelId,
           channelTitle: channelMap.get(channelId),
@@ -123,24 +121,23 @@ export class SearchService {
   }
 
   private async searchThreadMessages(lowerTerm: string, allowedChannelIds: Set<string>): Promise<SearchResult[]> {
-    const threadsRef = collectionGroup(this.firestore, 'threads');
-    const snapshot = await getDocs(threadsRef);
+    const threads = await this.getThreadDocs();
 
     const channelMap = await this.buildChannelMap();
 
-    return snapshot.docs
-      .map((doc) => {
-        const parentMessageId = doc.ref.parent.parent?.id;
-        const channelId = doc.ref.parent.parent?.parent.parent?.id;
+    return threads
+      .map((thread) => {
+        const parentMessageId = thread.parentMessageId;
+        const channelId = thread.channelId;
 
         if (!parentMessageId || !channelId) return null;
         if (!allowedChannelIds.has(channelId)) return null;
 
-        const data = doc.data() as ThreadDoc;
+        const data = thread.data as ThreadDoc;
         if (!data.text?.toLowerCase().includes(lowerTerm)) return null;
 
         return {
-          id: doc.id,
+          id: thread.id,
           collection: 'messages',
           channelId,
           channelTitle: channelMap.get(channelId),
@@ -189,21 +186,6 @@ export class SearchService {
   }
 
   /**
-   * Maps a query snapshot to an array of SearchResult objects.
-   *
-   * @param snapshot - The query snapshot from Firestore
-   * @param collectionName - The name of the collection the documents belong to
-   * @returns An array of SearchResult objects
-   */
-  private mapSnapshot(snapshot: QuerySnapshot<DocumentData>, collectionName: SearchCollection): SearchResult[] {
-    return snapshot.docs.map((doc) => ({
-      id: doc.id,
-      collection: collectionName,
-      data: doc.data(),
-    }));
-  }
-
-  /**
    * Retrieves all documents from a Firestore collection.
    *
    * Note: Not for large collections due to performance considerations.
@@ -212,10 +194,65 @@ export class SearchService {
    * @returns A list of all documents in the collection as SearchResult objects
    */
   async getAllFromCollection(collectionName: SearchCollection): Promise<SearchResult[]> {
+    const docs =
+      collectionName === 'users' ? await this.userService.getUserDocs() : await this.getCollectionDocs(collectionName);
+
+    return docs.map((doc) => ({
+      id: doc.id,
+      collection: collectionName,
+      data: doc.data,
+    }));
+  }
+
+  private async getCollectionDocs(collectionName: string): Promise<Array<{ id: string; data: DocumentData }>> {
     return runInInjectionContext(this.injector, async () => {
-      const colRef = collection(this.firestore, collectionName);
-      const snapshot = await getDocs(colRef);
-      return this.mapSnapshot(snapshot, collectionName);
+      const collectionRef = collection(this.firestore, collectionName);
+      const snapshot = await getDocs(collectionRef);
+
+      return snapshot.docs.map((docSnap) => ({
+        id: docSnap.id,
+        data: docSnap.data(),
+      }));
+    });
+  }
+
+  private async getChannelMessageDocs(): Promise<Array<{ id: string; channelId: string | null; data: DocumentData }>> {
+    return runInInjectionContext(this.injector, async () => {
+      const messagesRef = collectionGroup(this.firestore, 'messages');
+      const snapshot = await getDocs(messagesRef);
+
+      return snapshot.docs
+        .filter((docSnap) => docSnap.ref.parent.parent?.parent?.id === 'channels')
+        .map((docSnap) => {
+          const data = docSnap.data() as Record<string, unknown>;
+          return {
+            id: docSnap.id,
+            channelId: (data['channelId'] as string | undefined) ?? docSnap.ref.parent.parent?.id ?? null,
+            data: docSnap.data(),
+          };
+        });
+    });
+  }
+
+  private async getThreadDocs(): Promise<
+    Array<{ id: string; channelId: string | null; parentMessageId: string | null; data: DocumentData }>
+  > {
+    return runInInjectionContext(this.injector, async () => {
+      const threadsRef = collectionGroup(this.firestore, 'threads');
+      const snapshot = await getDocs(threadsRef);
+
+      return snapshot.docs
+        .filter((docSnap) => docSnap.ref.parent.parent?.parent?.parent?.parent?.id === 'channels')
+        .map((docSnap) => {
+          const data = docSnap.data() as Record<string, unknown>;
+          return {
+            id: docSnap.id,
+            channelId:
+              (data['channelId'] as string | undefined) ?? docSnap.ref.parent.parent?.parent?.parent?.id ?? null,
+            parentMessageId: (data['parentMessageId'] as string | undefined) ?? docSnap.ref.parent.parent?.id ?? null,
+            data: docSnap.data(),
+          };
+        });
     });
   }
 }
