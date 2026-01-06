@@ -20,7 +20,7 @@ import { AddToChannel } from './add-to-channel/add-to-channel';
 import { ThreadService } from '../../services/thread.service';
 import { ThreadCloseService } from '../../services/thread-close.service';
 import { ScreenService } from '../../services/screen.service';
-import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { EMOJI_CHOICES } from '../../texts';
 import { MobileRouteAnimationDirective } from '../../directives/mobile-route-animation.directive';
 
@@ -69,7 +69,7 @@ export class ChannelComponent {
   private readonly destroyRef = inject(DestroyRef);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
-  private readonly currentUser$ = toObservable(this.userService.currentUser);
+  private readonly currentUser$ = this.userService.currentUser$;
 
   protected readonly isTabletScreen = this.screenService.isTabletScreen;
 
@@ -539,6 +539,7 @@ export class ChannelComponent {
         authorId: message.authorId,
         time: message.time,
         text: message.text,
+        isOwn: message.isOwn,
       });
     });
   }

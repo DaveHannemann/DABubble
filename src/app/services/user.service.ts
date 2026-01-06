@@ -1,4 +1,5 @@
 import { EnvironmentInjector, Injectable, inject, signal, runInInjectionContext } from '@angular/core';
+import { toObservable } from '@angular/core/rxjs-interop';
 import {
   DocumentSnapshot,
   Firestore,
@@ -39,6 +40,7 @@ export class UserService {
   private userSnapshotUnsubscribe?: () => void;
 
   currentUser = signal<AppUser | null>(null);
+  readonly currentUser$ = toObservable(this.currentUser).pipe(shareReplay({ bufferSize: 1, refCount: true }));
 
   constructor() {
     this.authService.authState$.subscribe((firebaseUser) => {

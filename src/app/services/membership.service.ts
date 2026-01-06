@@ -2,7 +2,6 @@ import { Injectable, inject } from '@angular/core';
 import { FirestoreService } from './firestore.service';
 import { UserService, AppUser } from './user.service';
 import { map, switchMap, Observable, shareReplay, of } from 'rxjs';
-import { toObservable } from '@angular/core/rxjs-interop';
 
 @Injectable({ providedIn: 'root' })
 export class ChannelMembershipService {
@@ -11,7 +10,7 @@ export class ChannelMembershipService {
   private firestoreService = inject(FirestoreService);
 
   // ✅ Injection Context: FIELD INITIALIZER
-  private currentUser$ = toObservable(this.userService.currentUser);
+  private currentUser$ = this.userService.currentUser$;
 
   /**
    * Emits the set of channel IDs the current user is a member of.

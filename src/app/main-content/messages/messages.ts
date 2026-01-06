@@ -51,7 +51,7 @@ export class Messages {
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
 
-  private readonly currentUser$ = toObservable(this.userService.currentUser);
+  private readonly currentUser$ = this.userService.currentUser$;
 
   private readonly dmUserId$ = this.route.paramMap.pipe(
     map((params) => params.get('dmId')),

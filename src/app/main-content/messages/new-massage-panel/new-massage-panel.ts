@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { BehaviorSubject, Observable, combineLatest, map, of, switchMap } from 'rxjs';
 import { Channel, FirestoreService } from '../../../services/firestore.service';
 import { AppUser, UserService } from '../../../services/user.service';
-import { toObservable } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { MobileRouteAnimationDirective } from '../../../directives/mobile-route-animation.directive';
 
@@ -29,7 +28,7 @@ export class NewMessagePanel {
 
   @Output() readonly close = new EventEmitter<void>();
 
-  private readonly currentUser$ = toObservable(this.userService.currentUser);
+  private readonly currentUser$ = this.userService.currentUser$;
   private readonly searchTermSubject = new BehaviorSubject<string>('');
   protected readonly searchTerm$ = this.searchTermSubject.asObservable();
   protected searchTerm = '';

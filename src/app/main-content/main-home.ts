@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Workspace } from './workspace/workspace';
 import { ScreenService } from '../services/screen.service';
 import { FirestoreService } from '../services/firestore.service';
@@ -48,7 +48,7 @@ export class MainHome {
   private readonly firestoreService = inject(FirestoreService);
   private readonly userService = inject(UserService);
 
-  private readonly currentUser$ = toObservable(this.userService.currentUser);
+  private readonly currentUser$ = this.userService.currentUser$;
 
   protected readonly isTabletScreen = this.screenService.isTabletScreen;
   protected readonly isLoading = signal(true);
