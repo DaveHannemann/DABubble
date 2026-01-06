@@ -142,7 +142,10 @@ export class FirestoreService {
 
         return docData(channelDoc).pipe(
           map((data) => (data as Channel) ?? null),
-          catchError(() => of(null)),
+          catchError((error) => {
+            console.error(error);
+            return of(null);
+          }),
           shareReplay({ bufferSize: 1, refCount: false })
         );
       });
@@ -181,7 +184,10 @@ export class FirestoreService {
 
             return new Set(ids);
           }),
-          catchError(() => of(new Set<string>())),
+          catchError((error) => {
+            console.error(error);
+            return of(new Set<string>());
+          }),
           shareReplay({ bufferSize: 1, refCount: false })
         );
       });
@@ -342,7 +348,10 @@ export class FirestoreService {
               createdAt: message['createdAt'] as Timestamp,
             }))
           ),
-          catchError(() => of([])),
+          catchError((error) => {
+            console.error(error);
+            return of([]);
+          }),
           shareReplay({ bufferSize: 1, refCount: false })
         )
       );
@@ -740,7 +749,10 @@ export class FirestoreService {
               updatedAt: data['updatedAt'] as Timestamp | undefined,
             } as ChannelMessage;
           }),
-          catchError(() => of(null)),
+          catchError((error) => {
+            console.error(error);
+            return of(null);
+          }),
           shareReplay({ bufferSize: 1, refCount: false })
         );
       });
@@ -779,7 +791,10 @@ export class FirestoreService {
 
         return docData(threadDocRef, { idField: 'id' }).pipe(
           map((data) => (data as ThreadDocument) ?? null),
-          catchError(() => of(null)),
+          catchError((error) => {
+            console.error(error);
+            return of(null);
+          }),
           shareReplay({ bufferSize: 1, refCount: false })
         );
       });

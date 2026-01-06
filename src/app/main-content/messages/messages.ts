@@ -116,7 +116,10 @@ export class Messages {
 
           return from(this.userService.getUserOnce(dmId)).pipe(
             map((recipient) => ({ dmId, recipient })),
-            catchError(() => of({ dmId, recipient: null }))
+            catchError((error) => {
+              console.error(error);
+              return of({ dmId, recipient: null });
+            })
           );
         })
       )

@@ -207,7 +207,10 @@ export class UnreadMessagesService {
         filter((state) => state.messageCount > state.lastReadCount),
         switchMap((state) =>
           from(this.setChannelReadStatus(state.userId, state.channelId, state.messageCount)).pipe(
-            catchError(() => of(null))
+            catchError((error) => {
+              console.error(error);
+              return of(null);
+            })
           )
         )
       )
@@ -264,7 +267,10 @@ export class UnreadMessagesService {
         filter((state) => state.messageCount > state.lastReadCount),
         switchMap((state) =>
           from(this.setDirectMessageReadStatus(state.userId, state.conversationId, state.messageCount)).pipe(
-            catchError(() => of(null))
+            catchError((error) => {
+              console.error(error);
+              return of(null);
+            })
           )
         )
       )

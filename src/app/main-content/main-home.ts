@@ -67,7 +67,12 @@ export class MainHome {
         }),
         switchMap((uid) => {
           if (!uid) return of(null);
-          return this.firestoreService.getChannelsForUser(uid).pipe(catchError(() => of([])));
+          return this.firestoreService.getChannelsForUser(uid).pipe(
+            catchError((error) => {
+              console.error(error);
+              return of([]);
+            })
+          );
         }),
         takeUntilDestroyed(this.destroyRef)
       )
