@@ -56,6 +56,9 @@ export type ChannelMessageView = {
   tag?: string;
   attachment?: ChannelAttachment;
   isOwn?: boolean;
+  reactions?: {
+    [emoji: string]: string[];
+  };
 };
 
 type ChannelMemberView = ChannelMember & {
@@ -99,15 +102,6 @@ export class ChannelComponent {
     'imgs/users/Property 1=Sofia Müller.svg',
     'imgs/users/Property 1=Elias Neumann.svg',
   ];
-
-  protected get currentUser() {
-    const user = this.userService.currentUser();
-
-    return {
-      name: user?.name ?? 'Gast',
-      avatar: user?.photoUrl ?? 'imgs/default-profile-picture.png',
-    };
-  }
 
   private readonly channelId$ = this.route.paramMap.pipe(
     map((params) => params.get('channelId')),
@@ -160,12 +154,13 @@ export class ChannelComponent {
     map((channel) => channel?.description ?? this.channelDefaults.summary)
   );
 
-  protected messageReactions: Record<string, string> = {};
   protected openEmojiPickerFor: string | null = null;
   protected readonly emojiChoices = EMOJI_CHOICES;
   protected editingMessageId: string | null = null;
   protected editMessageText = '';
   protected isSavingEdit = false;
+  protected channelId: string | null = null;
+  protected currentUser: AppUser | null = null;
   private channelMessages?: ElementRef<HTMLElement>;
   private threadSidenav?: MatSidenav;
 
@@ -257,6 +252,12 @@ export class ChannelComponent {
 
       this.scrollToHighlightedMessage(highlightId);
     });
+
+    this.channelId$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((id) => (this.channelId = id));
+
+    this.userService.currentUser$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((user) => (this.currentUser = user));
 
     this.router.events
       .pipe(
@@ -480,6 +481,7 @@ export class ChannelComponent {
       attachment: message.attachment,
 
       isOwn: message.authorId === currentUserId,
+      reactions: message.reactions ?? {},
     };
   }
 
@@ -656,18 +658,20 @@ export class ChannelComponent {
       });
   }
 
-  react(messageId: string | undefined, reaction: string): void {
-    if (!messageId) return;
+  react(message: ChannelMessageView, emoji: string): void {
+    if (!this.currentUser || !this.channelId || !message.id) return;
 
-    if (this.messageReactions[messageId] === reaction) {
-      const { [messageId]: _removed, ...rest } = this.messageReactions;
-      this.messageReactions = rest;
-    } else {
-      this.messageReactions = {
-        ...this.messageReactions,
-        [messageId]: reaction,
-      };
-    }
+    const reactions = message.reactions ?? {};
+    const hasReacted = reactions[emoji]?.includes(this.currentUser.uid) ?? false;
+
+    this.firestoreService.toggleChannelMessageReaction(
+      this.channelId,
+      message.id,
+      this.currentUser.uid,
+      emoji,
+      hasReacted
+    );
+
     this.openEmojiPickerFor = null;
   }
 

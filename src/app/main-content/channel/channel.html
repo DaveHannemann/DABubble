@@ -65,16 +65,20 @@
                         type="button"
                         class="channel__message-action"
                         aria-label="Grünen Haken setzen"
-                        [class.channel__message-action--active]="message.id && messageReactions[message.id] === '✅'"
-                        (click)="react(message.id, '✅')">
+                        [class.channel__message-action--active]="
+                          message.reactions?.['✅']?.includes(currentUser?.uid ?? '')
+                        "
+                        (click)="react(message, '✅')">
                         ✅
                       </button>
                       <button
                         type="button"
                         class="channel__message-action"
                         aria-label="Daumen hoch geben"
-                        [class.channel__message-action--active]="message.id && messageReactions[message.id] === '👍'"
-                        (click)="react(message.id, '👍')">
+                        [class.channel__message-action--active]="
+                          message.reactions?.['👍']?.includes(currentUser?.uid ?? '')
+                        "
+                        (click)="react(message, '👍')">
                         👍
                       </button>
                       <button
@@ -103,7 +107,7 @@
                         <button
                           type="button"
                           *ngFor="let emoji of emojiChoices"
-                          (click)="react(message.id, emoji)"
+                          (click)="react(message, emoji)"
                           aria-label="Emoji auswählen">
                           {{ emoji }}
                         </button>
@@ -139,8 +143,17 @@
                     </ng-template>
 
                     <ng-container *ngIf="message.id as messageId">
-                      <div class="channel__message-reaction" *ngIf="messageReactions[messageId] as reaction">
-                        {{ reaction }}
+                      <div
+                        class="channel__message-reactions"
+                        *ngIf="message.reactions && (message.reactions | keyvalue).length">
+                        <button
+                          type="button"
+                          class="channel__reaction"
+                          *ngFor="let r of message.reactions | keyvalue"
+                          (click)="react(message, r.key)"
+                          [class.channel__reaction--own]="r.value.includes(currentUser?.uid ?? '')">
+                          {{ r.key }} {{ r.value.length }}
+                        </button>
                       </div>
                     </ng-container>
 

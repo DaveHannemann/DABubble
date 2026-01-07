@@ -17,6 +17,10 @@ import {
   orderBy,
   query,
   where,
+  arrayUnion,
+  arrayRemove,
+  deleteField,
+  runTransaction,
 } from '@angular/fire/firestore';
 import { Observable, catchError, combineLatest, map, of, shareReplay, switchMap } from 'rxjs';
 import type { AppUser } from './user.service';
@@ -59,6 +63,9 @@ export interface ChannelMessage {
   lastReplyAt?: Timestamp;
   tag?: string;
   attachment?: ChannelAttachment;
+  reactions?: {
+    [emoji: string]: string[]; // 👍 → [uid1, uid2]
+  };
 }
 
 export interface DirectMessage {
@@ -195,6 +202,7 @@ export class FirestoreService {
               tag: message.tag,
               attachment: message.attachment,
               updatedAt: message.updatedAt,
+              reactions: message.reactions ?? {},
             }))
           ),
           shareReplay({ bufferSize: 1, refCount: false })
@@ -734,5 +742,39 @@ export class FirestoreService {
     }
 
     return this.threadCache.get(key)!;
+  }
+
+  async toggleChannelMessageReaction(
+    channelId: string,
+    messageId: string,
+    userId: string,
+    emoji: string,
+    hasReacted: boolean
+  ): Promise<void> {
+    const messageRef = doc(this.firestore, `channels/${channelId}/messages/${messageId}`);
+
+    await runTransaction(this.firestore, async (tx) => {
+      const snap = await tx.get(messageRef);
+      if (!snap.exists()) return;
+
+      const data = snap.data();
+      const reactions = { ...(data['reactions'] ?? {}) };
+      const users: string[] = reactions[emoji] ?? [];
+
+      if (hasReacted) {
+        // entfernen
+        reactions[emoji] = users.filter((id) => id !== userId);
+        if (reactions[emoji].length === 0) {
+          delete reactions[emoji];
+        }
+      } else {
+        reactions[emoji] = [...new Set([...users, userId])];
+      }
+
+      tx.update(messageRef, {
+        reactions,
+        updatedAt: serverTimestamp(),
+      });
+    });
   }
 }
