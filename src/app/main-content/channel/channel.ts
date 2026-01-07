@@ -35,6 +35,9 @@ import { ScreenService } from '../../services/screen.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { EMOJI_CHOICES } from '../../texts';
 import { MobileRouteAnimationDirective } from '../../directives/mobile-route-animation.directive';
+import { Overlay, OverlayRef } from '@angular/cdk/overlay';
+import { ComponentPortal } from '@angular/cdk/portal';
+import { ReactionTooltipComponent } from './tooltip/tooltip';
 
 type ChannelDay = {
   label: string;
@@ -84,6 +87,7 @@ export class ChannelComponent {
   private readonly destroyRef = inject(DestroyRef);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly overlay = inject(Overlay);
   private readonly currentUser$ = this.userService.currentUser$;
   private readonly allUsers$ = this.userService.getAllUsers();
 
@@ -102,6 +106,8 @@ export class ChannelComponent {
     'imgs/users/Property 1=Sofia Müller.svg',
     'imgs/users/Property 1=Elias Neumann.svg',
   ];
+
+  protected allUsersSnapshot: AppUser[] = [];
 
   private readonly channelId$ = this.route.paramMap.pipe(
     map((params) => params.get('channelId')),
@@ -122,6 +128,7 @@ export class ChannelComponent {
   private mentionCaretIndex: number | null = null;
   private lastMessageCount = 0;
   private lastMessageId?: string;
+  private overlayRef?: OverlayRef;
   protected readonly hasThreadChild = signal(false);
 
   protected readonly channel$: Observable<Channel | undefined> = combineLatest([
@@ -235,6 +242,8 @@ export class ChannelComponent {
     });
 
     this.publicChannelMemberSync();
+
+    this.allUsers$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((users) => (this.allUsersSnapshot = users));
 
     this.members$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((members) => {
       this.cachedMembers = members;
@@ -760,4 +769,45 @@ export class ChannelComponent {
     map(([params]) => params.get('highlight')),
     shareReplay(1)
   );
+
+  showReactionTooltip(event: MouseEvent, emoji: string, userIds: string[]): void {
+    const names = userIds
+      .map((uid) => this.allUsersSnapshot.find((u) => u.uid === uid)?.name)
+      .filter(Boolean) as string[];
+
+    if (!names.length) return;
+
+    this.hideReactionTooltip();
+
+    const positionStrategy = this.overlay
+      .position()
+      .flexibleConnectedTo(event.target as HTMLElement)
+      .withPositions([
+        {
+          originX: 'center',
+          originY: 'top',
+          overlayX: 'center',
+          overlayY: 'bottom',
+          offsetY: 1,
+          offsetX: 70,
+        },
+      ]);
+
+    this.overlayRef = this.overlay.create({
+      positionStrategy,
+      hasBackdrop: false,
+      scrollStrategy: this.overlay.scrollStrategies.reposition(),
+    });
+
+    const portal = new ComponentPortal(ReactionTooltipComponent);
+    const tooltipRef = this.overlayRef.attach(portal);
+
+    tooltipRef.instance.emoji = emoji;
+    tooltipRef.instance.names = names;
+  }
+
+  hideReactionTooltip(): void {
+    this.overlayRef?.dispose();
+    this.overlayRef = undefined;
+  }
 }
