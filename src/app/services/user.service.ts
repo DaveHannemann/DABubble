@@ -260,7 +260,8 @@ export class UserService {
     }
 
     if (firebaseUser.isAnonymous) {
-      await this.guestService.createUserDocument(firebaseUser);
+      const userData = await this.guestService.buildGuestUserDocData();
+      await this.createUserDocument(firebaseUser, userData);
       return;
     }
 

@@ -14,22 +14,23 @@ import {
 } from '@angular/fire/firestore';
 import { AuthService } from './auth.service';
 import { NOTIFICATIONS } from '../notifications';
-import { UserService, type AppUser } from './user.service';
+import { type AppUser } from './user.service';
 import { PROFILE_PICTURE_URLS } from '../auth/set-profile-picture/set-profile-picture';
-import { User } from 'firebase/auth';
 
 @Injectable({ providedIn: 'root' })
 export class GuestService {
   private authService = inject(AuthService);
   private firestore = inject(Firestore);
-  private userService = inject(UserService);
 
-  async createUserDocument(firebaseUser: User) {
-    await this.userService.createUserDocument(firebaseUser, {
-      name: 'Gast',
+  async buildGuestUserDocData() {
+    const guestNumber = await this.getRandomGuestNumber();
+    const name = `Gast ${guestNumber}`;
+
+    return {
+      name,
       photoUrl: PROFILE_PICTURE_URLS.default,
       isGuest: true,
-    });
+    };
   }
 
   async signOutGuest(user: AppUser | null): Promise<void> {
