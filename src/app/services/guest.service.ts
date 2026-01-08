@@ -23,11 +23,8 @@ export class GuestService {
   private firestore = inject(Firestore);
 
   async buildGuestUserDocData() {
-    const guestNumber = await this.getRandomGuestNumber();
-    const name = `Gast ${guestNumber}`;
-
     return {
-      name,
+      name: 'Gast',
       photoUrl: PROFILE_PICTURE_URLS.default,
       isGuest: true,
     };
