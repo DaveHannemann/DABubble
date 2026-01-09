@@ -476,17 +476,13 @@
 
   .workspace__list {
     padding-left: 24px;
-    padding-right:16px;
+    padding-right: 16px;
   }
-    .workspace__list-item {
+  .workspace__list-item {
     font-size: 20px;
     padding: 8px 20px;
-    width:100%;
-    box-sizing:border-box
-  }
-
-  .workspace__list {
-    padding-left: 30px;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .workspace__hash {
@@ -516,10 +512,46 @@
     flex-direction: column;
     align-items: flex-start;
   }
+
+  .workspace__avatar {
+    width: 60px;
+    height: 60px;
+  }
+
+  .workspace__user-name {
+    font-size: 18px;
+  }
+
+  .workspace__channel-name {
+    font-size: 18px;
+  }
+
+  .workspace__section-label {
+    font-size: 22px;
+  }
 }
 
 @media (max-width: 640px) {
   .workspace__search {
     display: block;
+  }
+
+  .workspace__avatar {
+    width: 50px;
+    height: 50px;
+  }
+
+  .workspace__list {
+    padding-left: 12px;
+  }
+
+  .workspace {
+    padding: 16px 0px;
+  }
+}
+
+@media (max-width: 500px) {
+  .workspace__list {
+    padding-left: 0px;
   }
 }
