@@ -196,6 +196,8 @@
   background: transparent;
   padding: 0;
   overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
   display: flex;
   flex-direction: column;
   gap: 16px;
