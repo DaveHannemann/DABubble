@@ -190,7 +190,7 @@ export class DirectMessagesService {
     );
 
     const failures = results.filter((result) => result.status === 'rejected');
-    results.forEach((result) => console.error(NOTIFICATIONS.DIRECT_MESSAGES_DELETE_FAILED, result));
+    failures.forEach((failure) => console.error(NOTIFICATIONS.DIRECT_MESSAGES_DELETE_FAILED, failure));
 
     if (failures.length) {
       throw new Error(NOTIFICATIONS.DIRECT_MESSAGES_DELETE_FAILED);

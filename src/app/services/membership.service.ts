@@ -168,7 +168,7 @@ export class ChannelMembershipService {
     const results = await Promise.allSettled([...channelIds].map((channelId) => this.leaveChannel(channelId, userId)));
 
     const failures = results.filter((result) => result.status === 'rejected');
-    results.forEach((result) => console.error(NOTIFICATIONS.LEAVE_CHANNEL_FAILED, result));
+    failures.forEach((failure) => console.error(NOTIFICATIONS.LEAVE_CHANNEL_FAILED, failure));
 
     if (failures.length) {
       throw new Error(NOTIFICATIONS.LEAVE_CHANNEL_FAILED);
