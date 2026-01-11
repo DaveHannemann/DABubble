@@ -106,6 +106,7 @@ export class GuestService {
       await this.deleteGuestAuthRecord(user);
     } catch (error) {
       console.error('Gast: ' + NOTIFICATIONS.ACCOUNT_DELETION_FAILURE);
+      isSuccessful = false;
     }
 
     try {
