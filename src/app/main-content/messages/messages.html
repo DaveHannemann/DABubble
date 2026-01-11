@@ -154,21 +154,6 @@
         <button type="button" aria-label="Emoji einfügen" (click)="toggleComposerEmojiPicker()">
           <mat-icon>sentiment_satisfied</mat-icon>
         </button>
-         <button type="button" aria-label="Benutzer und Mentions" (click)="insertComposerMention()">
-          <mat-icon>alternate_email</mat-icon>
-        </button>
-      </div>
-      <div class="message-board__composer-end">
-       <button type="button" aria-label="Datei hinzufügen">
-          <mat-icon>attach_file</mat-icon>
-        </button>
-        <button type="button" aria-label="Sofortnachricht aufklappen">
-          <mat-icon>expand_more</mat-icon>
-        </button>
-        <button type="submit" [disabled]="messageForm.invalid || isSending">
-          <mat-icon>send</mat-icon>
-          Senden
-        </button>
       </div>
     </div>
   </form>

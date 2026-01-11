@@ -596,7 +596,11 @@
   height: 100%;
 }
 .channel__composer-picker {
-  margin-top: 8px;
+   position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc( 8px);
+  z-index: 5;
   display: flex;
   flex-wrap: wrap;
   gap: 6px;

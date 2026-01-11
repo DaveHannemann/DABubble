@@ -46,10 +46,10 @@
 }
 
 .mobile {
-  display:none;
+  display: none;
 }
 .desktop {
-  display:flex;
+  display: flex;
 }
 .workspace__search input::placeholder {
   color: #94a3b8;
@@ -135,10 +135,11 @@
   gap: 20px;
   flex: 1;
   min-height: 0;
-  // overflow: auto;
-  // scrollbar-width: thin;
-  // scrollbar-color: #cbd5e1 transparent;
+  overflow: auto;
+  scrollbar-width: none;
+  scrollbar-color: #cbd5e1 transparent;
 }
+
 
 .workspace__menu {
   margin: 0;
@@ -430,11 +431,11 @@
 
 @media (max-width: 1024px) {
   .mobile {
-    display:flex;
+    display: flex;
   }
 
   .desktop {
-    display:none;
+    display: none;
   }
   .workspace {
     gap: 16px;
@@ -512,7 +513,7 @@
 
   .workspace__add-btn {
     padding: 12px 22px;
-    color:#4338ca;
+    color: #4338ca;
   }
 
   .workspace__add-btn img {
