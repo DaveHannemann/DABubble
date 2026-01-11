@@ -45,6 +45,12 @@
   outline: none;
 }
 
+.mobile {
+  display:none;
+}
+.desktop {
+  display:flex;
+}
 .workspace__search input::placeholder {
   color: #94a3b8;
 }
@@ -129,9 +135,9 @@
   gap: 20px;
   flex: 1;
   min-height: 0;
-  overflow: auto;
-  scrollbar-width: thin;
-  scrollbar-color: #cbd5e1 transparent;
+  // overflow: auto;
+  // scrollbar-width: thin;
+  // scrollbar-color: #cbd5e1 transparent;
 }
 
 .workspace__menu {
@@ -382,8 +388,6 @@
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  border: 1px dashed #cbd5e16d;
-  background: #f8fafc;
   color: #0f172a;
   padding: 10px 12px;
   border-radius: 12px;
@@ -425,6 +429,13 @@
 }
 
 @media (max-width: 1024px) {
+  .mobile {
+    display:flex;
+  }
+
+  .desktop {
+    display:none;
+  }
   .workspace {
     gap: 16px;
     padding: 16px;
@@ -462,8 +473,8 @@
   }
 
   .workspace__icon-btn img {
-    width: 24px;
-    height: 24px;
+    width: 32px;
+    height: 32px;
   }
 
   .workspace__section-toggle img {
@@ -500,7 +511,8 @@
   }
 
   .workspace__add-btn {
-    padding: 12px 16px;
+    padding: 12px 22px;
+    color:#4338ca;
   }
 
   .workspace__add-btn img {

@@ -136,6 +136,7 @@ export class ChannelComponent {
   );
 
   protected openEmojiPickerFor: string | null = null;
+  protected isComposerEmojiPickerOpen = false;
   protected readonly emojiChoices = EMOJI_CHOICES;
   protected editingMessageId: string | null = null;
   protected editMessageText = '';
@@ -340,6 +341,21 @@ export class ChannelComponent {
     this.updateMentionSuggestions();
   }
 
+  protected toggleComposerEmojiPicker(): void {
+    this.isComposerEmojiPickerOpen = !this.isComposerEmojiPickerOpen;
+    this.focusComposer();
+  }
+
+  protected addComposerEmoji(emoji: string): void {
+    this.insertComposerText(emoji);
+    this.isComposerEmojiPickerOpen = false;
+  }
+
+  protected insertComposerMention(): void {
+    this.insertComposerText('@');
+    this.updateMentionSuggestions();
+  }
+
   protected insertMention(member: ChannelMemberView): void {
     if (this.mentionTriggerIndex === null) return;
 
@@ -360,6 +376,31 @@ export class ChannelComponent {
     });
 
     this.resetMentionSuggestions();
+  }
+  private focusComposer(): void {
+    this.messageTextarea?.nativeElement.focus();
+  }
+
+  private insertComposerText(text: string): void {
+    const textarea = this.messageTextarea?.nativeElement;
+    if (!textarea) {
+      this.messageText = `${this.messageText}${text}`;
+      this.mentionCaretIndex = this.messageText.length;
+      return;
+    }
+
+    const start = textarea.selectionStart ?? this.messageText.length;
+    const end = textarea.selectionEnd ?? start;
+    const before = this.messageText.slice(0, start);
+    const after = this.messageText.slice(end);
+    this.messageText = `${before}${text}${after}`;
+    this.mentionCaretIndex = start + text.length;
+
+    requestAnimationFrame(() => {
+      textarea.focus();
+      const newCaret = start + text.length;
+      textarea.setSelectionRange(newCaret, newCaret);
+    });
   }
 
   private updateMentionSuggestions(): void {
@@ -430,6 +471,7 @@ export class ChannelComponent {
         next: () => {
           this.messageText = '';
           this.resetMentionSuggestions();
+          this.isComposerEmojiPickerOpen = false;
         },
         error: (error: unknown) => {
           console.error('Fehler beim Senden der Nachricht', error);

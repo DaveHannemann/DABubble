@@ -48,6 +48,7 @@ export class Thread {
 
   protected messageReactions: Record<string, string> = {};
   protected openEmojiPickerFor: string | null = null;
+  protected isComposerEmojiPickerOpen = false;
   protected readonly emojiChoices = EMOJI_CHOICES;
   protected editingMessageId: string | null = null;
   protected editMessageText = '';
@@ -97,6 +98,7 @@ export class Thread {
     try {
       await this.threadService.addReply(trimmed);
       this.draftReply = '';
+      this.isComposerEmojiPickerOpen = false;
     } catch (error) {
       console.error('Reply konnte nicht gespeichert werden', error);
     }
@@ -107,6 +109,20 @@ export class Thread {
     if (keyboardEvent.key !== 'Enter' || keyboardEvent.shiftKey) return;
     keyboardEvent.preventDefault();
     this.sendReply();
+  }
+
+  protected toggleComposerEmojiPicker(): void {
+    this.isComposerEmojiPickerOpen = !this.isComposerEmojiPickerOpen;
+    this.focusComposer();
+  }
+
+  protected addComposerEmoji(emoji: string): void {
+    this.insertComposerText(emoji);
+    this.isComposerEmojiPickerOpen = false;
+  }
+
+  protected insertComposerMention(): void {
+    this.insertComposerText('@');
   }
 
   react(messageId: string | undefined, reaction: string): void {
@@ -133,6 +149,27 @@ export class Thread {
 
   protected focusComposer(): void {
     this.replyTextarea?.nativeElement.focus();
+  }
+
+
+  private insertComposerText(text: string): void {
+    const textarea = this.replyTextarea?.nativeElement;
+    if (!textarea) {
+      this.draftReply = `${this.draftReply}${text}`;
+      return;
+    }
+
+    const start = textarea.selectionStart ?? this.draftReply.length;
+    const end = textarea.selectionEnd ?? start;
+    const before = this.draftReply.slice(0, start);
+    const after = this.draftReply.slice(end);
+    this.draftReply = `${before}${text}${after}`;
+
+    requestAnimationFrame(() => {
+      textarea.focus();
+      const newCaret = start + text.length;
+      textarea.setSelectionRange(newCaret, newCaret);
+    });
   }
 
   protected startEditing(message: { id?: string; text: string; isOwn?: boolean }): void {

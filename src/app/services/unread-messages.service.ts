@@ -110,7 +110,7 @@ export class UnreadMessagesService {
         .map((status) => [status.channelId ?? '', status])
     );
 
-    return channels.map((channel) => {
+    const mapped = channels.map((channel) => {
       const channelId = channel.id;
       if (!channelId) return { ...channel, unreadCount: 0 };
 
@@ -120,6 +120,19 @@ export class UnreadMessagesService {
       const isActive = activeChannelId === channelId;
 
       return { ...channel, unreadCount: isActive ? 0 : unreadCount };
+    });
+    return [...mapped].sort((a, b) => {
+      const aUnread = a.unreadCount ?? 0;
+      const bUnread = b.unreadCount ?? 0;
+
+      if (aUnread !== bUnread) {
+        return bUnread - aUnread;
+      }
+
+      const aTitle = a.title ?? '';
+      const bTitle = b.title ?? '';
+
+      return aTitle.localeCompare(bTitle);
     });
   }
 

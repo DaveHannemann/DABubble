@@ -379,8 +379,57 @@
   background: transparent;
 }
 
-.thread__composer button {
-  width: 100%;
+.thread__composer-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px;
+  border-radius: 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.thread__composer-picker button {
+  border: none;
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 4px 6px;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.thread__composer-picker button:hover,
+.thread__composer-picker button:focus-visible {
+  background: #eef2ff;
+}
+
+.thread__composer-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.thread__composer-start {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.thread__composer-button {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.thread__composer-send {
   border-radius: 12px;
   border: 1px solid transparent;
   background: linear-gradient(135deg, #4f46e5, #7c3aed);
@@ -395,18 +444,18 @@
     transform 0.1s ease;
 }
 
-.thread__composer button:disabled {
+.thread__composer-send:disabled {
   background: #e2e8f0;
   color: #94a3b8;
   border-color: #e2e8f0;
   cursor: not-allowed;
 }
 
-.thread__composer button:not(:disabled):hover {
+.thread__composer-send:not(:disabled):hover {
   background: linear-gradient(135deg, #4338ca, #6d28d9);
 }
 
-.thread__composer button:not(:disabled):active {
+.thread__composer-send:not(:disabled):active {
   transform: translateY(1px);
 }
 
