@@ -152,7 +152,7 @@ export interface DirectMessageMeta {
 }
 
 // Unread counts and read status
-export type DirectMessageUser = AppUser & { displayName: string; unreadCount: number };
+export type DirectMessageUser = AppUser & { displayName: string; unreadCount: number; lastMessageAt?: Timestamp };
 
 export type ChannelListItem = Channel & { unreadCount: number };
 

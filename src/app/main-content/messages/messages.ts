@@ -36,6 +36,8 @@ import { ReactionTooltipService } from '../../services/reaction-tooltip.service'
   styleUrl: './messages.scss',
 })
 export class Messages {
+  private static readonly SYSTEM_MENTION_AVATAR = 'imgs/default-profile-picture.png';
+  private static readonly SYSTEM_AUTHOR_NAME = 'System';
   private readonly directMessagesService = inject(DirectMessagesService);
   private readonly userService = inject(UserService);
   private readonly dialog = inject(MatDialog);
@@ -81,11 +83,13 @@ export class Messages {
   protected draftMessage = '';
   protected isSending = false;
   protected openEmojiPickerFor: string | null = null;
+  protected isComposerEmojiPickerOpen = false;
   protected readonly emojiChoices = EMOJI_CHOICES;
   protected editingMessageId: string | null = null;
   protected editMessageText = '';
   protected isSavingEdit = false;
   private messageStream?: ElementRef<HTMLElement>;
+  @ViewChild('composerTextarea') private composerTextarea?: ElementRef<HTMLTextAreaElement>;
 
   @ViewChild('messageStream')
   set messageStreamRef(ref: ElementRef<HTMLElement> | undefined) {
@@ -129,13 +133,14 @@ export class Messages {
       .subscribe((recipient) => (this.selectedRecipient = recipient));
   }
 
-  protected sendMessage(): void {
+  protected async sendMessage(): Promise<void> {
     const trimmed = this.draftMessage.trim();
     if (!trimmed || !this.currentUser || !this.selectedRecipient) return;
 
     this.isSending = true;
-    this.directMessagesService
-      .sendDirectMessage(
+
+    try {
+      await this.directMessagesService.sendDirectMessage(
         {
           authorId: this.currentUser.uid,
           authorName: this.currentUser.name,
@@ -143,12 +148,15 @@ export class Messages {
           text: trimmed,
         },
         this.selectedRecipient.uid
-      )
-      .finally(() => {
-        this.isSending = false;
-        this.draftMessage = '';
-        this.scrollToBottom();
-      });
+      );
+      await this.notifyMentionedRecipient(trimmed);
+    } finally {
+      this.isSending = false;
+      this.draftMessage = '';
+      this.isComposerEmojiPickerOpen = false;
+      this.scrollToBottom();
+
+    }
   }
 
   protected onComposerKeydown(event: Event): void {
@@ -156,6 +164,20 @@ export class Messages {
     if (keyboardEvent.key !== 'Enter' || keyboardEvent.shiftKey) return;
     keyboardEvent.preventDefault();
     this.sendMessage();
+  }
+
+  protected toggleComposerEmojiPicker(): void {
+    this.isComposerEmojiPickerOpen = !this.isComposerEmojiPickerOpen;
+    this.focusComposer();
+  }
+
+  protected addComposerEmoji(emoji: string): void {
+    this.insertComposerText(emoji);
+    this.isComposerEmojiPickerOpen = false;
+  }
+
+  protected insertComposerMention(): void {
+    this.insertComposerText('@');
   }
 
   protected openRecipientProfile(recipient: AppUser): void {
@@ -205,8 +227,8 @@ export class Messages {
   }
 
   private mapMessage(message: DirectMessageEntry, currentUser: AppUser): MessageBubble {
-    const isOwn = message.authorId === currentUser.uid;
-    return {
+    const isSystemMessage = message.authorName === Messages.SYSTEM_AUTHOR_NAME;
+    const isOwn = !isSystemMessage && message.authorId === currentUser.uid; return {
       id: message.id,
       author: isOwn ? 'Du' : (message.authorName ?? 'Unbekannter Nutzer'),
       avatar: message.authorAvatar ?? 'imgs/default-profile-picture.png',
@@ -215,6 +237,36 @@ export class Messages {
       isOwn,
       reactions: message.reactions ?? {},
     };
+  }
+
+  private async notifyMentionedRecipient(text: string): Promise<void> {
+    if (!this.currentUser || !this.selectedRecipient) return;
+    if (!this.hasRecipientMention(text)) return;
+    if (this.currentUser.uid === this.selectedRecipient.uid) return;
+
+    const formattedTime = new Intl.DateTimeFormat('de-DE', {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    }).format(new Date());
+
+    const messageText = `Du wurdest von ${this.currentUser.name} am ${formattedTime} im privaten Chat mit ${this.currentUser.name} erwähnt.`;
+
+    await this.directMessagesService.sendDirectMessage(
+      {
+        authorId: this.currentUser.uid,
+        authorName: Messages.SYSTEM_AUTHOR_NAME,
+        authorAvatar: Messages.SYSTEM_MENTION_AVATAR,
+        text: messageText,
+      },
+      this.selectedRecipient.uid
+    );
+  }
+
+  private hasRecipientMention(text: string): boolean {
+    if (!this.selectedRecipient?.name) return false;
+    const escapedName = this.selectedRecipient.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const mentionRegex = new RegExp(`@${escapedName}\\b`, 'i');
+    return mentionRegex.test(text);
   }
 
   protected startEditing(message: MessageBubble): void {
@@ -246,6 +298,30 @@ export class Messages {
     if (!messageId) return;
 
     this.openEmojiPickerFor = this.openEmojiPickerFor === messageId ? null : messageId;
+  }
+
+  private focusComposer(): void {
+    this.composerTextarea?.nativeElement.focus();
+  }
+
+  private insertComposerText(text: string): void {
+    const textarea = this.composerTextarea?.nativeElement;
+    if (!textarea) {
+      this.draftMessage = `${this.draftMessage}${text}`;
+      return;
+    }
+
+    const start = textarea.selectionStart ?? this.draftMessage.length;
+    const end = textarea.selectionEnd ?? start;
+    const before = this.draftMessage.slice(0, start);
+    const after = this.draftMessage.slice(end);
+    this.draftMessage = `${before}${text}${after}`;
+
+    requestAnimationFrame(() => {
+      textarea.focus();
+      const newCaret = start + text.length;
+      textarea.setSelectionRange(newCaret, newCaret);
+    });
   }
 
   private scrollToBottom(): void {

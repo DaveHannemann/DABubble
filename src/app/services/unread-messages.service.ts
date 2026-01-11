@@ -27,7 +27,9 @@ import { AppUser, UserService } from './user.service';
 import { ChannelService } from './channel.service';
 import { DirectMessagesService } from './direct-messages.service';
 import { ChannelMembershipService } from './membership.service';
+import { AuthService } from './auth.service';
 import type { Channel, ChannelListItem, DirectMessageMeta, DirectMessageUser, ReadStatusEntry } from '../types';
+import { createAuthenticatedFirestoreStream } from './authenticated-firestore-stream';
 
 @Injectable({ providedIn: 'root' })
 export class UnreadMessagesService {
@@ -35,6 +37,7 @@ export class UnreadMessagesService {
   private readonly membershipService = inject(ChannelMembershipService);
   private readonly directMessagesService = inject(DirectMessagesService);
   private readonly userService = inject(UserService);
+  private readonly authService = inject(AuthService);
   private readonly firestore = inject(Firestore);
   private readonly injector = inject(EnvironmentInjector);
 
@@ -110,7 +113,7 @@ export class UnreadMessagesService {
         .map((status) => [status.channelId ?? '', status])
     );
 
-    return channels.map((channel) => {
+    const mapped = channels.map((channel) => {
       const channelId = channel.id;
       if (!channelId) return { ...channel, unreadCount: 0 };
 
@@ -120,6 +123,19 @@ export class UnreadMessagesService {
       const isActive = activeChannelId === channelId;
 
       return { ...channel, unreadCount: isActive ? 0 : unreadCount };
+    });
+    return [...mapped].sort((a, b) => {
+      const aUnread = a.unreadCount ?? 0;
+      const bUnread = b.unreadCount ?? 0;
+
+      if (aUnread !== bUnread) {
+        return bUnread - aUnread;
+      }
+
+      const aTitle = a.title ?? '';
+      const bTitle = b.title ?? '';
+
+      return aTitle.localeCompare(bTitle);
     });
   }
 
@@ -140,7 +156,7 @@ export class UnreadMessagesService {
     const directMessageUsers = users.map((user) => {
       const displayName = user.uid === currentUserId ? `${user.name} (Du)` : user.name;
       if (user.uid === currentUserId) {
-        return { ...user, displayName, unreadCount: 0 };
+        return { ...user, displayName, unreadCount: 0, lastMessageAt: undefined };
       }
 
       const conversationId = this.directMessagesService.buildConversationId(currentUserId, user.uid);
@@ -151,17 +167,21 @@ export class UnreadMessagesService {
       const unreadCount = Math.max(0, messageCount - lastReadCount);
       const isActive = activeDmId === user.uid;
 
-      return { ...user, displayName, unreadCount: isActive ? 0 : unreadCount };
+      return {
+        ...user,
+        displayName,
+        unreadCount: isActive ? 0 : unreadCount,
+        lastMessageAt: meta?.lastMessageAt,
+      };
     });
 
     return [...directMessageUsers].sort((a, b) => {
-      if (a.unreadCount !== b.unreadCount) {
-        return b.unreadCount - a.unreadCount;
+      const aTime = a.lastMessageAt?.toDate?.().getTime() ?? 0;
+      const bTime = b.lastMessageAt?.toDate?.().getTime() ?? 0;
+
+      if (aTime !== bTime) {
+        return bTime - aTime;
       }
-
-      if (a.uid === currentUserId) return -1;
-      if (b.uid === currentUserId) return 1;
-
       return a.name.localeCompare(b.name);
     });
   }
@@ -276,20 +296,26 @@ export class UnreadMessagesService {
         const readStatusCollection = collectionGroup(this.firestore, 'readStatus');
         const readStatusQuery = query(readStatusCollection, where('userId', '==', userId));
 
-        return collectionData(readStatusQuery).pipe(
-          map((statuses) =>
-            (statuses as Array<Record<string, unknown>>).map((status) => ({
-              userId: status['userId'] as string,
-              conversationId: status['conversationId'] as string | undefined,
-              channelId: status['channelId'] as string | undefined,
-              lastReadAt: status['lastReadAt'] as Timestamp | undefined,
-              lastReadCount: (status['lastReadCount'] as number) ?? 0,
-              updatedAt: status['updatedAt'] as Timestamp | undefined,
-              scope: status['scope'] as 'channel' | 'dm' | undefined,
-            }))
-          ),
-          shareReplay({ bufferSize: 1, refCount: false })
-        );
+        return createAuthenticatedFirestoreStream<ReadStatusEntry[]>({
+          authState$: this.authService.authState$,
+          fallbackValue: [],
+          isUserAllowed: (currentUser) => currentUser.uid === userId,
+          shouldLogError: () => Boolean(this.authService.auth.currentUser),
+          createStream: () =>
+            collectionData(readStatusQuery).pipe(
+              map((statuses) =>
+                (statuses as Array<Record<string, unknown>>).map((status) => ({
+                  userId: status['userId'] as string,
+                  conversationId: status['conversationId'] as string | undefined,
+                  channelId: status['channelId'] as string | undefined,
+                  lastReadAt: status['lastReadAt'] as Timestamp | undefined,
+                  lastReadCount: (status['lastReadCount'] as number) ?? 0,
+                  updatedAt: status['updatedAt'] as Timestamp | undefined,
+                  scope: status['scope'] as 'channel' | 'dm' | undefined,
+                }))
+              )
+            ),
+        }).pipe(shareReplay({ bufferSize: 1, refCount: true }));
       });
 
       this.readStatusEntriesByUserCache.set(userId, stream$);
