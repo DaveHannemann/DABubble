@@ -15,6 +15,12 @@ import { ReactionTooltipService } from '../../services/reaction-tooltip.service'
 import { ChannelMembershipService } from '../../services/membership.service';
 import { DirectMessagesService } from '../../services/direct-messages.service';
 import { MatDialog } from '@angular/material/dialog';
+import { MemberDialog } from '../member-dialog/member-dialog';
+
+type MentionSegment = {
+  text: string;
+  member?: ChannelMemberView;
+};
 
 @Component({
   selector: 'app-thread',
@@ -178,6 +184,50 @@ export class Thread {
     }
   }
 
+  protected onReplyInput(event: Event): void {
+    const textarea = event.target as HTMLTextAreaElement | null;
+    this.draftReply = textarea?.value ?? this.draftReply;
+    this.mentionCaretIndex = textarea?.selectionStart ?? null;
+    this.updateMentionSuggestions();
+  }
+
+  protected toggleComposerEmojiPicker(): void {
+    this.isComposerEmojiPickerOpen = !this.isComposerEmojiPickerOpen;
+    this.focusComposer();
+  }
+
+  protected addComposerEmoji(emoji: string): void {
+    this.insertComposerText(emoji);
+    this.isComposerEmojiPickerOpen = false;
+  }
+
+  protected insertComposerMention(): void {
+    this.insertComposerText('@');
+    this.updateMentionSuggestions();
+  }
+
+  protected insertMention(member: ChannelMemberView): void {
+    if (this.mentionTriggerIndex === null) return;
+
+    const caret = this.mentionCaretIndex ?? this.draftReply.length;
+    const before = this.draftReply.slice(0, this.mentionTriggerIndex);
+    const after = this.draftReply.slice(caret);
+    const mentionText = `@${member.name} `;
+
+    this.draftReply = `${before}${mentionText}${after}`;
+    const newCaret = before.length + mentionText.length;
+
+    queueMicrotask(() => {
+      const textarea = this.replyTextarea?.nativeElement;
+      if (textarea) {
+        textarea.focus();
+        textarea.setSelectionRange(newCaret, newCaret);
+      }
+    });
+
+    this.resetMentionSuggestions();
+  }
+
   protected onReplyKeydown(event: Event): void {
     const keyboardEvent = event as KeyboardEvent;
     if (keyboardEvent.key !== 'Enter' || keyboardEvent.shiftKey) return;
@@ -195,7 +245,54 @@ export class Thread {
     this.replyTextarea?.nativeElement.focus();
   }
 
+  protected buildMessageSegments(text: string): MentionSegment[] {
+    if (!text) return [{ text: '' }];
+    const regex = this.buildMentionRegex();
+    if (!regex) return [{ text }];
 
+    const segments: MentionSegment[] = [];
+    let lastIndex = 0;
+    regex.lastIndex = 0;
+    let match: RegExpExecArray | null;
+
+    while ((match = regex.exec(text)) !== null) {
+      const matchStart = match.index;
+      const matchEnd = regex.lastIndex;
+      if (matchStart > lastIndex) {
+        segments.push({ text: text.slice(lastIndex, matchStart) });
+      }
+
+      const mentionName = match[1] ?? '';
+      const member = this.cachedMembers.find((entry) => entry.name.toLowerCase() === mentionName.toLowerCase());
+      segments.push({ text: match[0], member });
+      lastIndex = matchEnd;
+    }
+
+    if (lastIndex < text.length) {
+      segments.push({ text: text.slice(lastIndex) });
+    }
+
+    return segments.length ? segments : [{ text }];
+  }
+
+  protected openMemberProfile(member?: ChannelMemberView): void {
+    if (!member || member.isCurrentUser) return;
+
+    const fallbackUser: AppUser = member.user ?? {
+      uid: member.id,
+      name: member.name,
+      email: null,
+      photoUrl: member.avatar || 'imgs/default-profile-picture.png',
+      onlineStatus: false,
+      lastSeen: undefined,
+      updatedAt: undefined,
+      createdAt: undefined,
+    };
+
+    this.dialog.open(MemberDialog, {
+      data: { user: fallbackUser },
+    });
+  }
   private insertComposerText(text: string): void {
     const textarea = this.replyTextarea?.nativeElement;
     if (!textarea) {
