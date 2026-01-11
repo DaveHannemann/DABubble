@@ -83,6 +83,7 @@ export class GuestService {
   /** Deletes all guest data across collections. */
   async cleanupGuestUserData(user: AppUser): Promise<boolean> {
     let isSuccessful = true;
+    const displayName = user.name;
 
     try {
       await this.deleteAllMessagesByAuthor(user.uid);
@@ -95,6 +96,13 @@ export class GuestService {
       await this.removeReactionsByUser(user.uid);
     } catch (error) {
       console.error('Gast: ' + NOTIFICATIONS.REACTIONS_REMOVE_FAILED, error);
+      isSuccessful = false;
+    }
+
+    try {
+      await deleteDoc(doc(this.firestore, `users/${user.uid}`));
+    } catch (error) {
+      console.error('Gast: ' + NOTIFICATIONS.USER_DOCUMENT_DELETE_FAILED, error);
       isSuccessful = false;
     }
 
@@ -113,16 +121,9 @@ export class GuestService {
     }
 
     try {
-      await this.releaseGuestNumber(user.name);
+      await this.releaseGuestNumber(displayName);
     } catch (error) {
       console.error('Gast: ' + NOTIFICATIONS.GUEST_NUMBER_RELEASE_FAILED, error);
-      isSuccessful = false;
-    }
-
-    try {
-      await deleteDoc(doc(this.firestore, `users/${user.uid}`));
-    } catch (error) {
-      console.error('Gast: ' + NOTIFICATIONS.USER_DOCUMENT_DELETE_FAILED, error);
       isSuccessful = false;
     }
 
