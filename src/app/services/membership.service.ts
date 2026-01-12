@@ -19,7 +19,7 @@ import { AuthService } from './auth.service';
 import type { AppUser } from './user.service';
 import { Observable, combineLatest, map, of, shareReplay, switchMap } from 'rxjs';
 import { NOTIFICATIONS } from '../notifications';
-import type { Channel, ChannelMember } from '../types';
+import type { Channel, ChannelMember, ProfilePictureKey } from '../types';
 import { AuthenticatedFirestoreStreamService } from './authenticated-firestore-stream';
 
 @Injectable({ providedIn: 'root' })
@@ -96,7 +96,7 @@ export class ChannelMembershipService {
                 (members as Array<Record<string, unknown>>).map((member) => ({
                   id: (member['id'] as string) ?? 'unbekannt',
                   name: (member['name'] as string) ?? 'Unbekannter Nutzer',
-                  avatar: (member['avatar'] as string) ?? 'imgs/users/placeholder.svg',
+                  profilePictureKey: (member['profilePictureKey'] as ProfilePictureKey) ?? 'default',
                   subtitle: member['subtitle'] as string | undefined,
                   addedAt: member['addedAt'] as Timestamp | undefined,
                   channelId: (member['channelId'] as string) ?? channelId,
@@ -223,7 +223,7 @@ export class ChannelMembershipService {
     const payload: Record<string, unknown> = {
       id: userId,
       name: data.name ?? 'Unbekannter Nutzer',
-      avatar: data.photoUrl ?? 'imgs/users/placeholder.svg',
+      profilePictureKey: data.profilePictureKey ?? 'default',
       scope: 'channel',
       addedAt: serverTimestamp(),
       channelId,

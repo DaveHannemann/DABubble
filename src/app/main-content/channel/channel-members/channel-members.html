@@ -25,7 +25,7 @@
         class="channel-members__item-button"
         [disabled]="member.isCurrentUser"
         (click)="openMemberProfile(member)">
-        <img [src]="member.avatar" [alt]="member.name" class="channel-members__avatar" />
+        <img [src]="getAvatarUrl(member.profilePictureKey)" [alt]="member.name" class="channel-members__avatar" />
         <div class="channel-members__meta">
           <div class="channel-members__name-row">
             <span class="channel-members__name">{{ member.name }}</span>
@@ -36,9 +36,9 @@
       </button>
     </li>
   </ul>
-<p *ngIf="members.length >3" class="channel-members__more-info">{{ members.length }} Mitglieder</p>
+  <p *ngIf="members.length > 3" class="channel-members__more-info">{{ members.length }} Mitglieder</p>
   <button type="button" class="channel-members__add" (click)="openAddToChannel($event)">
-        <img class="channel-members__add-icon" src="imgs/channel-members/Add members button.svg" alt="" />
+    <img class="channel-members__add-icon" src="imgs/channel-members/Add members button.svg" alt="" />
     <img
       class="channel-members__add-icon channel-members__add-icon--hover"
       src="imgs/channel-members/Add members button hover.svg"

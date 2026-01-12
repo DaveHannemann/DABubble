@@ -1,4 +1,4 @@
-import { Component, ElementRef, EventEmitter, inject, Input, Output, ViewChild } from '@angular/core';
+import { Component, computed, ElementRef, EventEmitter, inject, Input, Output, ViewChild } from '@angular/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -97,4 +97,6 @@ export class Navbar {
   onBackClick() {
     this.back.emit();
   }
+
+  profilePictureUrl = computed(() => this.userService.getProfilePictureUrl(this.currentUser()));
 }

@@ -6,7 +6,7 @@
     <mat-icon class="close cursor-pointer" (click)="close()">close</mat-icon>
   </div>
 
-  <img class="size-40 rounded-full" [src]="data.user.photoUrl || 'imgs/default-profile-picture.png'" />
+  <img class="size-40 rounded-full" [src]="getAvatarUrl(data.user.profilePictureKey)" />
 
   <div class="flex w-full flex-col gap-2">
     <div class="flex items-center justify-between">

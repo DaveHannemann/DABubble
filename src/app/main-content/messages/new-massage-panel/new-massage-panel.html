@@ -48,7 +48,7 @@
             <button type="button" class="new-message-drawer__item" (click)="startDirectMessage(user)">
               <img
                 class="new-message-drawer__avatar"
-                [src]="user.photoUrl || 'imgs/default-profile-picture.png'"
+                [src]="getAvatarUrl(user.profilePictureKey)"
                 [alt]="user.name" />
               <div class="new-message-drawer__item-details">
                 <span class="new-message-drawer__item-title">{{ user.displayName }}</span>

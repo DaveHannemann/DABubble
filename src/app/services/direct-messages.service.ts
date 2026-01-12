@@ -18,7 +18,7 @@ import {
 } from '@angular/fire/firestore';
 import { Observable, map, shareReplay } from 'rxjs';
 import { NOTIFICATIONS } from '../notifications';
-import type { DirectMessage, DirectMessageEntry, DirectMessageMeta } from '../types';
+import type { DirectMessage, DirectMessageEntry, DirectMessageMeta, ProfilePictureKey } from '../types';
 import { AuthService } from './auth.service';
 import { AuthenticatedFirestoreStreamService } from './authenticated-firestore-stream';
 
@@ -111,7 +111,7 @@ export class DirectMessagesService {
                   id: message['id'] as string,
                   authorId: message['authorId'] as string,
                   authorName: (message['authorName'] as string) ?? 'Unbekannter Nutzer',
-                  authorAvatar: (message['authorAvatar'] as string) ?? 'imgs/default-profile-picture.png',
+                  authorProfilePictureKey: (message['authorProfilePictureKey'] as ProfilePictureKey) ?? 'default',
                   text: (message['text'] as string) ?? '',
                   createdAt: message['createdAt'] as Timestamp,
                   reactions: (message['reactions'] as Record<string, string[]>) ?? {},
@@ -128,7 +128,7 @@ export class DirectMessagesService {
   }
 
   async sendDirectMessage(
-    currentUser: Pick<DirectMessageEntry, 'authorId' | 'authorName' | 'authorAvatar'> & { text: string },
+    currentUser: Pick<DirectMessageEntry, 'authorId' | 'authorName' | 'authorProfilePictureKey'> & { text: string },
     recipientId: string
   ): Promise<void> {
     const authorId = currentUser.authorId ?? '';

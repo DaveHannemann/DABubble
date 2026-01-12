@@ -74,7 +74,7 @@ export class ThreadService {
             const user = userMap.get(authorId);
             return {
               authorName: user?.name ?? 'Gelöschter Nutzer',
-              avatarUrl: user?.photoUrl,
+              profilePictureKey: user?.profilePictureKey ?? 'default',
             };
           };
 

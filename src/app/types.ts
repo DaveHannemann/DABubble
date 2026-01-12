@@ -101,7 +101,7 @@ export interface ThreadMessage {
   id: string;
   authorId: string;
   authorName?: string;
-  avatarUrl?: string;
+  profilePictureKey?: ProfilePictureKey;
   timestamp: string;
   text: string;
   isOwn?: boolean;
@@ -137,7 +137,7 @@ export interface DirectMessageEntry {
   id?: string;
   authorId?: string;
   authorName?: string;
-  authorAvatar?: string;
+  authorProfilePictureKey?: ProfilePictureKey;
   text?: string;
   createdAt?: Timestamp;
   reactions?: Record<string, string[]>;
@@ -171,7 +171,7 @@ export type ChannelMessageView = {
   id?: string;
   authorId: string;
   author: string;
-  avatar: string;
+  profilePictureKey?: ProfilePictureKey;
   createdAt: Date;
   time: string;
   text: string;
@@ -195,7 +195,7 @@ export type ChannelDay = {
 export type ChannelMemberView = {
   id: string;
   name: string;
-  avatar: string;
+  profilePictureKey?: ProfilePictureKey;
   subtitle?: string;
   isCurrentUser?: boolean;
   user?: AppUser;
@@ -205,7 +205,7 @@ export type ChannelMemberView = {
 export type MessageBubble = {
   id?: string;
   author: string;
-  avatar: string;
+  profilePictureKey?: ProfilePictureKey;
   content: string;
   timestamp: Timestamp | undefined;
   isOwn?: boolean;

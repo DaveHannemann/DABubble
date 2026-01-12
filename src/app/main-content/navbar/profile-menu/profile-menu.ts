@@ -5,6 +5,8 @@ import { ProfileMenuEdit } from '../profile-menu-edit/profile-menu-edit';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { CommonModule } from '@angular/common';
 import { UserService } from '../../../services/user.service';
+import { ProfilePictureKey } from '../../../types';
+import { ProfilePictureService } from '../../../services/profile-picture.service';
 
 @Component({
   selector: 'app-profile-menu',
@@ -25,7 +27,12 @@ import { UserService } from '../../../services/user.service';
 export class ProfileMenu {
   private overlayService = inject(OverlayService);
   private userService = inject(UserService);
+  private readonly profilePictureService = inject(ProfilePictureService);
   @Output() closed = new EventEmitter<void>();
+
+  protected getAvatarUrl(key?: ProfilePictureKey): string {
+  return this.profilePictureService.getUrl(key);
+}
 
   currentUser = this.userService.currentUser;
 

@@ -10,7 +10,7 @@
       (keydown.space)="openRecipientProfile(recipient)">
       <img
         class="message-board__avatar"
-        [src]="recipient.photoUrl || 'imgs/default-profile-picture.png'"
+        [src]="getAvatarUrl(recipient.profilePictureKey)"
         [alt]="recipient.name" />
       <div>
         <div class="message-board__name-row">
@@ -81,7 +81,7 @@
           </div>
 
           <div class="message-board__bubble-main">
-            <img class="message-board__bubble-avatar" [src]="message.avatar" [alt]="message.author" />
+            <img class="message-board__bubble-avatar" [src]="getAvatarUrl(message.profilePictureKey)" [alt]="message.author" />
             <div class="message-board__bubble-body">
               <div class="message-board__bubble-header">
                 <strong class="message-board__bubble-author">{{ message.author }}</strong>
@@ -132,7 +132,7 @@
     <div class="message-board__intro" *ngIf="!messages.length">
       <img
         class="message-board__intro-avatar"
-        [src]="recipient.photoUrl || 'imgs/default-profile-picture.png'"
+        [src]="getAvatarUrl(recipient.profilePictureKey)"
         [alt]="recipient.name" />
       <div class="message-board__intro-text">
         <p class="message-board__intro-name">{{ recipient.name }}</p>

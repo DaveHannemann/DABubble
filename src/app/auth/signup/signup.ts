@@ -4,7 +4,7 @@ import { FormsModule, NgForm } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { NOTIFICATIONS } from '../../notifications';
-import { SetProfilePicture, PROFILE_PICTURE_URLS } from '../set-profile-picture/set-profile-picture';
+import { SetProfilePicture } from '../set-profile-picture/set-profile-picture';
 import { ProfilePictureKey } from '../../types';
 import { UserService } from '../../services/user.service';
 import { AsideContentWrapperComponent } from '../../aside-content/aside-content-wrapper';
@@ -89,12 +89,11 @@ export class Signup {
         this.password
       );
 
-      const photoUrl = PROFILE_PICTURE_URLS[this.selectedProfilePictureKey];
-      await this.authenticationService.updateUserProfile(this.name, photoUrl);
+      await this.authenticationService.updateUserProfile(this.name);
 
       await this.userService.createUserDocument(userCredential.user, {
         name: this.name,
-        photoUrl: photoUrl,
+        profilePictureKey: this.selectedProfilePictureKey,
       });
 
       await this.authenticationService.sendEmailVerificationLink(userCredential.user);

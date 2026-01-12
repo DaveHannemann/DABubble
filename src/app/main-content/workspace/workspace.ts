@@ -4,10 +4,11 @@ import { Observable } from 'rxjs';
 import { Router } from '@angular/router';
 import { CreateChannel } from './create-channel/create-channel';
 import { UnreadMessagesService } from '../../services/unread-messages.service';
-import type { ChannelListItem, DirectMessageUser } from '../../types';
+import type { ChannelListItem, DirectMessageUser, ProfilePictureKey } from '../../types';
 import { FormsModule } from '@angular/forms';
 import { FilterBox } from '../filter-box/filter-box';
 import { ClickOutsideDirective } from '../../classes/click-outside.class';
+import { ProfilePictureService } from '../../services/profile-picture.service';
 
 @Component({
   selector: 'app-workspace',
@@ -23,6 +24,7 @@ export class Workspace {
 
   private readonly unreadMessagesService = inject(UnreadMessagesService);
   private readonly router = inject(Router);
+  private readonly profilePictureService = inject(ProfilePictureService);
 
   readonly activeChannelId = input<string | null>(null);
   readonly activeDmId = input<string | null>(null);
@@ -78,6 +80,10 @@ export class Workspace {
 
   protected trackDirectUser(index: number, user: DirectMessageUser): string {
     return user.uid ?? `${index}`;
+  }
+
+  protected getAvatarUrl(key?: ProfilePictureKey): string {
+    return this.profilePictureService.getUrl(key);
   }
 
   onSearchInput(event: Event) {

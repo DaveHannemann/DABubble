@@ -6,7 +6,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Observable, combineLatest, distinctUntilChanged, filter, map, of, shareReplay, switchMap, tap } from 'rxjs';
 import { ThreadService } from '../../services/thread.service';
-import type { ChannelMemberView, ThreadContext } from '../../types';
+import type { ChannelMemberView, ProfilePictureKey, ThreadContext } from '../../types';
 import { AppUser, UserService } from '../../services/user.service';
 import { EMOJI_CHOICES } from '../../texts';
 import { MessageReactions } from '../message-reactions/message-reactions';
@@ -31,7 +31,7 @@ type MentionSegment = {
   styleUrl: './thread.scss',
 })
 export class Thread {
-  private static readonly SYSTEM_MENTION_AVATAR = 'imgs/default-profile-picture.png';
+  private static readonly SYSTEM_PROFILE_PICTURE_KEY: ProfilePictureKey = 'default';
   private static readonly SYSTEM_AUTHOR_NAME = 'System';
   private readonly threadService = inject(ThreadService);
   private readonly userService = inject(UserService);
@@ -85,7 +85,7 @@ export class Thread {
                 uid: member.id,
                 name,
                 email: null,
-                photoUrl: avatar,
+                profilePictureKey,
                 onlineStatus: false,
                 lastSeen: undefined,
                 updatedAt: undefined,
@@ -128,8 +128,12 @@ export class Thread {
     return {
       uid: user?.uid,
       name: user?.name ?? 'Gast',
-      avatar: this.profilePictureService.getUrl(user?.profilePictureKey),
+      profilePictureKey: user?.profilePictureKey ?? 'default',
     };
+  }
+
+  protected getAvatarUrl(key?: ProfilePictureKey): string {
+    return this.profilePictureService.getUrl(key);
   }
 
   protected draftReply = '';
@@ -431,7 +435,7 @@ export class Thread {
           {
             authorId: currentUser.uid,
             authorName: Thread.SYSTEM_AUTHOR_NAME,
-            authorAvatar: Thread.SYSTEM_MENTION_AVATAR,
+            authorProfilePictureKey: Thread.SYSTEM_PROFILE_PICTURE_KEY,
             text: messageText,
           },
           member.id

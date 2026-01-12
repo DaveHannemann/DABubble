@@ -7,7 +7,8 @@ import { AddToChannel } from '../add-to-channel/add-to-channel';
 import { MatDialog, matDialogAnimations } from '@angular/material/dialog';
 import { AppUser } from '../../../services/user.service';
 import { MemberDialog } from '../../member-dialog/member-dialog';
-import { ChannelMemberView } from '../../../types';
+import { ChannelMemberView, ProfilePictureKey } from '../../../types';
+import { ProfilePictureService } from '../../../services/profile-picture.service';
 
 @Component({
   selector: 'app-channel-members',
@@ -30,6 +31,7 @@ import { ChannelMemberView } from '../../../types';
 export class ChannelMembers {
   private readonly overlayService = inject(OverlayService);
   private readonly dialog = inject(MatDialog);
+  private readonly profilePictureService = inject(ProfilePictureService);
 
   @Input() members: ChannelMemberView[] = [];
   @Input() title = 'Mitglieder';
@@ -37,6 +39,10 @@ export class ChannelMembers {
 
   originTarget!: HTMLElement;
   protected visible = true;
+
+  protected getAvatarUrl(key?: ProfilePictureKey): string {
+    return this.profilePictureService.getUrl(key);
+  }
 
   protected closeOverlay(): void {
     this.visible = false;

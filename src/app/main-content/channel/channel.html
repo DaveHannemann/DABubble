@@ -23,7 +23,10 @@
               (click)="openChannelMembers($event)">
               <div class="channel__avatars" aria-hidden="true">
                 <ng-container *ngFor="let member of members | slice: 0 : 3; let i = index">
-                  <img [src]="member.avatar" [alt]="member.name" [style.zIndex]="members.length - i" />
+                  <img
+                    [src]="getAvatarUrl(member.profilePictureKey)"
+                    [alt]="member.name"
+                    [style.zIndex]="members.length - i" />
                 </ng-container>
               </div>
               <span class="channel__member-count">{{ members.length }}</span>
@@ -54,7 +57,10 @@
                   class="channel__message"
                   [id]="'message-' + message.id"
                   [class.channel__message--own]="message.isOwn">
-                  <img class="channel__message-avatar" [src]="message.avatar" [alt]="message.author" />
+                  <img
+                    class="channel__message-avatar"
+                    [src]="getAvatarUrl(message.profilePictureKey)"
+                    [alt]="message.author" />
 
                   <div class="channel__message-body">
                     <div
@@ -222,7 +228,7 @@
             </div>
             <div *ngIf="isMentionListVisible" class="channel__mention-suggestions">
               <button type="button" *ngFor="let member of mentionSuggestions" (click)="insertMention(member)">
-                <img [src]="member.avatar" [alt]="member.name" />
+                <img [src]="getAvatarUrl(member.profilePictureKey)" [alt]="member.name" />
                 <span>{{ member.name }}</span>
               </button>
             </div>

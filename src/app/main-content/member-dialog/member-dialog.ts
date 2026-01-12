@@ -1,10 +1,12 @@
-import { Component, Inject } from '@angular/core';
+import { Component, inject, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AppUser } from '../../services/user.service';
 import { animate, style, transition, trigger } from '@angular/animations';
+import { ProfilePictureKey } from '../../types';
+import { ProfilePictureService } from '../../services/profile-picture.service';
 
 export interface MemberDialogData {
   user: AppUser;
@@ -28,6 +30,12 @@ export interface MemberDialogData {
   ],
 })
 export class MemberDialog {
+  private readonly profilePictureService = inject(ProfilePictureService);
+
+  protected getAvatarUrl(key?: ProfilePictureKey): string {
+  return this.profilePictureService.getUrl(key);
+}
+
   constructor(
     public dialogRef: MatDialogRef<MemberDialog>,
     @Inject(MAT_DIALOG_DATA) public data: MemberDialogData,

@@ -28,6 +28,7 @@ import type {
   ChannelMemberView,
   ChannelDay,
   ChannelMessageView,
+  ProfilePictureKey,
 } from '../../types';
 import { OverlayService } from '../../services/overlay.service';
 import { ChannelDescription } from '../messages/channel-description/channel-description';
@@ -40,7 +41,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { EMOJI_CHOICES } from '../../texts';
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { ComponentPortal } from '@angular/cdk/portal';
-import { ReactionTooltipComponent  } from '../tooltip/tooltip';
+import { ReactionTooltipComponent } from '../tooltip/tooltip';
 import { ReactionTooltipService } from '../../services/reaction-tooltip.service';
 import { MessageReactions } from '../message-reactions/message-reactions';
 import { MatDialog } from '@angular/material/dialog';
@@ -62,7 +63,7 @@ import { ProfilePictureService } from '../../services/profile-picture.service';
   styleUrls: ['./channel.scss'],
 })
 export class ChannelComponent {
-  private static readonly SYSTEM_MENTION_AVATAR = 'imgs/default-profile-picture.png';
+  private static readonly SYSTEM_PROFILE_PICTURE_KEY: ProfilePictureKey = 'default';
   private static readonly SYSTEM_AUTHOR_NAME = 'System';
   private readonly channelService = inject(ChannelService);
   private readonly membershipService = inject(ChannelMembershipService);
@@ -71,7 +72,7 @@ export class ChannelComponent {
   private readonly userService = inject(UserService);
   private readonly threadService = inject(ThreadService);
   private readonly directMessagesService = inject(DirectMessagesService);
-  private readonly dialog = inject(MatDialog)
+  private readonly dialog = inject(MatDialog);
   private readonly screenService = inject(ScreenService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly router = inject(Router);
@@ -145,6 +146,10 @@ export class ChannelComponent {
     map((channel) => channel?.description ?? this.channelDefaults.summary)
   );
 
+  protected getAvatarUrl(key?: ProfilePictureKey): string {
+    return this.profilePictureService.getUrl(key);
+  }
+
   protected openEmojiPickerFor: string | null = null;
   protected isComposerEmojiPickerOpen = false;
   protected readonly emojiChoices = EMOJI_CHOICES;
@@ -185,7 +190,7 @@ export class ChannelComponent {
             return {
               id: member.id,
               name,
-              avatar,
+              profilePictureKey: user?.profilePictureKey ?? member.profilePictureKey ?? 'default',
               subtitle: member.subtitle,
               isCurrentUser: member.id === currentUserId,
               user: user ?? {
@@ -432,7 +437,7 @@ export class ChannelComponent {
       uid: member.id,
       name: member.name,
       email: null,
-      photoUrl: member.avatar || 'imgs/default-profile-picture.png',
+      profilePictureKey: 'default',
       onlineStatus: false,
       lastSeen: undefined,
       updatedAt: undefined,
@@ -563,7 +568,7 @@ export class ChannelComponent {
           {
             authorId: currentUser.uid,
             authorName: ChannelComponent.SYSTEM_AUTHOR_NAME,
-            authorAvatar: ChannelComponent.SYSTEM_MENTION_AVATAR,
+            authorProfilePictureKey: ChannelComponent.SYSTEM_PROFILE_PICTURE_KEY,
             text: messageText,
           },
           member.id
@@ -629,7 +634,7 @@ export class ChannelComponent {
       id: message.id,
       authorId: message.authorId,
       author: message.author?.name ?? 'Unbekannter Nutzer',
-      avatar: this.profilePictureService.getUrl(message.author?.profilePictureKey),
+      profilePictureKey: message.author?.profilePictureKey ?? 'default',
 
       createdAt,
       time: this.formatTime(createdAt),

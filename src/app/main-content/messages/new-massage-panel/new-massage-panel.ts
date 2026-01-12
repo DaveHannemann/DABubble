@@ -3,9 +3,10 @@ import { Component, EventEmitter, Output, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { BehaviorSubject, Observable, combineLatest, map, of, switchMap } from 'rxjs';
 import { ChannelMembershipService } from '../../../services/membership.service';
-import type { Channel, SearchResult } from '../../../types';
+import type { Channel, ProfilePictureKey, SearchResult } from '../../../types';
 import { AppUser, UserService } from '../../../services/user.service';
 import { Router } from '@angular/router';
+import { ProfilePictureService } from '../../../services/profile-picture.service';
 
 @Component({
   selector: 'app-new-message-panel',
@@ -19,6 +20,7 @@ export class NewMessagePanel {
   private readonly membershipService = inject(ChannelMembershipService);
   private readonly userService = inject(UserService);
   private readonly router = inject(Router);
+  private readonly profilePictureService = inject(ProfilePictureService);
 
   @Output() readonly close = new EventEmitter<void>();
 
@@ -26,6 +28,9 @@ export class NewMessagePanel {
   private readonly searchTermSubject = new BehaviorSubject<string>('');
   protected readonly searchTerm$ = this.searchTermSubject.asObservable();
   protected searchTerm = '';
+  protected getAvatarUrl(key?: ProfilePictureKey): string {
+    return this.profilePictureService.getUrl(key);
+  }
 
   private readonly channels$: Observable<Channel[]> = this.currentUser$.pipe(
     switchMap((user) => (user ? this.membershipService.getChannelsForUser(user.uid) : of([])))

@@ -34,11 +34,11 @@
       (close)="closeDropdown()"></app-filter-box>
   </div>
   <div class="hover-me flex items-center gap-1 lg:gap-4" (click)="openUserMenu()">
-    <p class="font-nunito hidden text-2xl font-bold md:block lg:text-3xl max-w-[150px] lg:max-w-[400px]">{{ currentUser()?.name || 'Gast' }}</p>
+    <p class="font-nunito hidden max-w-[150px] text-2xl font-bold md:block lg:max-w-[400px] lg:text-3xl">
+      {{ currentUser()?.name || 'Gast' }}
+    </p>
     <div class="relative">
-      <img
-        class="size-10 rounded-full md:size-14 lg:size-16"
-        [src]="currentUser()?.photoUrl || 'imgs/default-profile-picture.png'" />
+      <img class="size-10 rounded-full md:size-14 lg:size-16" [src]="profilePictureUrl()" />
       <span
         class="absolute right-0 bottom-0 size-3 rounded-full border-2 border-white lg:size-4"
         [ngClass]="currentUser()?.onlineStatus ? 'bg-green-500' : 'bg-gray-400'"

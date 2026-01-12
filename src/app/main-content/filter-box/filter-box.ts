@@ -19,7 +19,7 @@ import { Router } from '@angular/router';
 export class FilterBox implements OnInit, OnChanges {
   @Input() searchTerm: string = '';
   @Input() isFocused = false;
-  @Output() selectItem = new EventEmitter<any>();
+  @Output() selectItem = new EventEmitter<SearchResult>();
   @Output() close = new EventEmitter<void>();
 
   constructor(
@@ -119,7 +119,7 @@ export class FilterBox implements OnInit, OnChanges {
         uid: item.id,
         name: item.data.name,
         email: item.data.email ?? null,
-        photoUrl: item.data.photoUrl ?? 'imgs/default-profile-picture.png',
+        profilePictureKey: item.data.profilePictureKey ?? 'default',
         onlineStatus: item.data.onlineStatus ?? false,
         lastSeen: item.data.lastSeen,
         createdAt: item.data.createdAt,
@@ -148,15 +148,15 @@ export class FilterBox implements OnInit, OnChanges {
     }
   }
 
-  get users() {
+  get users(): SearchResult[] {
     return this.results.filter((r) => r.collection === 'users');
   }
 
-  get channels() {
+  get channels(): SearchResult[] {
     return this.results.filter((r) => r.collection === 'channels');
   }
 
-  get messages() {
+  get messages(): SearchResult[] {
     return this.results.filter((r) => r.collection === 'messages');
   }
 

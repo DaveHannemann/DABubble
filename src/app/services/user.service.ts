@@ -29,7 +29,6 @@ export interface AppUser {
   email: string | null;
   name: string;
   profilePictureKey?: ProfilePictureKey;
-  photoUrl?: string;
   onlineStatus: boolean;
   lastSeen?: unknown;
   updatedAt?: unknown;
@@ -105,7 +104,7 @@ export class UserService {
       uid: firebaseUser.uid,
       email: firebaseUser.email,
       name: data.name || TEXTS.NEW_USER,
-      photoUrl: data.photoUrl || PROFILE_PICTURE_URLS.default,
+      profilePictureKey: data.profilePictureKey ?? 'default',
       onlineStatus: true,
       isGuest: data.isGuest ?? false,
       createdAt: serverTimestamp(),
@@ -195,7 +194,7 @@ export class UserService {
                   uid: user.uid ?? 'unbekannt',
                   name: user.name ?? 'Unbenannter Nutzer',
                   email: user.email ?? null,
-                  photoUrl: user.photoUrl || 'imgs/default-profile-picture.png',
+                  profilePictureKey: user.profilePictureKey ?? 'default',
                   onlineStatus: user.onlineStatus ?? false,
                   lastSeen: user.lastSeen,
                   updatedAt: user.updatedAt,
@@ -226,7 +225,7 @@ export class UserService {
             uid: data.uid ?? docSnap.id,
             name: data.name ?? 'Unbenannter Nutzer',
             email: data.email ?? null,
-            photoUrl: data.photoUrl || 'imgs/default-profile-picture.png',
+            profilePictureKey: data.profilePictureKey ?? 'default',
             onlineStatus: data.onlineStatus ?? false,
             lastSeen: data.lastSeen,
             updatedAt: data.updatedAt,
@@ -283,10 +282,10 @@ export class UserService {
     const name = firebaseUser.displayName || fallbackNameFromEmail;
     const photoUrl = PROFILE_PICTURE_URLS.default;
 
-    await this.authService.updateUserProfile(name, photoUrl);
+    await this.authService.updateUserProfile(name);
     await this.createUserDocument(firebaseUser, {
       name,
-      photoUrl,
+      profilePictureKey: 'default',
     });
   }
 
@@ -308,16 +307,6 @@ export class UserService {
   }
 
   getProfilePictureUrl(user: AppUser | null): string {
-    if (!user) return PROFILE_PICTURE_URLS.default;
-
-    if (user.profilePictureKey) {
-      return PROFILE_PICTURE_URLS[user.profilePictureKey];
-    }
-
-    if (user.photoUrl) {
-      return user.photoUrl;
-    }
-
-    return PROFILE_PICTURE_URLS.default;
+    return PROFILE_PICTURE_URLS[user?.profilePictureKey ?? 'default'];
   }
 }

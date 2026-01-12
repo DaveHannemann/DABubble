@@ -18,7 +18,7 @@ import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialog } from '@angular/material/dialog';
 import { AppUser, UserService } from '../../services/user.service';
-import type { DirectMessageEntry, MessageBubble } from '../../types';
+import type { DirectMessageEntry, MessageBubble, ProfilePictureKey } from '../../types';
 import { Timestamp } from '@angular/fire/firestore';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { MemberDialog } from '../member-dialog/member-dialog';
@@ -26,6 +26,7 @@ import { EMOJI_CHOICES } from '../../texts';
 import { MessageReactions } from '../message-reactions/message-reactions';
 import { MessageReactionsService } from '../../services/message-reactions.service';
 import { ReactionTooltipService } from '../../services/reaction-tooltip.service';
+import { ProfilePictureService } from '../../services/profile-picture.service';
 
 @Component({
   selector: 'app-messages',
@@ -36,7 +37,7 @@ import { ReactionTooltipService } from '../../services/reaction-tooltip.service'
   styleUrl: './messages.scss',
 })
 export class Messages {
-  private static readonly SYSTEM_MENTION_AVATAR = 'imgs/default-profile-picture.png';
+  private static readonly SYSTEM_PROFILE_PICTURE_KEY: ProfilePictureKey = 'default';
   private static readonly SYSTEM_AUTHOR_NAME = 'System';
   private readonly directMessagesService = inject(DirectMessagesService);
   private readonly userService = inject(UserService);
@@ -45,6 +46,7 @@ export class Messages {
   private readonly destroyRef = inject(DestroyRef);
   private readonly messageReactionsService = inject(MessageReactionsService);
   private readonly reactionTooltipService = inject(ReactionTooltipService);
+  private readonly profilePictureService = inject(ProfilePictureService);
 
   private readonly currentUser$ = this.userService.currentUser$;
 
@@ -128,14 +130,12 @@ export class Messages {
         this.recipientSignal.set(recipient);
       });
 
-    this.selectedRecipient$
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((recipient) => {
-        this.selectedRecipient = recipient;
-        if (recipient) {
-          requestAnimationFrame(() => this.focusComposer());
-        }
-      });
+    this.selectedRecipient$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((recipient) => {
+      this.selectedRecipient = recipient;
+      if (recipient) {
+        requestAnimationFrame(() => this.focusComposer());
+      }
+    });
   }
 
   protected async sendMessage(): Promise<void> {
@@ -149,7 +149,7 @@ export class Messages {
         {
           authorId: this.currentUser.uid,
           authorName: this.currentUser.name,
-          authorAvatar: this.currentUser.photoUrl,
+          authorProfilePictureKey: Messages.SYSTEM_PROFILE_PICTURE_KEY,
           text: trimmed,
         },
         this.selectedRecipient.uid
@@ -160,7 +160,6 @@ export class Messages {
       this.draftMessage = '';
       this.isComposerEmojiPickerOpen = false;
       this.scrollToBottom();
-
     }
   }
 
@@ -233,10 +232,11 @@ export class Messages {
 
   private mapMessage(message: DirectMessageEntry, currentUser: AppUser): MessageBubble {
     const isSystemMessage = message.authorName === Messages.SYSTEM_AUTHOR_NAME;
-    const isOwn = !isSystemMessage && message.authorId === currentUser.uid; return {
+    const isOwn = !isSystemMessage && message.authorId === currentUser.uid;
+    return {
       id: message.id,
       author: isOwn ? 'Du' : (message.authorName ?? 'Unbekannter Nutzer'),
-      avatar: message.authorAvatar ?? 'imgs/default-profile-picture.png',
+      profilePictureKey: message.authorProfilePictureKey ?? 'default',
       content: message.text ?? '',
       timestamp: message.createdAt,
       isOwn,
@@ -260,7 +260,7 @@ export class Messages {
       {
         authorId: this.currentUser.uid,
         authorName: Messages.SYSTEM_AUTHOR_NAME,
-        authorAvatar: Messages.SYSTEM_MENTION_AVATAR,
+        authorProfilePictureKey: Messages.SYSTEM_PROFILE_PICTURE_KEY,
         text: messageText,
       },
       this.selectedRecipient.uid
@@ -375,5 +375,9 @@ export class Messages {
 
   hideReactionTooltip(): void {
     this.reactionTooltipService.hide();
+  }
+
+  protected getAvatarUrl(key?: ProfilePictureKey): string {
+    return this.profilePictureService.getUrl(key);
   }
 }
