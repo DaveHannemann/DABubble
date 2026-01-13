@@ -33,3 +33,19 @@
     }
   }
 }
+
+@media (max-width: 1024px) {
+  .profile-picture--overlay {
+    width: 360px;
+  }
+}
+
+@media (max-width: 640px) {
+  .profile-picture--overlay {
+    width: 290px;
+
+    .cancel {
+      padding: 8px 12px;
+    }
+  }
+}
