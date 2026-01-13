@@ -20,4 +20,16 @@
   > button {
     margin-right: 24px;
   }
+
+  .cancel {
+    color: #535af1;
+    font-weight: 700;
+    border: 1px solid #797ef3;
+    padding: 8px 20px;
+    &:hover {
+      cursor: pointer;
+      background-color: #535af1;
+      color: white;
+    }
+  }
 }

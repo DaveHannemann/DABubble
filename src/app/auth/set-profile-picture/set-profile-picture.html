@@ -31,7 +31,14 @@
     }
   </div>
 
-  <button type="button" class="dab-btn-primary ml-auto block" [disabled]="isActionDisabled()" (click)="onActionClick()">
-    {{ actionLabel() }}
-  </button>
+  <div class="flex items-center gap-4">
+    <button class="cancel rounded-full" (click)="onBackClick()">Abbrechen</button>
+    <button
+      type="button"
+      class="dab-btn-primary ml-auto block"
+      [disabled]="isActionDisabled()"
+      (click)="onActionClick()">
+      {{ actionLabel() }}
+    </button>
+  </div>
 </section>
