@@ -105,7 +105,7 @@ export class AuthService {
   async signOut(): Promise<void> {
     try {
       await firebaseSignOut(this.auth);
-      this.router.navigate(['/login']);
+      // Navigation wird durch authState$ Change in UserService gehandhabt
     } catch (error: any) {
       this.throwMappedError(error);
     }
@@ -217,7 +217,7 @@ export class AuthService {
 
     try {
       await deleteUser(currentUser);
-      await this.router.navigate(['/login']);
+      // Navigation wird durch authState$ Change in UserService gehandhabt
     } catch (error: any) {
       this.throwMappedError(error);
     }

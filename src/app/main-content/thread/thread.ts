@@ -433,7 +433,7 @@ export class Thread {
       mentionedMembers.map((member) =>
         this.directMessagesService.sendDirectMessage(
           {
-            authorId: currentUser.uid,
+            authorId: member.id,
             authorName: Thread.SYSTEM_AUTHOR_NAME,
             authorProfilePictureKey: Thread.SYSTEM_PROFILE_PICTURE_KEY,
             text: messageText,

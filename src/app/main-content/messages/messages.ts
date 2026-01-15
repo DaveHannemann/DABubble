@@ -258,7 +258,7 @@ export class Messages {
 
     await this.directMessagesService.sendDirectMessage(
       {
-        authorId: this.currentUser.uid,
+        authorId: this.selectedRecipient.uid,
         authorName: Messages.SYSTEM_AUTHOR_NAME,
         authorProfilePictureKey: Messages.SYSTEM_PROFILE_PICTURE_KEY,
         text: messageText,

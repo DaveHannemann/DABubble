@@ -99,10 +99,21 @@ export class NavbarDialog {
   }
 
   async logOut() {
+    if (this.isSigningOut) {
+      return;
+    }
+    
     this.isSigningOut = true;
-    await this.userService.logout();
-    this.startCloseAnimation();
     this.brandState.resetSplash();
-    this.isSigningOut = false;
+    
+    try {
+      await this.userService.logout();
+      // Nach logout wird zu /login navigiert, Component wird zerstört
+      // Keine Animation mehr nötig
+    } catch (error) {
+      // Bei Fehler Animation schließen und Flag zurücksetzen
+      this.startCloseAnimation();
+      this.isSigningOut = false;
+    }
   }
 }

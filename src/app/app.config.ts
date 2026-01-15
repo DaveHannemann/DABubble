@@ -40,6 +40,16 @@ function getViewTransitionOptions(): ViewTransitionsFeatureOptions {
     onViewTransitionCreated: (transitionInfo: ViewTransitionInfo) => {
       const viewTransitionService = inject(ViewTransitionService);
       viewTransitionService.handleViewTransition(transitionInfo);
+      
+      // Suppress "Transition was skipped" errors from console
+      transitionInfo.transition.finished.catch((error) => {
+        if (error?.name === 'AbortError' && error?.message?.includes('skipped')) {
+          // Silently ignore - this is expected behavior
+          return;
+        }
+        // Re-throw other errors
+        throw error;
+      });
     },
   };
 }

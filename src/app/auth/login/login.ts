@@ -1,4 +1,4 @@
-import { Component, inject, input, output } from '@angular/core';
+import { Component, inject, input, output, Injector, runInInjectionContext } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -23,6 +23,7 @@ export class Login {
   private readonly userService = inject(UserService);
   private readonly guestService = inject(GuestService);
   private readonly toastService = inject(ToastService);
+  private readonly injector = inject(Injector);
 
   mode = input<'login' | 'reauth'>('login');
   embedded = input(false);
@@ -181,13 +182,18 @@ export class Login {
   }
 
   private cleanupExpiredGuests() {
-    queueMicrotask(async () => {
-      try {
-        const allUsers = await firstValueFrom(this.userService.getAllUsers());
-        await this.guestService.cleanupExpiredGuestsIfNeeded(allUsers);
-      } catch (error) {
-        console.error(NOTIFICATIONS.GUEST_CLEANUP_EXPIRED_FAILED, error);
-      }
+    queueMicrotask(() => {
+      runInInjectionContext(this.injector, async () => {
+        try {
+          const allUsers = await firstValueFrom(this.userService.getAllUsers());
+          await this.guestService.cleanupExpiredGuestsIfNeeded(allUsers);
+        } catch (error: any) {
+          // Silently ignore failed-precondition errors from concurrent cleanups
+          if (error?.code !== 'failed-precondition') {
+            console.error(NOTIFICATIONS.GUEST_CLEANUP_EXPIRED_FAILED, error);
+          }
+        }
+      });
     });
   }
 }

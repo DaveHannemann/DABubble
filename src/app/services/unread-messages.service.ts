@@ -155,10 +155,6 @@ export class UnreadMessagesService {
 
     const directMessageUsers = users.map((user) => {
       const displayName = user.uid === currentUserId ? `${user.name} (Du)` : user.name;
-      if (user.uid === currentUserId) {
-        return { ...user, displayName, unreadCount: 0, lastMessageAt: undefined };
-      }
-
       const conversationId = this.directMessagesService.buildConversationId(currentUserId, user.uid);
       const meta = metaMap.get(conversationId);
       const readStatus = readStatusMap.get(conversationId);

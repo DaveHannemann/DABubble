@@ -206,18 +206,27 @@ export class GuestService {
   private async getRandomGuestNumber(): Promise<number> {
     const guestsDocRef = this.getGuestsDocRef();
 
-    return runTransaction(this.firestore, async (transaction) => {
-      const usedNumbers = await this.getUsedGuestNumbers(transaction, guestsDocRef);
-      const availableNumbers = this.buildAvailableGuestNumbers(usedNumbers);
+    try {
+      return await runTransaction(this.firestore, async (transaction) => {
+        const usedNumbers = await this.getUsedGuestNumbers(transaction, guestsDocRef);
+        const availableNumbers = this.buildAvailableGuestNumbers(usedNumbers);
 
-      if (!availableNumbers.length) {
+        if (!availableNumbers.length) {
+          return GUEST_FALLBACK_NUMBER;
+        }
+
+        const selectedNumber = this.pickRandomNumber(availableNumbers);
+        this.setUsedGuestNumbers(transaction, guestsDocRef, [...usedNumbers, selectedNumber]);
+        return selectedNumber;
+      });
+    } catch (error: any) {
+      // Ignore failed-precondition errors and return fallback
+      if (error?.code === 'failed-precondition') {
+        console.warn('Gast: Registry update failed, using fallback number');
         return GUEST_FALLBACK_NUMBER;
       }
-
-      const selectedNumber = this.pickRandomNumber(availableNumbers);
-      this.setUsedGuestNumbers(transaction, guestsDocRef, [...usedNumbers, selectedNumber]);
-      return selectedNumber;
-    });
+      throw error;
+    }
   }
 
   /** Returns the guest registry document reference. */
@@ -271,15 +280,24 @@ export class GuestService {
 
     const guestsDocRef = this.getGuestsDocRef();
 
-    await runTransaction(this.firestore, async (transaction) => {
-      const usedNumbers = await this.getUsedGuestNumbers(transaction, guestsDocRef);
-      if (!usedNumbers.length) return;
+    try {
+      await runTransaction(this.firestore, async (transaction) => {
+        const usedNumbers = await this.getUsedGuestNumbers(transaction, guestsDocRef);
+        if (!usedNumbers.length) return;
 
-      const nextNumbers = usedNumbers.filter((value) => value !== guestNumber);
-      if (nextNumbers.length === usedNumbers.length) return;
+        const nextNumbers = usedNumbers.filter((value) => value !== guestNumber);
+        if (nextNumbers.length === usedNumbers.length) return;
 
-      this.setUsedGuestNumbers(transaction, guestsDocRef, nextNumbers);
-    });
+        this.setUsedGuestNumbers(transaction, guestsDocRef, nextNumbers);
+      });
+    } catch (error: any) {
+      // Ignore failed-precondition errors from concurrent updates
+      if (error?.code === 'failed-precondition') {
+        console.warn('Gast: Registry update skipped due to concurrent modification');
+        return;
+      }
+      throw error;
+    }
   }
 
   /** Extracts the 3-digit guest number from the display name. */

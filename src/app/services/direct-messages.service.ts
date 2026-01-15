@@ -146,7 +146,7 @@ export class DirectMessagesService {
     await setDoc(
       metaDoc,
       {
-        participants: [authorId, recipientId].filter(Boolean),
+        participants: Array.from(new Set([authorId, recipientId].filter(Boolean))),
         lastMessageAt: serverTimestamp(),
         lastMessageAuthorId: authorId,
         messageCount: increment(1),
@@ -154,7 +154,8 @@ export class DirectMessagesService {
       { merge: true }
     );
 
-    if (authorId) {
+    // Only mark as read if author is different from recipient (not a self-chat notification)
+    if (authorId && authorId !== recipientId) {
       const readDoc = doc(this.firestore, `directMessages/${conversationId}/readStatus/${authorId}`);
       await setDoc(
         readDoc,

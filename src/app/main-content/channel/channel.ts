@@ -566,7 +566,7 @@ export class ChannelComponent {
       mentionedMembers.map((member) =>
         this.directMessagesService.sendDirectMessage(
           {
-            authorId: currentUser.uid,
+            authorId: member.id,
             authorName: ChannelComponent.SYSTEM_AUTHOR_NAME,
             authorProfilePictureKey: ChannelComponent.SYSTEM_PROFILE_PICTURE_KEY,
             text: messageText,

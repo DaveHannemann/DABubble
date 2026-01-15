@@ -154,7 +154,10 @@ export class UserService {
         onlineStatus: false,
         lastSeen: serverTimestamp(),
         updatedAt: serverTimestamp(),
-      }).catch(() => {});
+      }).catch((error) => {
+        console.warn('Fehler beim Setzen des Offline-Status:', error);
+        // Fehler nicht weiterwerfen, um Logout nicht zu blockieren
+      });
     }
 
     this.currentUser.set(null);
@@ -315,10 +318,15 @@ export class UserService {
   }
 
   private async setOffline(uid: string): Promise<void> {
-    await updateDoc(doc(this.firestore, `users/${uid}`), {
-      onlineStatus: false,
-      lastSeen: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    });
+    try {
+      await updateDoc(doc(this.firestore, `users/${uid}`), {
+        onlineStatus: false,
+        lastSeen: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+    } catch (error) {
+      console.warn('Fehler beim Setzen des Offline-Status:', error);
+      // Fehler nicht weiterwerfen, um Logout nicht zu blockieren
+    }
   }
 }
