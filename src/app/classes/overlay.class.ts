@@ -40,6 +40,7 @@ export class OverlayRef<T extends object = any> {
   private _escListener!: (e: KeyboardEvent) => void;
   private onCloseCallback?: () => void;
   private previouslyFocusedElement: HTMLElement | null = null;
+  private history: Type<any>[] = [];
   public mode: 'desktop' | 'mobile' = 'desktop';
   public stackIndex = 0;
   BASE_OVERLAY_Z = 600; // Custom Overlays
@@ -139,6 +140,10 @@ export class OverlayRef<T extends object = any> {
    * @param config - Optional overlay configuration for the new component
    */
   replaceComponent<T2 extends object>(component: Type<T2>, config?: OverlayConfig<T2>) {
+    if (this.componentRef) {
+      this.history.push(this.componentRef.componentType);
+    }
+
     const data = {
       ...(config?.data ?? {}),
       overlayRef: this,
@@ -335,5 +340,14 @@ export class OverlayRef<T extends object = any> {
 
   private get isHybrid() {
     return !!(this.config.centerX && !this.config.centerY);
+  }
+
+  goBack() {
+    const previous = this.history.pop();
+    if (previous) {
+      this.replaceComponent(previous);
+    } else {
+      this.startCloseAnimation();
+    }
   }
 }

@@ -4,6 +4,7 @@ import { SetProfilePicture } from '../../../auth/set-profile-picture/set-profile
 import { UserService } from '../../../services/user.service';
 import { ProfilePictureKey } from '../../../types';
 import { OverlayService } from '../../../services/overlay.service';
+import { OverlayRef } from '../../../classes/overlay.class';
 
 @Component({
   selector: 'app-avatar-overlay',
@@ -15,6 +16,7 @@ import { OverlayService } from '../../../services/overlay.service';
 export class AvatarOverlay implements OnInit {
   private userService = inject(UserService);
   private overlayService = inject(OverlayService);
+  @Input() overlayRef!: OverlayRef;
   @Input() selectedProfilePictureKey: ProfilePictureKey = 'default';
 
   currentKey: ProfilePictureKey = this.selectedProfilePictureKey;
@@ -40,11 +42,11 @@ export class AvatarOverlay implements OnInit {
 
     this.userService.updateUser({ profilePictureKey: this.selectedKey }).finally(() => {
       this.saving = false;
-      this.close();
+      this.overlayRef.startCloseAnimation();
     });
   }
 
-  close(): void {
-    this.overlayService.closeLast();
+  back(): void {
+    this.overlayRef.goBack();
   }
 }
