@@ -83,8 +83,8 @@ export class NavbarDialog {
   openProfileMobile() {
     this.overlayService.open(ProfileMenu, {
       target: this.originTarget,
-      offsetX: -110,
-      offsetY: -535,
+      centerX: true,
+      offsetY: -700,
     });
   }
 

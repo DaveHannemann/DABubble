@@ -2,12 +2,12 @@
   *ngIf="visible"
   @scaleAnimation
   (@scaleAnimation.done)="onAnimationDone($event)"
-  class="flex h-120 w-[310px] flex-col items-center justify-center gap-4 rounded-2xl bg-white shadow-xl sm:w-[360px] lg:w-[440px] lg:rounded-tl-2xl lg:rounded-tr-none lg:rounded-br-2xl lg:rounded-bl-2xl">
+  class="pointer-events-auto flex h-120 w-[290px] flex-col items-center justify-center gap-6 rounded-2xl bg-white shadow-xl sm:w-[360px] sm:gap-4 lg:w-[440px] lg:rounded-tl-2xl lg:rounded-tr-none lg:rounded-br-2xl lg:rounded-bl-2xl">
   <div class="flex w-full items-center justify-between px-6">
     <h2>Profil</h2>
     <button (click)="closeOverlay()"><mat-icon class="close">close</mat-icon></button>
   </div>
-  <img class="size-40 rounded-full" [src]="getAvatarUrl(currentUser()?.profilePictureKey)" />
+  <img class="size-40 rounded-full mb-10 sm:mb-5" [src]="getAvatarUrl(currentUser()?.profilePictureKey)" />
   <div class="flex w-full flex-col gap-2 px-6">
     <div class="flex items-center justify-between">
       <h3>{{ currentUser()?.name || 'Gast' }}</h3>

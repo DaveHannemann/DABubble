@@ -25,6 +25,9 @@ export interface OverlayConfig<T = any> {
   offsetX?: number;
   offsetY?: number;
   mode?: 'desktop' | 'mobile';
+  centerX?: boolean;
+  centerY?: boolean;
+  ignoreTargetPosition?: boolean;
 }
 
 /**
@@ -67,15 +70,8 @@ export class OverlayRef<T extends object = any> {
     this.previouslyFocusedElement = document.activeElement as HTMLElement;
 
     this.overlayContainer = document.createElement('div');
-    Object.assign(this.overlayContainer.style, {
-      position: 'fixed',
-      zIndex: String(this.BASE_OVERLAY_Z + this.stackIndex),
-    });
 
-    this.overlayContainer.setAttribute('role', 'dialog');
-    this.overlayContainer.setAttribute('aria-modal', 'true');
-    this.overlayContainer.classList.add('overlay');
-    this.overlayContainer.tabIndex = -1;
+    this.setupOverlayContainer();
 
     document.body.appendChild(this.overlayContainer);
 
@@ -88,6 +84,30 @@ export class OverlayRef<T extends object = any> {
     this._updateBound = this.updatePosition.bind(this);
     window.addEventListener('resize', this._updateBound);
     window.addEventListener('scroll', this._updateBound);
+  }
+
+  private setupOverlayContainer() {
+    const styles: Partial<CSSStyleDeclaration> = {
+      position: 'fixed',
+      zIndex: String(this.BASE_OVERLAY_Z + this.stackIndex),
+    };
+
+    if (this.isCentered) {
+      Object.assign(styles, {
+        inset: '0',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        pointerEvents: 'none',
+      });
+    }
+
+    Object.assign(this.overlayContainer.style, styles);
+
+    this.overlayContainer.setAttribute('role', 'dialog');
+    this.overlayContainer.setAttribute('aria-modal', 'true');
+    this.overlayContainer.classList.add('overlay');
+    this.overlayContainer.tabIndex = -1;
   }
 
   /**
@@ -108,6 +128,7 @@ export class OverlayRef<T extends object = any> {
 
     this.appRef.attachView(this.componentRef.hostView);
     const domElem = (this.componentRef.hostView as EmbeddedViewRef<any>).rootNodes[0] as HTMLElement;
+    domElem.style.pointerEvents = 'auto';
     this.overlayContainer.innerHTML = '';
     this.overlayContainer.appendChild(domElem);
   }
@@ -131,46 +152,83 @@ export class OverlayRef<T extends object = any> {
    * Updates the position of the overlay based on the target element and offsets.
    */
   private updatePosition() {
-    if (!this.config.target) return;
-    const rect = this.config.target.getBoundingClientRect();
-    const offsetX = this.config.offsetX ?? 0;
-    const offsetY = this.config.offsetY ?? 0;
-    // this.overlayContainer.style.left = rect.left + offsetX + 'px';
-    // this.overlayContainer.style.top = rect.bottom + offsetY + 'px';
+    this.applyViewportConstraints();
+
+    if (this.isHybrid) {
+      this.positionHybrid();
+      return;
+    }
+
+    if (this.isCentered) {
+      this.positionCentered();
+      return;
+    }
+
+    this.positionTarget();
+  }
+
+  private applyViewportConstraints() {
     const margin = 12;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
 
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
-    const maxWidth = Math.max(0, viewportWidth - margin * 2);
-    const maxHeight = Math.max(0, viewportHeight - margin * 2);
-
-    this.overlayContainer.style.maxWidth = `${maxWidth}px`;
-    this.overlayContainer.style.maxHeight = `${maxHeight}px`;
+    this.overlayContainer.style.maxWidth = `${vw - margin * 2}px`;
+    this.overlayContainer.style.maxHeight = `${vh - margin * 2}px`;
     this.overlayContainer.style.overflowY = 'auto';
     this.overlayContainer.style.overflowX = 'hidden';
-    const overlayWidth = this.overlayContainer.offsetWidth;
-    const overlayHeight = this.overlayContainer.offsetHeight;
-    let left = rect.left + offsetX;
-    let top = rect.bottom + offsetY;
+  }
 
-    if (left + overlayWidth > viewportWidth - margin) {
-      left = viewportWidth - overlayWidth - margin;
-    }
+  private positionHybrid() {
+    const margin = 12;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
 
-    if (left < margin) {
-      left = margin;
-    }
+    const ow = this.overlayContainer.offsetWidth;
+    const left = Math.max(margin, (vw - ow) / 2);
 
-    if (top + overlayHeight > viewportHeight - margin) {
-      top = rect.top - overlayHeight - offsetY;
-    }
+    const rect = this.config.target!.getBoundingClientRect();
+    const initialTop = rect.bottom + (this.config.offsetY ?? 0);
 
-    if (top < margin) {
-      top = margin;
-    }
+    this.overlayContainer.style.left = `${left}px`;
+    this.overlayContainer.style.top = `${initialTop}px`;
+
+    requestAnimationFrame(() => {
+      const oh = this.overlayContainer.offsetHeight;
+      let top = initialTop;
+
+      if (top + oh > vh - margin) top = vh - oh - margin;
+      if (top < margin) top = margin;
+
+      this.overlayContainer.style.top = `${top}px`;
+    });
+  }
+
+  private positionTarget() {
+    if (!this.config.target) return;
+
+    const margin = 12;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
+    const rect = this.config.target.getBoundingClientRect();
+    const ow = this.overlayContainer.offsetWidth;
+    const oh = this.overlayContainer.offsetHeight;
+
+    let left = rect.left + (this.config.offsetX ?? 0);
+    let top = rect.bottom + (this.config.offsetY ?? 0);
+
+    if (left + ow > vw - margin) left = vw - ow - margin;
+    if (left < margin) left = margin;
+    if (top + oh > vh - margin) top = rect.top - oh - (this.config.offsetY ?? 0);
+    if (top < margin) top = margin;
 
     this.overlayContainer.style.left = `${left}px`;
     this.overlayContainer.style.top = `${top}px`;
+  }
+
+  private positionCentered() {
+    this.overlayContainer.style.left = '0';
+    this.overlayContainer.style.top = '0';
   }
 
   /**
@@ -269,5 +327,13 @@ export class OverlayRef<T extends object = any> {
     this.overlayContainer?.removeAttribute('aria-hidden');
     this.overlayContainer?.removeAttribute('inert');
     this.focusFirstElement();
+  }
+
+  private get isCentered() {
+    return !!(this.config.centerX || this.config.centerY);
+  }
+
+  private get isHybrid() {
+    return !!(this.config.centerX && !this.config.centerY);
   }
 }

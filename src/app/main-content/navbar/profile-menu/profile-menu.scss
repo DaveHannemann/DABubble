@@ -106,3 +106,9 @@ h3 {
 .edit-btn:active .icon-default {
   opacity: 0;
 }
+
+@media (max-width: 640px) {
+  h3 {
+    font-size: 20px;
+  }
+}

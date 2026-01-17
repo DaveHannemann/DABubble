@@ -1,4 +1,4 @@
-import { Component, EventEmitter, inject, Output } from '@angular/core';
+import { Component, EventEmitter, inject, OnInit, Output } from '@angular/core';
 import { MatIcon } from '@angular/material/icon';
 import { OverlayService } from '../../../services/overlay.service';
 import { trigger, transition, style, animate } from '@angular/animations';
@@ -21,7 +21,7 @@ import { ProfilePictureKey } from '../../../types';
     ]),
   ],
 })
-export class ProfileMenuEdit {
+export class ProfileMenuEdit implements OnInit {
   private overlayService = inject(OverlayService);
   private userService = inject(UserService);
   readonly profilePictureService = inject(ProfilePictureService);
@@ -32,6 +32,12 @@ export class ProfileMenuEdit {
   currentUser = this.userService.currentUser;
   visible = true;
   overlayRef!: any;
+  isHovered = false;
+  isMobile = false;
+
+  ngOnInit() {
+    this.isMobile = window.matchMedia('(hover: none)').matches;
+  }
 
   onAnimationDone(event: any) {
     if (!this.visible) {
@@ -67,5 +73,9 @@ export class ProfileMenuEdit {
     overlayRef.replaceComponent(AvatarOverlay, {
       target: this.overlayRef.target,
     });
+  }
+
+  get showAvatarHint(): boolean {
+    return this.isMobile || this.isHovered;
   }
 }
