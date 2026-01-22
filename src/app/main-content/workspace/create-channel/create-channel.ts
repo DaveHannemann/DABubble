@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Output, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
+import { Router } from '@angular/router';
 import { ChannelService } from '../../../services/channel.service';
 import { ChannelMembershipService } from '../../../services/membership.service';
 import { UserService } from '../../../services/user.service';
@@ -18,10 +19,12 @@ export class CreateChannel {
   private readonly channelService = inject(ChannelService);
   private readonly membershipService = inject(ChannelMembershipService);
   private readonly userService = inject(UserService);
+  private readonly router = inject(Router);
   protected title = '';
   protected description = '';
   protected isPublic = false;
   protected isSubmitting = false;
+  protected errorMessage: string | null = null;
 
   protected isAdmin() {
     return this.userService.currentUser()?.role === 'admin';
@@ -39,6 +42,7 @@ export class CreateChannel {
       return;
     }
     this.isSubmitting = true;
+    this.errorMessage = null;
 
     try {
       const title = this.title.trim();
@@ -56,9 +60,15 @@ export class CreateChannel {
           subtitle: currentUser.email ?? undefined,
         });
       }
+      
       form.resetForm();
       this.isPublic = false;
       this.forceCloseOverlay();
+
+      // Navigiere zum neuen Channel
+      await this.router.navigate(['/main/channels', channelId]);
+    } catch (error: any) {
+      this.errorMessage = error?.message ?? 'Fehler beim Erstellen des Channels.';
     } finally {
       this.isSubmitting = false;
     }

@@ -83,10 +83,8 @@ export class MainHome {
         this.isLoading.set(false);
         this.hasChannels.set(channels.length > 0);
 
-        const firstChannelId = channels.find((c) => !!c.id)?.id ?? null;
-        if (!this.isTabletScreen() && firstChannelId) {
-          void this.router.navigate(['/main/channels', firstChannelId], { replaceUrl: true });
-        }
+        // Navigiere NICHT automatisch zum ersten Channel
+        // User soll im Workspace bleiben
       });
   }
 }

@@ -1,5 +1,6 @@
 import { Component, ElementRef, ViewChild, Input, OnChanges, OnInit, SimpleChanges, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { OverlayService } from '../../../services/overlay.service';
 import { FormsModule } from '@angular/forms';
 import { ChannelService } from '../../../services/channel.service';
@@ -17,6 +18,7 @@ export class ChannelDescription implements OnChanges, OnInit {
   private readonly channelService = inject(ChannelService);
   private readonly membershipService = inject(ChannelMembershipService);
   private readonly userService = inject(UserService);
+  private readonly router = inject(Router);
   private readonly nonLeavableTitles = new Set(['willkommen', 'allgemeines', 'meetings']);
 
   @Input() channelId?: string;
@@ -139,8 +141,11 @@ export class ChannelDescription implements OnChanges, OnInit {
     this.errorMessage = '';
 
     try {
-      await this.membershipService.leaveChannel(this.channelId, currentUser.uid);
+      // Schließe Overlay sofort
       this.closeOverlay();
+      
+      await this.membershipService.leaveChannel(this.channelId, currentUser.uid);
+      await this.router.navigate(['/main']);
     } catch (error) {
       console.error('Fehler beim Verlassen des Channels', error);
       this.errorMessage = 'Channel konnte nicht verlassen werden.';

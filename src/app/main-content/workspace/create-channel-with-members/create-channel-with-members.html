@@ -1,0 +1,119 @@
+<div class="create-channel-view">
+  <!-- Header -->
+  <header class="create-channel-view__header">
+    <button type="button" class="create-channel-view__back" (click)="cancel()" aria-label="Zurück">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h1 class="create-channel-view__title">
+      {{ step === 1 ? 'Channel erstellen' : 'Mitglieder hinzufügen' }}
+    </h1>
+  </header>
+
+  <!-- Step 1: Channel Details -->
+  <div *ngIf="step === 1" class="create-channel-view__content">
+    <form (ngSubmit)="onSubmitStep1(channelForm)" #channelForm="ngForm" class="create-channel-form">
+      <div class="create-channel-form__field">
+        <label for="channel-name">Channel-Name</label>
+        <input
+          id="channel-name"
+          type="text"
+          name="title"
+          [(ngModel)]="title"
+          required
+          maxlength="50"
+          placeholder="z.B. Entwicklerteam"
+          autocomplete="off" />
+      </div>
+
+      <div class="create-channel-form__field">
+        <label for="channel-description">Beschreibung (optional)</label>
+        <textarea
+          id="channel-description"
+          name="description"
+          [(ngModel)]="description"
+          maxlength="200"
+          rows="3"
+          placeholder="Worum geht es in diesem Channel?"></textarea>
+      </div>
+
+      <div *ngIf="isAdmin()" class="create-channel-form__checkbox">
+        <input id="channel-public" type="checkbox" name="isPublic" [(ngModel)]="isPublic" />
+        <label for="channel-public">Öffentlicher Channel (für alle sichtbar)</label>
+      </div>
+
+      <p *ngIf="errorMessage" class="create-channel-form__error" role="alert">{{ errorMessage }}</p>
+
+      <div class="create-channel-form__actions">
+        <button type="button" class="btn-secondary" (click)="cancel()">Abbrechen</button>
+        <button type="submit" class="btn-primary" [disabled]="channelForm.invalid">Weiter</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Step 2: Member Selection -->
+  <div *ngIf="step === 2" class="create-channel-view__content">
+    <div class="member-selection">
+      <p class="member-selection__info">Wähle Mitglieder für den Channel aus (optional)</p>
+
+      <div class="member-selection__search">
+        <input
+          type="text"
+          placeholder="Name eingeben"
+          [(ngModel)]="searchTerm"
+          (ngModelChange)="onSearch($event)"
+          (focus)="onSearchFocus()"
+          autocomplete="off" />
+      </div>
+
+      <!-- Selected Members Chips -->
+      <div *ngIf="selectedMembers.length" class="member-selection__chips">
+        <div *ngFor="let member of selectedMembers" class="member-chip">
+          <img [src]="member.avatar" [alt]="member.name" />
+          <span>{{ member.name }}</span>
+          <button type="button" (click)="removeSelectedMember(member.id)" aria-label="{{ member.name }} entfernen">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+      </div>
+
+      <!-- Suggestions Dropdown -->
+      <div class="member-selection__dropdown" *ngIf="showSuggestions">
+        <div *ngIf="filteredMembers.length === 0" class="member-selection__empty">
+          Keine weiteren Mitglieder gefunden.
+        </div>
+
+        <button
+          type="button"
+          *ngFor="let member of filteredMembers"
+          class="member-option"
+          (click)="selectMember(member)">
+          <img [src]="member.avatar" [alt]="member.name" />
+          <div class="member-option__meta">
+            <span class="member-option__name">{{ member.name }}</span>
+            <span *ngIf="member.subtitle" class="member-option__subtitle">{{ member.subtitle }}</span>
+          </div>
+          <span *ngIf="member.status === 'online'" class="member-option__status" aria-label="Online"></span>
+        </button>
+
+        <div class="member-selection__dropdown-actions">
+          <button type="button" class="btn-text" (click)="confirmSuggestions()">Auswahl bestätigen</button>
+        </div>
+      </div>
+
+      <p *ngIf="errorMessage" class="member-selection__error" role="alert">{{ errorMessage }}</p>
+
+      <!-- Actions -->
+      <div class="member-selection__actions">
+        <button type="button" class="btn-secondary" (click)="goBackToStep1()" [disabled]="isSubmitting">
+          Zurück
+        </button>
+        <button type="button" class="btn-primary" (click)="createChannel()" [disabled]="isSubmitting">
+          <ng-container *ngIf="!isSubmitting; else creating">
+            {{ selectedMembers.length ? 'Channel mit ' + selectedMembers.length + ' Mitglied(ern) erstellen' : 'Channel erstellen' }}
+          </ng-container>
+          <ng-template #creating>Wird erstellt...</ng-template>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

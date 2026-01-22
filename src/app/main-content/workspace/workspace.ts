@@ -52,7 +52,7 @@ export class Workspace {
 
   /** Opens channel creation dialog. */
   protected openCreateChannel(): void {
-    this.isCreateChannelOpen = true;
+    void this.router.navigate(['/main/create-channel']);
   }
 
   /** Closes channel creation dialog. */

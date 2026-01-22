@@ -84,26 +84,28 @@
   min-height: 0;
 }
 .message-board__divider {
-  position: relative;
-  text-align: center;
+  display: flex;
+  align-items: center;
+  gap: 16px;
   color: #64748b;
   font-size: 13px;
   font-weight: 600;
   margin: 8px 0;
-  width: 90%;
-}
-.message-board__divider::before,
-.message-board__divider::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  width: 44%;
-  height: 1px;
-  background: #d7dce7;
-}
+  width: 100%;
 
-.message-board__divider::before {
-  left: 0;
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #d7dce7;
+  }
+
+  span {
+    white-space: nowrap;
+    background: white;
+    padding: 0 12px;
+  }
 }
 .message-board__bubble {
   position: relative;

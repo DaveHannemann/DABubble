@@ -291,28 +291,26 @@
   border-color: rgba(255, 255, 255, 0.35);
 }
 .thread__divider {
-  position: relative;
-  text-align: center;
+  display: flex;
+  align-items: center;
+  gap: 16px;
   color: #64748b;
   font-weight: 700;
-}
+  margin: 16px 0;
 
-.thread__divider::before,
-.thread__divider::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  width: 38%;
-  height: 1px;
-  background: #e2e8f0;
-}
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #e2e8f0;
+  }
 
-.thread__divider::before {
-  left: 0;
-}
-
-.thread__divider::after {
-  right: 0;
+  span {
+    white-space: nowrap;
+    background: white;
+    padding: 0 12px;
+  }
 }
 
 .thread__replies {

@@ -162,6 +162,12 @@ export class ChannelService {
     const trimmedTitle = title.trim();
     const trimmedDescription = description?.trim();
 
+    // Prüfe, ob ein Channel mit diesem Namen bereits existiert
+    const nameExists = await this.checkIfChannelNameExists(trimmedTitle);
+    if (nameExists) {
+      throw new Error('Ein Channel mit diesem Namen existiert bereits. Bitte wähle einen anderen Namen.');
+    }
+
     const channelPayload: Record<string, unknown> = {
       title: trimmedTitle,
       createdAt: serverTimestamp(),
@@ -179,6 +185,20 @@ export class ChannelService {
     const newChannel = await addDoc(channelsCollection, channelPayload);
 
     return newChannel.id;
+  }
+
+  /**
+   * Prüft, ob ein Channelname bereits existiert (case-insensitive)
+   */
+  async checkIfChannelNameExists(title: string): Promise<boolean> {
+    const channelsCollection = collection(this.firestore, 'channels');
+    const snapshot = await getDocs(channelsCollection);
+    
+    const normalizedTitle = title.toLowerCase().trim();
+    return snapshot.docs.some((doc) => {
+      const data = doc.data() as Channel;
+      return data.title?.toLowerCase().trim() === normalizedTitle;
+    });
   }
 
   async updateChannel(channelId: string, payload: Partial<Pick<Channel, 'title' | 'description'>>): Promise<void> {

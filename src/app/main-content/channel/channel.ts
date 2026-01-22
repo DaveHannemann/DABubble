@@ -112,7 +112,12 @@ export class ChannelComponent {
 
   /** Validates channel access and redirects if invalid. */
   private validateAccess(user: AppUser | null, channelId: string | null, channels: Channel[] | null): void {
-    if (!user || !channelId || (channels && !channels.some((ch) => ch.id === channelId))) {
+    if (!user || !channelId) {
+      void this.router.navigate(['/main']);
+      return;
+    }
+    // Nur umleiten wenn channels geladen sind UND der Channel nicht in der Liste ist
+    if (channels !== null && !channels.some((ch) => ch.id === channelId)) {
       void this.router.navigate(['/main']);
     }
   }

@@ -149,6 +149,20 @@
     }
   }
 
+  &__error {
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: #fef2f2;
+    border: 1px solid #fca5a5;
+
+    p {
+      margin: 0;
+      font-size: 14px;
+      color: #dc2626;
+      font-weight: 500;
+    }
+  }
+
   &__actions {
     margin-top: 4px;
     display: flex;

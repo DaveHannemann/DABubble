@@ -42,6 +42,11 @@
         <span>Für alle User zugänglich</span>
       </label>
     </div>
+
+    <div class="create-channel__error" *ngIf="errorMessage">
+      <p>{{ errorMessage }}</p>
+    </div>
+
     <div class="create-channel__actions">
       <button type="button" class="create-channel__secondary" (click)="closeOverlay()" [disabled]="isSubmitting">
         Abbrechen

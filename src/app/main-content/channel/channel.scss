@@ -206,29 +206,27 @@
 }
 
 .channel__day {
-  text-align: center;
+  display: flex;
+  align-items: center;
+  gap: 16px;
   font-weight: 700;
   color: #1f2937;
-  position: relative;
   padding: 8px 0;
-}
+  width: 100%;
 
-.channel__day::before,
-.channel__day::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  width: 36%;
-  height: 1px;
-  background: #e2e8f0;
-}
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #e2e8f0;
+  }
 
-.channel__day::before {
-  left: 0;
-}
-
-.channel__day::after {
-  right: 0;
+  span {
+    white-space: nowrap;
+    background: white;
+    padding: 0 12px;
+  }
 }
 
 .channel__message {

@@ -118,7 +118,10 @@ export class Thread {
         takeUntilDestroyed(this.destroyRef)
       )
       .subscribe(() => {
-        requestAnimationFrame(() => this.scrollToBottom());
+        requestAnimationFrame(() => {
+          this.scrollToBottom();
+          this.focusComposer();
+        });
       });
   }
 
