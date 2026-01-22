@@ -96,11 +96,12 @@ export class Signup {
         profilePictureKey: this.selectedProfilePictureKey,
       });
 
-      await this.authenticationService.sendEmailVerificationLink(userCredential.user);
+      // E-Mail-Verifizierung vorübergehend deaktiviert
+      // await this.authenticationService.sendEmailVerificationLink(userCredential.user);
 
       this.toastService.success(NOTIFICATIONS.TOAST_SIGNUP_SUCCESS);
 
-      this.router.navigate(['/verify-email']);
+      this.router.navigate(['/']);
     } catch (error: any) {
       this.errorMessage = error?.message ?? NOTIFICATIONS.SIGNUP_ERROR;
     } finally {

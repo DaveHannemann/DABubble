@@ -100,6 +100,12 @@ export class UserService {
    * Creates a new user document in Firestore (only on first registration/login).
    */
   async createUserDocument(firebaseUser: FirebaseUser, data: Partial<AppUser>): Promise<void> {
+    // Prüfe, ob der Name bereits existiert
+    const nameExists = await this.checkIfNameExists(data.name || TEXTS.NEW_USER);
+    if (nameExists) {
+      throw new Error('Dieser Benutzername ist bereits vergeben. Bitte wähle einen anderen Namen.');
+    }
+
     const userRef = doc(this.firestore, `users/${firebaseUser.uid}`);
 
     const newUser: AppUser = {
@@ -115,6 +121,14 @@ export class UserService {
     };
 
     await setDoc(userRef, newUser);
+  }
+
+  /**
+   * Prüft, ob ein Benutzername bereits existiert
+   */
+  async checkIfNameExists(name: string): Promise<boolean> {
+    const users = await this.getUserDocs();
+    return users.some((user) => user.data.name.toLowerCase() === name.toLowerCase());
   }
 
   /**

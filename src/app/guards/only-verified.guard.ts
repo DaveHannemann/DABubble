@@ -22,9 +22,10 @@ export const onlyVerifiedGuard: CanActivateFn = (
         return router.createUrlTree(['/login']);
       }
 
-      if (!isEmailVerified) {
-        return router.createUrlTree(['/verify-email']);
-      }
+      // E-Mail-Verifizierung vorübergehend deaktiviert
+      // if (!isEmailVerified) {
+      //   return router.createUrlTree(['/verify-email']);
+      // }
 
       return true;
     })

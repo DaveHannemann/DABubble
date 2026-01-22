@@ -31,8 +31,9 @@ export const emailConfirmedGuard: CanActivateFn = (
         return true;
       }
 
-      if (isLoggedIn && !isEmailVerified) {
-        return router.createUrlTree(['/verify-email']);
+      // E-Mail-Verifizierung deaktiviert
+      if (isLoggedIn) {
+        return true;
       }
 
       return router.createUrlTree(['/login']);

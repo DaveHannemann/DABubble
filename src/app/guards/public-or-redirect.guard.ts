@@ -22,11 +22,8 @@ export const publicOrRedirectGuard: CanActivateFn = (
         return true;
       }
 
-      if (isEmailVerified) {
-        return router.createUrlTree(['/main']);
-      }
-
-      return router.createUrlTree(['/verify-email']);
+      // E-Mail-Verifizierung deaktiviert - User wird direkt zu /main weitergeleitet
+      return router.createUrlTree(['/main']);
     })
   );
 };

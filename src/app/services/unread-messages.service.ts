@@ -153,23 +153,25 @@ export class UnreadMessagesService {
         .map((status) => [status.conversationId!, status])
     );
 
-    const directMessageUsers = users.map((user) => {
-      const displayName = user.uid === currentUserId ? `${user.name} (Du)` : user.name;
-      const conversationId = this.directMessagesService.buildConversationId(currentUserId, user.uid);
-      const meta = metaMap.get(conversationId);
-      const readStatus = readStatusMap.get(conversationId);
-      const messageCount = meta?.messageCount ?? 0;
-      const lastReadCount = readStatus?.lastReadCount ?? 0;
-      const unreadCount = Math.max(0, messageCount - lastReadCount);
-      const isActive = activeDmId === user.uid;
+    const directMessageUsers = users
+      .filter((user) => user.name && user.name.trim().length > 0) // Filtere User ohne Namen
+      .map((user) => {
+        const displayName = user.uid === currentUserId ? `${user.name} (Du)` : user.name;
+        const conversationId = this.directMessagesService.buildConversationId(currentUserId, user.uid);
+        const meta = metaMap.get(conversationId);
+        const readStatus = readStatusMap.get(conversationId);
+        const messageCount = meta?.messageCount ?? 0;
+        const lastReadCount = readStatus?.lastReadCount ?? 0;
+        const unreadCount = Math.max(0, messageCount - lastReadCount);
+        const isActive = activeDmId === user.uid;
 
-      return {
-        ...user,
-        displayName,
-        unreadCount: isActive ? 0 : unreadCount,
-        lastMessageAt: meta?.lastMessageAt,
-      };
-    });
+        return {
+          ...user,
+          displayName,
+          unreadCount: isActive ? 0 : unreadCount,
+          lastMessageAt: meta?.lastMessageAt,
+        };
+      });
 
     return [...directMessageUsers].sort((a, b) => {
       const aTime = a.lastMessageAt?.toDate?.().getTime() ?? 0;
