@@ -51,6 +51,7 @@ export class AddToChannel implements OnInit {
   @Input() channelId?: string;
   @Input() channelTitle = 'Entwicklerteam';
   @Input() members: ChannelMember[] = [];
+  @Input() mode: 'desktop' | 'mobile' = 'desktop';
 
   protected visible = true;
   protected searchTerm = '';

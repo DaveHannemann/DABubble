@@ -1,6 +1,7 @@
 <section
   *ngIf="visible"
   class="channel-members"
+  [class.mobile]="mode === 'mobile'"
   [@fadeScale]="visible ? 'enter' : 'leave'"
   (@fadeScale.done)="onAnimationDone()"
   role="dialog"

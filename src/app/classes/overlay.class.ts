@@ -144,6 +144,16 @@ export class OverlayRef<T extends object = any> {
       this.history.push(this.componentRef.componentType);
     }
 
+    if (config?.target) {
+      this.config.target = config.target;
+    }
+    if (config?.offsetX !== undefined) {
+      this.config.offsetX = config.offsetX;
+    }
+    if (config?.offsetY !== undefined) {
+      this.config.offsetY = config.offsetY;
+    }
+
     const data = {
       ...(config?.data ?? {}),
       overlayRef: this,

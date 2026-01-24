@@ -1,10 +1,22 @@
-import { Component, DestroyRef, ElementRef, NgZone, ViewChild, inject, signal } from '@angular/core';
+import { Component, DestroyRef, ElementRef, Input, NgZone, ViewChild, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSidenav, MatSidenavModule } from '@angular/material/sidenav';
 import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from '@angular/router';
-import { Observable, catchError, combineLatest, distinctUntilChanged, from, map, of, shareReplay, switchMap, take, tap } from 'rxjs';
+import {
+  Observable,
+  catchError,
+  combineLatest,
+  distinctUntilChanged,
+  from,
+  map,
+  of,
+  shareReplay,
+  switchMap,
+  take,
+  tap,
+} from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatDialog } from '@angular/material/dialog';
 
@@ -42,15 +54,23 @@ import { ChannelFacadeService } from './channel-facade.service';
 export class ChannelComponent {
   private static readonly SYSTEM_PROFILE_PICTURE_KEY: ProfilePictureKey = 'default';
   private static readonly SYSTEM_AUTHOR_NAME = 'System';
+  @Input() originTarget!: HTMLElement;
 
   // Services
-  private readonly channelService = inject(ChannelService); private readonly channelFacade = inject(ChannelFacadeService);
-  private readonly membershipService = inject(ChannelMembershipService); private readonly messageReactionsService = inject(MessageReactionsService);
-  private readonly overlayService = inject(OverlayService); private readonly userService = inject(UserService);
-  private readonly threadService = inject(ThreadService); private readonly dialog = inject(MatDialog);
-  private readonly screenService = inject(ScreenService); private readonly destroyRef = inject(DestroyRef);
-  private readonly ngZone = inject(NgZone); private readonly router = inject(Router);
-  private readonly route = inject(ActivatedRoute); private readonly reactionTooltipService = inject(ReactionTooltipService);
+  private readonly channelService = inject(ChannelService);
+  private readonly channelFacade = inject(ChannelFacadeService);
+  private readonly membershipService = inject(ChannelMembershipService);
+  private readonly messageReactionsService = inject(MessageReactionsService);
+  private readonly overlayService = inject(OverlayService);
+  private readonly userService = inject(UserService);
+  private readonly threadService = inject(ThreadService);
+  private readonly dialog = inject(MatDialog);
+  private readonly screenService = inject(ScreenService);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly ngZone = inject(NgZone);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+  private readonly reactionTooltipService = inject(ReactionTooltipService);
   private readonly profilePictureService = inject(ProfilePictureService);
 
   // ViewChild
@@ -59,7 +79,10 @@ export class ChannelComponent {
   @ViewChild('threadSidenav') private threadSidenav?: MatSidenav;
 
   // Constants
-  protected readonly channelDefaults = { name: 'Entwicklerteam', summary: 'Gruppe zum Austausch über technische Fragen und das laufende Redesign des Devspace.' };
+  protected readonly channelDefaults = {
+    name: 'Entwicklerteam',
+    summary: 'Gruppe zum Austausch über technische Fragen und das laufende Redesign des Devspace.',
+  };
   protected readonly emojiChoices = EMOJI_CHOICES;
   protected readonly isTabletScreen = this.screenService.isTabletScreen;
 
@@ -77,8 +100,12 @@ export class ChannelComponent {
 
   // Mention state
   private mentionState: MentionState = { suggestions: [], isVisible: false, triggerIndex: null, caretIndex: null };
-  protected get mentionSuggestions() { return this.mentionState.suggestions; }
-  protected get isMentionListVisible() { return this.mentionState.isVisible; }
+  protected get mentionSuggestions() {
+    return this.mentionState.suggestions;
+  }
+  protected get isMentionListVisible() {
+    return this.mentionState.isVisible;
+  }
 
   // Cached data
   private cachedMembers: ChannelMemberView[] = [];
@@ -88,13 +115,27 @@ export class ChannelComponent {
   private shouldScrollOnNextMessage = false;
 
   // Observables
-  private readonly currentUser$ = this.userService.currentUser$; private readonly allUsers$ = this.userService.getAllUsers();
-  protected readonly channelId$ = this.route.paramMap.pipe(map((p) => p.get('channelId')), shareReplay({ bufferSize: 1, refCount: true }));
-  private readonly channels$ = this.currentUser$.pipe(switchMap((u) => (u ? this.membershipService.getChannelsForUser(u.uid) : of(null))), shareReplay({ bufferSize: 1, refCount: true }));
-  protected readonly channel$ = this.createChannelObservable(); protected readonly channelTitle$ = this.channel$.pipe(map((ch) => ch?.title ?? this.channelDefaults.name));
-  protected readonly channelDescription$ = this.channel$.pipe(map((ch) => ch?.description ?? this.channelDefaults.summary));
-  protected readonly members$ = this.createMembersObservable(); protected readonly messagesByDay$ = this.createMessagesByDayObservable();
-  private readonly highlightRequest$ = combineLatest([this.route.queryParamMap, this.messagesByDay$]).pipe(map(([p]) => p.get('highlight')), shareReplay(1));
+  private readonly currentUser$ = this.userService.currentUser$;
+  private readonly allUsers$ = this.userService.getAllUsers();
+  protected readonly channelId$ = this.route.paramMap.pipe(
+    map((p) => p.get('channelId')),
+    shareReplay({ bufferSize: 1, refCount: true })
+  );
+  private readonly channels$ = this.currentUser$.pipe(
+    switchMap((u) => (u ? this.membershipService.getChannelsForUser(u.uid) : of(null))),
+    shareReplay({ bufferSize: 1, refCount: true })
+  );
+  protected readonly channel$ = this.createChannelObservable();
+  protected readonly channelTitle$ = this.channel$.pipe(map((ch) => ch?.title ?? this.channelDefaults.name));
+  protected readonly channelDescription$ = this.channel$.pipe(
+    map((ch) => ch?.description ?? this.channelDefaults.summary)
+  );
+  protected readonly members$ = this.createMembersObservable();
+  protected readonly messagesByDay$ = this.createMessagesByDayObservable();
+  private readonly highlightRequest$ = combineLatest([this.route.queryParamMap, this.messagesByDay$]).pipe(
+    map(([p]) => p.get('highlight')),
+    shareReplay(1)
+  );
 
   constructor() {
     this.screenService.connect();
@@ -147,7 +188,16 @@ export class ChannelComponent {
         profilePictureKey: user?.profilePictureKey ?? m.profilePictureKey ?? 'default',
         subtitle: m.subtitle,
         isCurrentUser: m.id === currentUserId,
-        user: user ?? { uid: m.id, name: m.name, email: null, profilePictureKey: m.profilePictureKey ?? 'default', onlineStatus: false, lastSeen: undefined, updatedAt: undefined, createdAt: undefined },
+        user: user ?? {
+          uid: m.id,
+          name: m.name,
+          email: null,
+          profilePictureKey: m.profilePictureKey ?? 'default',
+          onlineStatus: false,
+          lastSeen: undefined,
+          updatedAt: undefined,
+          createdAt: undefined,
+        },
       };
     });
   }
@@ -155,9 +205,13 @@ export class ChannelComponent {
   /** Creates messages by day observable. */
   private createMessagesByDayObservable(): Observable<ChannelDay[]> {
     return this.channel$.pipe(
-      switchMap((ch) => !ch?.id ? of<ChannelDay[]>([]) : this.channelService.getChannelMessagesResolved(ch.id, this.allUsers$).pipe(
-        map((msgs) => groupMessagesByDay(msgs, this.userService.currentUser()?.uid))
-      )),
+      switchMap((ch) =>
+        !ch?.id
+          ? of<ChannelDay[]>([])
+          : this.channelService
+              .getChannelMessagesResolved(ch.id, this.allUsers$)
+              .pipe(map((msgs) => groupMessagesByDay(msgs, this.userService.currentUser()?.uid)))
+      ),
       shareReplay({ bufferSize: 1, refCount: true })
     );
   }
@@ -166,13 +220,23 @@ export class ChannelComponent {
   private initSubscriptions(): void {
     this.channel$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((ch) => this.onChannelChange(ch));
     this.allUsers$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((u) => (this.allUsersSnapshot = u));
-    this.members$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((m) => { this.cachedMembers = m; this.updateMentionState(); });
+    this.members$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((m) => {
+      this.cachedMembers = m;
+      this.updateMentionState();
+    });
     this.messagesByDay$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((d) => this.onMessagesChange(d));
     this.highlightRequest$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((id) => id && this.highlightMessage(id));
     this.channelId$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((id) => (this.channelId = id));
     this.currentUser$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((u) => (this.currentUser = u));
-    this.router.events.pipe(takeUntilDestroyed(this.destroyRef), tap((e) => e instanceof NavigationEnd && this.syncChildRoute())).subscribe();
-    this.threadService.closeRequests$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.handleThreadClose());
+    this.router.events
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        tap((e) => e instanceof NavigationEnd && this.syncChildRoute())
+      )
+      .subscribe();
+    this.threadService.closeRequests$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.handleThreadClose());
     this.publicChannelSync();
     this.syncChildRoute();
   }
@@ -213,14 +277,27 @@ export class ChannelComponent {
 
   /** Syncs public channel members. */
   private publicChannelSync(): void {
-    this.channel$.pipe(
-      map((ch) => (ch?.isPublic ? ch.id : null)),
-      distinctUntilChanged(),
-      switchMap((cId) => !cId ? of(null) : combineLatest([this.allUsers$, this.membershipService.getChannelMembers(cId)]).pipe(
-        switchMap(([u, m]) => from(this.membershipService.syncPublicChannelMembers(cId, u, m)).pipe(catchError((e) => { console.error(e); return of(null); })))
-      )),
-      takeUntilDestroyed(this.destroyRef)
-    ).subscribe();
+    this.channel$
+      .pipe(
+        map((ch) => (ch?.isPublic ? ch.id : null)),
+        distinctUntilChanged(),
+        switchMap((cId) =>
+          !cId
+            ? of(null)
+            : combineLatest([this.allUsers$, this.membershipService.getChannelMembers(cId)]).pipe(
+                switchMap(([u, m]) =>
+                  from(this.membershipService.syncPublicChannelMembers(cId, u, m)).pipe(
+                    catchError((e) => {
+                      console.error(e);
+                      return of(null);
+                    })
+                  )
+                )
+              )
+        ),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe();
   }
 
   /** Gets avatar URL. */
@@ -301,16 +378,38 @@ export class ChannelComponent {
     this.isSending = true;
     this.shouldScrollOnNextMessage = true;
     this.ngZone.runOutsideAngular(() => requestAnimationFrame(() => this.focusComposer()));
-    this.channel$.pipe(
-      take(1),
-      switchMap((ch) => !ch?.id ? of(null) : this.channelFacade.sendMessage(ch.id, text, user.uid).pipe(
-        switchMap(() => this.channelFacade.sendMentionNotifications(text, ch.title ?? this.channelDefaults.name, this.cachedMembers))
-      ))
-    ).subscribe({
-      next: () => { this.messageText = ''; this.resetMentionState(); this.isComposerEmojiPickerOpen = false; this.ngZone.runOutsideAngular(() => requestAnimationFrame(() => this.focusComposer())); },
-      error: (e) => { this.shouldScrollOnNextMessage = false; console.error('Fehler beim Senden', e); },
-      complete: () => (this.isSending = false),
-    });
+    this.channel$
+      .pipe(
+        take(1),
+        switchMap((ch) =>
+          !ch?.id
+            ? of(null)
+            : this.channelFacade
+                .sendMessage(ch.id, text, user.uid)
+                .pipe(
+                  switchMap(() =>
+                    this.channelFacade.sendMentionNotifications(
+                      text,
+                      ch.title ?? this.channelDefaults.name,
+                      this.cachedMembers
+                    )
+                  )
+                )
+        )
+      )
+      .subscribe({
+        next: () => {
+          this.messageText = '';
+          this.resetMentionState();
+          this.isComposerEmojiPickerOpen = false;
+          this.ngZone.runOutsideAngular(() => requestAnimationFrame(() => this.focusComposer()));
+        },
+        error: (e) => {
+          this.shouldScrollOnNextMessage = false;
+          console.error('Fehler beim Senden', e);
+        },
+        complete: () => (this.isSending = false),
+      });
   }
 
   /** Opens channel description overlay. */
@@ -318,7 +417,16 @@ export class ChannelComponent {
     const target = event.currentTarget as HTMLElement | null;
     this.channel$.pipe(take(1)).subscribe((ch) => {
       const data = ch ?? { title: this.channelDefaults.name, description: this.channelDefaults.summary };
-      this.overlayService.open(ChannelDescription, { target: target ?? undefined, offsetX: 0, offsetY: -8, data: { channelId: data.id, title: data.title ?? this.channelDefaults.name, description: data.description ?? this.channelDefaults.summary } });
+      this.overlayService.open(ChannelDescription, {
+        target: target ?? undefined,
+        offsetX: 0,
+        offsetY: -8,
+        data: {
+          channelId: data.id,
+          title: data.title ?? this.channelDefaults.name,
+          description: data.description ?? this.channelDefaults.summary,
+        },
+      });
     });
   }
 
@@ -327,7 +435,15 @@ export class ChannelComponent {
     this.channel$.pipe(take(1)).subscribe((ch) => {
       if (!ch?.id || !msg.id) return;
       void this.router.navigate(['/main/channels', ch.id, 'threads', msg.id]);
-      this.threadService.openThread({ id: msg.id, channelId: ch.id, channelTitle: ch.title ?? this.channelDefaults.name, authorId: msg.authorId, time: msg.time, text: msg.text, isOwn: msg.isOwn });
+      this.threadService.openThread({
+        id: msg.id,
+        channelId: ch.id,
+        channelTitle: ch.title ?? this.channelDefaults.name,
+        authorId: msg.authorId,
+        time: msg.time,
+        text: msg.text,
+        isOwn: msg.isOwn,
+      });
     });
   }
 
@@ -349,32 +465,66 @@ export class ChannelComponent {
     const trimmed = this.editMessageText.trim();
     if (!trimmed || this.isSavingEdit) return;
     this.isSavingEdit = true;
-    this.channel$.pipe(
-      take(1),
-      switchMap((ch) => ch?.id ? this.channelFacade.updateMessage(ch.id, msgId, trimmed) : of(null))
-    ).subscribe({ complete: () => { this.isSavingEdit = false; this.cancelEditingMessage(); }, error: () => (this.isSavingEdit = false) });
+    this.channel$
+      .pipe(
+        take(1),
+        switchMap((ch) => (ch?.id ? this.channelFacade.updateMessage(ch.id, msgId, trimmed) : of(null)))
+      )
+      .subscribe({
+        complete: () => {
+          this.isSavingEdit = false;
+          this.cancelEditingMessage();
+        },
+        error: () => (this.isSavingEdit = false),
+      });
   }
 
   /** Opens channel members overlay. */
   protected openChannelMembers(event: Event): void {
     const target = event.currentTarget as HTMLElement | null;
-    combineLatest([this.channel$, this.channelTitle$, this.members$]).pipe(take(1)).subscribe(([ch, title, members]) => {
-      this.overlayService.open(ChannelMembers, { target: target ?? undefined, offsetX: -200, offsetY: 8, data: { channelId: ch?.id, title, members } });
-    });
+    const isMobile = this.screenService.isTabletScreen();
+
+    combineLatest([this.channel$, this.channelTitle$, this.members$])
+      .pipe(take(1))
+      .subscribe(([ch, title, members]) => {
+        this.overlayService.open(ChannelMembers, {
+          target: target ?? undefined,
+          offsetX: isMobile ? -185 : -185,
+          offsetY: 8,
+          data: {
+            channelId: ch?.id,
+            title,
+            members,
+            mode: isMobile ? 'mobile' : 'desktop',
+            originTarget: target ?? undefined,
+          },
+        });
+      });
   }
 
   /** Opens add to channel overlay. */
   protected openAddToChannel(event: Event): void {
     const target = event.currentTarget as HTMLElement | null;
-    combineLatest([this.channel$, this.channelTitle$, this.members$]).pipe(take(1)).subscribe(([ch, title, members]) => {
-      this.overlayService.open(AddToChannel, { target: target ?? undefined, offsetX: -370, offsetY: 8, data: { channelId: ch?.id, channelTitle: title, members } });
-    });
+    combineLatest([this.channel$, this.channelTitle$, this.members$])
+      .pipe(take(1))
+      .subscribe(([ch, title, members]) => {
+        this.overlayService.open(AddToChannel, {
+          target: target ?? undefined,
+          offsetX: -370,
+          offsetY: 8,
+          data: { channelId: ch?.id, channelTitle: title, members },
+        });
+      });
   }
 
   /** Toggles reaction on message. */
   react(msg: ChannelMessageView, emoji: string): void {
     if (!this.currentUser || !this.channelId || !msg.id) return;
-    this.messageReactionsService.toggleReaction({ docPath: `channels/${this.channelId}/messages/${msg.id}`, userId: this.currentUser.uid, emoji });
+    this.messageReactionsService.toggleReaction({
+      docPath: `channels/${this.channelId}/messages/${msg.id}`,
+      userId: this.currentUser.uid,
+      emoji,
+    });
     this.openEmojiPickerFor = null;
   }
 

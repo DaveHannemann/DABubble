@@ -36,8 +36,9 @@ export class ChannelMembers {
   @Input() members: ChannelMemberView[] = [];
   @Input() title = 'Mitglieder';
   @Input() channelId?: string;
+  @Input() mode: 'desktop' | 'mobile' = 'desktop';
 
-  originTarget!: HTMLElement;
+  @Input() originTarget?: HTMLElement;
   protected visible = true;
 
   protected getAvatarUrl(key?: ProfilePictureKey): string {
@@ -56,11 +57,19 @@ export class ChannelMembers {
 
   protected openAddToChannel(event: Event): void {
     const overlayRef = this.overlayService.getLastOverlay();
-    if (!overlayRef) return;
+    if (!overlayRef || !this.originTarget) return;
+
+    const isMobile = this.mode === 'mobile';
+
     overlayRef.replaceComponent(AddToChannel, {
       target: this.originTarget,
-      offsetX: -370,
       offsetY: 8,
+
+      centerX: isMobile,
+
+      offsetX: isMobile ? -285 : -285,
+
+      mode: isMobile ? 'mobile' : 'desktop',
     });
   }
 

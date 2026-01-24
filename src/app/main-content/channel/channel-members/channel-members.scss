@@ -184,3 +184,11 @@
 .channel-members__add:active {
   transform: translateY(1px);
 }
+
+@media (max-width: 640px) {
+  .channel-members {
+    width: calc(100vw - 2rem);
+    max-width: 640px;
+    margin-inline: auto;
+  }
+}
