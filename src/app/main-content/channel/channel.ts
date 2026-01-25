@@ -40,7 +40,7 @@ import { MemberDialog } from '../member-dialog/member-dialog';
 import { groupMessagesByDay } from './channel-message.helper';
 import { buildMessageSegments, getMentionedMembers, updateTagSuggestions } from './channel-mention.helper';
 import { isNearBottom, scrollToBottom, shouldAutoScroll, scrollToHighlightedMessage } from './channel-scroll.helper';
-import type { MentionSegment, MentionState, MentionType  } from './channel.types';
+import type { MentionSegment, MentionState, MentionType, ChannelMentionSuggestion, UserMentionSuggestion } from '../../classes/mentions.types';
 import { ChannelFacadeService } from './channel-facade.service';
 
 /** Channel component for message display and management. */
@@ -101,15 +101,12 @@ export class ChannelComponent {
 
   // Mention state
   private mentionState: MentionState = { suggestions: [], isVisible: false, triggerIndex: null, caretIndex: null };
-  protected get mentionSuggestions() {
-    return this.mentionState.suggestions;
-  }
   protected get isMentionListVisible() {
     return this.mentionState.isVisible;
   }
   protected get mentionType(): MentionType | undefined {
-  return this.mentionState.type;
-}
+    return this.mentionState.type;
+  }
 
   // Cached data
   private cachedMembers: ChannelMemberView[] = [];
@@ -369,13 +366,9 @@ export class ChannelComponent {
   }
 
   /** Builds message segments. */
-buildMessageSegments(text: string): MentionSegment[] {
-  return buildMessageSegments(
-    text,
-    this.cachedMembers,
-    this.cachedChannels
-  );
-}
+  buildMessageSegments(text: string): MentionSegment[] {
+    return buildMessageSegments(text, this.cachedMembers, this.cachedChannels);
+  }
 
   /** Opens member profile. */
   protected openMemberProfile(member?: ChannelMemberView): void {
@@ -663,5 +656,13 @@ buildMessageSegments(text: string): MentionSegment[] {
     });
 
     this.resetMentionState();
+  }
+
+  protected get userMentionSuggestions(): UserMentionSuggestion[] {
+    return this.mentionState.type === 'user' ? (this.mentionState.suggestions as UserMentionSuggestion[]) : [];
+  }
+
+  protected get channelMentionSuggestions(): ChannelMentionSuggestion[] {
+    return this.mentionState.type === 'channel' ? (this.mentionState.suggestions as ChannelMentionSuggestion[]) : [];
   }
 }

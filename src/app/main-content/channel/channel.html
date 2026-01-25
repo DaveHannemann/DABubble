@@ -236,13 +236,13 @@
             </div>
             <div *ngIf="isMentionListVisible" class="channel__mention-suggestions">
               <ng-container *ngIf="mentionType === 'user'">
-                <button type="button" *ngFor="let member of mentionSuggestions" (click)="insertMention(member)">
+                <button type="button" *ngFor="let member of userMentionSuggestions as members" (click)="insertMention(member)">
                   <img [src]="getAvatarUrl(member.profilePictureKey)" [alt]="member.name" />
                   <span>{{ member.name }}</span>
                 </button>
               </ng-container>
               <ng-container *ngIf="mentionType === 'channel'">
-                <button type="button" *ngFor="let channel of mentionSuggestions" (click)="insertChannel(channel)">
+                <button type="button" *ngFor="let channel of channelMentionSuggestions" (click)="insertChannel(channel)">
                   <span>#{{ channel.name }}</span>
                 </button>
               </ng-container>
@@ -284,10 +284,7 @@
     position="end"
     [mode]="isTabletScreen() ? 'over' : 'side'"
     [opened]="hasThreadChild()"
-    [disableClose]="!isTabletScreen()"
-    (opened)="updateThreadPanelOpenState(true)"
-    (closedStart)="updateThreadPanelOpenState(false)"
-    (closed)="closeThread()">
+    [disableClose]="!isTabletScreen()">
     <router-outlet></router-outlet>
   </mat-sidenav>
 </mat-sidenav-container>

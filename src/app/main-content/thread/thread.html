@@ -56,12 +56,23 @@
         <ng-container *ngIf="editingMessageId !== thread.root.id; else editRootMessage">
           <p class="thread__text">
             <ng-container *ngFor="let segment of buildMessageSegments(thread.root.text)">
-              <ng-container *ngIf="segment.member; else plainRootText">
-                <button type="button" class="thread__mention-link" (click)="openMemberProfile(segment.member)">
+              <ng-container [ngSwitch]="segment.kind">
+                <span *ngSwitchCase="'text'">
+                  {{ segment.text }}
+                </span>
+
+                <button
+                  *ngSwitchCase="'member'"
+                  type="button"
+                  class="thread__mention-link thread__mention-link--user"
+                  (click)="openMemberProfile($any(segment).member)">
                   {{ segment.text }}
                 </button>
+
+                <a *ngSwitchCase="'channel'" class="thread__mention-link thread__mention-link--channel">
+                  {{ segment.text }}
+                </a>
               </ng-container>
-              <ng-template #plainRootText>{{ segment.text }}</ng-template>
             </ng-container>
           </p>
         </ng-container>
@@ -132,12 +143,23 @@
           <ng-container *ngIf="editingMessageId !== reply.id; else editReplyMessage">
             <p class="thread__text">
               <ng-container *ngFor="let segment of buildMessageSegments(reply.text)">
-                <ng-container *ngIf="segment.member; else plainReplyText">
-                  <button type="button" class="thread__mention-link" (click)="openMemberProfile(segment.member)">
+                <ng-container [ngSwitch]="segment.kind">
+                  <span *ngSwitchCase="'text'">
+                    {{ segment.text }}
+                  </span>
+
+                  <button
+                    *ngSwitchCase="'member'"
+                    type="button"
+                    class="thread__mention-link thread__mention-link--user"
+                    (click)="openMemberProfile($any(segment).member)">
                     {{ segment.text }}
                   </button>
+
+                  <a *ngSwitchCase="'channel'" class="thread__mention-link thread__mention-link--channel">
+                    {{ segment.text }}
+                  </a>
                 </ng-container>
-                <ng-template #plainReplyText>{{ segment.text }}</ng-template>
               </ng-container>
             </p>
           </ng-container>
@@ -182,10 +204,18 @@
         (click)="onReplyInput($event)"
         (keydown.enter)="onReplyKeydown($event)"></textarea>
       <div *ngIf="isMentionListVisible" class="thread__mention-suggestions">
-        <button type="button" *ngFor="let member of mentionSuggestions" (click)="insertMention(member)">
-          <img [src]="getAvatarUrl(member.profilePictureKey)" [alt]="member.name" />
-          <span>{{ member.name }}</span>
-        </button>
+        <ng-container *ngIf="mentionType === 'user'">
+          <button type="button" *ngFor="let member of userMentionSuggestions" (click)="insertMention(member)">
+            <img [src]="getAvatarUrl(member.profilePictureKey)" [alt]="member.name" />
+            <span>{{ member.name }}</span>
+          </button>
+        </ng-container>
+
+        <ng-container *ngIf="mentionType === 'channel'">
+          <button type="button" *ngFor="let channel of channelMentionSuggestions" (click)="insertChannel(channel)">
+            <span>#{{ channel.name }}</span>
+          </button>
+        </ng-container>
       </div>
     </div>
     <div class="thread__composer-picker" *ngIf="isComposerEmojiPickerOpen">

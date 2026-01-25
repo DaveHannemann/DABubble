@@ -19,7 +19,12 @@ import { EMOJI_CHOICES } from '../../texts';
 import { MessageReactions } from '../message-reactions/message-reactions';
 import { MemberDialog } from '../member-dialog/member-dialog';
 import { buildMessageSegments, getMentionedMembers, updateTagSuggestions } from '../channel/channel-mention.helper';
-import type { MentionSegment, MentionState } from './thread.types';
+import type {
+  ChannelMentionSuggestion,
+  MentionSegment,
+  MentionState,
+  UserMentionSuggestion,
+} from '../../classes/mentions.types';
 
 /** Thread component for displaying and managing threaded replies. */
 @Component({
@@ -75,9 +80,6 @@ export class Thread {
 
   // Mention state
   private mentionState: MentionState = { suggestions: [], isVisible: false, triggerIndex: null, caretIndex: null };
-  protected get mentionSuggestions() {
-    return this.mentionState.suggestions;
-  }
   protected get isMentionListVisible() {
     return this.mentionState.isVisible;
   }
@@ -85,6 +87,7 @@ export class Thread {
   // Cached data
   private cachedMembers: ChannelMemberView[] = [];
   private threadSnapshot: ThreadContext | null = null;
+  private cachedChannels: ChannelMentionSuggestion[] = [];
 
   /** Gets current user. */
   protected get currentUser() {
@@ -103,6 +106,19 @@ export class Thread {
       this.cachedMembers = m;
       this.updateMentionState();
     });
+    this.userService.currentUser$
+      .pipe(
+        switchMap((u) => (u ? this.membershipService.getChannelsForUser(u.uid) : of([]))),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe((chs) => {
+        this.cachedChannels = chs
+          .filter((c): c is { id: string; title?: string } => !!c.id)
+          .map((c) => ({
+            id: c.id,
+            name: c.title ?? '',
+          }));
+      });
     this.thread$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((t) => (this.threadSnapshot = t));
     this.thread$
       .pipe(
@@ -258,7 +274,7 @@ export class Thread {
 
   /** Builds message segments. */
   protected buildMessageSegments(text: string): MentionSegment[] {
-    return buildMessageSegments(text, this.cachedMembers);
+    return buildMessageSegments(text, this.cachedMembers, this.cachedChannels);
   }
 
   /** Opens member profile. */
@@ -300,13 +316,31 @@ export class Thread {
 
   /** Updates mention state. */
   private updateMentionState(): void {
-    const result = updateTagSuggestions(this.draftReply, this.mentionState.caretIndex, '@', this.cachedMembers);
+    const caret = this.mentionState.caretIndex ?? this.draftReply.length;
 
-    this.mentionState = {
-      ...this.mentionState,
-      ...result,
-      caretIndex: this.mentionState.caretIndex,
-    };
+    const userResult = updateTagSuggestions(this.draftReply, caret, '@', this.cachedMembers);
+
+    if (userResult.isVisible) {
+      this.mentionState = {
+        ...userResult,
+        caretIndex: caret,
+        type: 'user',
+      };
+      return;
+    }
+
+    const channelResult = updateTagSuggestions(this.draftReply, caret, '#', this.cachedChannels);
+
+    if (channelResult.isVisible) {
+      this.mentionState = {
+        ...channelResult,
+        caretIndex: caret,
+        type: 'channel',
+      };
+      return;
+    }
+
+    this.resetMentionState();
   }
 
   /** Resets mention state. */
@@ -427,5 +461,39 @@ export class Thread {
   /** Gets avatar URL. */
   protected getAvatarUrl(key?: ProfilePictureKey): string {
     return this.profilePictureService.getUrl(key);
+  }
+
+  protected get mentionType() {
+    return this.mentionState.type;
+  }
+
+  protected get userMentionSuggestions(): UserMentionSuggestion[] {
+    return this.mentionState.type === 'user' ? (this.mentionState.suggestions as UserMentionSuggestion[]) : [];
+  }
+
+  protected get channelMentionSuggestions(): ChannelMentionSuggestion[] {
+    return this.mentionState.type === 'channel' ? (this.mentionState.suggestions as ChannelMentionSuggestion[]) : [];
+  }
+
+  protected insertChannel(channel: ChannelMentionSuggestion): void {
+    if (this.mentionState.triggerIndex === null) return;
+
+    const caret = this.mentionState.caretIndex ?? this.draftReply.length;
+    const before = this.draftReply.slice(0, this.mentionState.triggerIndex);
+    const after = this.draftReply.slice(caret);
+
+    const text = `#${channel.name} `;
+    this.draftReply = `${before}${text}${after}`;
+
+    const newCaret = before.length + text.length;
+    queueMicrotask(() => {
+      const ta = this.replyTextarea?.nativeElement;
+      if (ta) {
+        ta.focus();
+        ta.setSelectionRange(newCaret, newCaret);
+      }
+    });
+
+    this.resetMentionState();
   }
 }

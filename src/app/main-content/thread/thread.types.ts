@@ -1,5 +1,7 @@
 import type { ChannelMemberView } from '../../types';
 
+export type MentionType = 'user' | 'channel';
+
 /** Represents a text segment with optional member mention. */
 export type MentionSegment = {
   text: string;
@@ -12,4 +14,5 @@ export interface MentionState {
   isVisible: boolean;
   triggerIndex: number | null;
   caretIndex: number | null;
+  type?: MentionType;
 }
