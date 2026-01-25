@@ -10,6 +10,7 @@ import { emailConfirmedGuard } from './guards/email-confirmed.guard';
 import { ResetPassword } from './auth/reset-password/reset-password';
 import { AuthAction } from './auth/auth-action/auth-action';
 import { unverifiedGuard } from './guards/unverified.guard';
+import { ChannelAccessGuard } from './guards/channel-access.guard';
 import { LegalNotice } from './aside-content/legal-notice/legal-notice';
 import { PrivacyPolicy } from './aside-content/privacy-policy/privacy-policy';
 import { Messages } from './main-content/messages/messages';
@@ -69,6 +70,7 @@ export const routes: Routes = [
           {
             path: ':channelId',
             component: ChannelComponent,
+            canActivate: [ChannelAccessGuard],
             children: [
               {
                 path: 'threads/:threadId',

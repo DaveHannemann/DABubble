@@ -40,7 +40,13 @@ import { MemberDialog } from '../member-dialog/member-dialog';
 import { groupMessagesByDay } from './channel-message.helper';
 import { buildMessageSegments, getMentionedMembers, updateTagSuggestions } from './channel-mention.helper';
 import { isNearBottom, scrollToBottom, shouldAutoScroll, scrollToHighlightedMessage } from './channel-scroll.helper';
-import type { MentionSegment, MentionState, MentionType, ChannelMentionSuggestion, UserMentionSuggestion } from '../../classes/mentions.types';
+import type {
+  MentionSegment,
+  MentionState,
+  MentionType,
+  ChannelMentionSuggestion,
+  UserMentionSuggestion,
+} from '../../classes/mentions.types';
 import { ChannelFacadeService } from './channel-facade.service';
 
 /** Channel component for message display and management. */
@@ -124,7 +130,7 @@ export class ChannelComponent {
     shareReplay({ bufferSize: 1, refCount: true })
   );
   private readonly channels$ = this.currentUser$.pipe(
-    switchMap((u) => (u ? this.membershipService.getChannelsForUser(u.uid) : of(null))),
+    switchMap((u) => (u ? this.membershipService.getChannelsForUser(u.uid) : of([]))),
     shareReplay({ bufferSize: 1, refCount: true })
   );
   protected readonly channel$ = this.createChannelObservable();
@@ -147,23 +153,22 @@ export class ChannelComponent {
   /** Creates channel observable with validation. */
   private createChannelObservable(): Observable<Channel | undefined> {
     return combineLatest([this.currentUser$, this.channelId$, this.channels$]).pipe(
-      tap(([u, cId, chs]) => this.validateAccess(u, cId, chs)),
+      // tap(([u, cId, chs]) => this.validateAccess(u, cId, chs)),
       map(([_, cId, chs]) => chs?.find((c) => c.id === cId)),
       shareReplay({ bufferSize: 1, refCount: true })
     );
   }
 
   /** Validates channel access and redirects if invalid. */
-  private validateAccess(user: AppUser | null, channelId: string | null, channels: Channel[] | null): void {
-    if (!user || !channelId) {
-      void this.router.navigate(['/main']);
-      return;
-    }
-    // Nur umleiten wenn channels geladen sind UND der Channel nicht in der Liste ist
-    if (channels !== null && !channels.some((ch) => ch.id === channelId)) {
-      void this.router.navigate(['/main']);
-    }
-  }
+  // private validateAccess(user: AppUser | null, channelId: string | null, channels: Channel[]): void {
+  //   if (!user || !channelId) return;
+
+  //   if (!channels.length) return;
+
+  //   if (!channels.some((ch) => ch.id === channelId)) {
+  //     void this.router.navigate(['/main']);
+  //   }
+  // }
 
   /** Creates members observable with user enrichment. */
   private createMembersObservable(): Observable<ChannelMemberView[]> {
@@ -216,7 +221,15 @@ export class ChannelComponent {
 
   /** Initializes component subscriptions. */
   private initSubscriptions(): void {
-    this.channel$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((ch) => this.onChannelChange(ch));
+    this.channel$
+      .pipe(
+        map((ch) => ch?.id),
+        distinctUntilChanged(),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(() => {
+        requestAnimationFrame(() => this.focusComposer());
+      });
     this.allUsers$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((u) => (this.allUsersSnapshot = u));
     this.members$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((m) => {
       this.cachedMembers = m;
