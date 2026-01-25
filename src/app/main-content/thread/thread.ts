@@ -18,7 +18,7 @@ import type { ChannelMemberView, ProfilePictureKey, ThreadContext } from '../../
 import { EMOJI_CHOICES } from '../../texts';
 import { MessageReactions } from '../message-reactions/message-reactions';
 import { MemberDialog } from '../member-dialog/member-dialog';
-import { buildMessageSegments, getMentionedMembers, updateMentionSuggestions } from '../channel/channel-mention.helper';
+import { buildMessageSegments, getMentionedMembers, updateTagSuggestions } from '../channel/channel-mention.helper';
 import type { MentionSegment, MentionState } from './thread.types';
 
 /** Thread component for displaying and managing threaded replies. */
@@ -300,8 +300,13 @@ export class Thread {
 
   /** Updates mention state. */
   private updateMentionState(): void {
-    const result = updateMentionSuggestions(this.draftReply, this.mentionState.caretIndex, this.cachedMembers);
-    this.mentionState = { ...this.mentionState, ...result };
+    const result = updateTagSuggestions(this.draftReply, this.mentionState.caretIndex, '@', this.cachedMembers);
+
+    this.mentionState = {
+      ...this.mentionState,
+      ...result,
+      caretIndex: this.mentionState.caretIndex,
+    };
   }
 
   /** Resets mention state. */

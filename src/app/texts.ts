@@ -3,3 +3,19 @@ export const TEXTS = {
 } as const;
 
 export const EMOJI_CHOICES = ['😀', '😄', '😂', '😍', '🎉', '🤔', '👏'] as const;
+
+export const CHANNEL_EMOJI_CHOICES = [
+  '😀',
+  '😄',
+  '😂',
+  '😍',
+  '🎉',
+  '🤔',
+  '👏',
+  '🔥',
+  '🚀',
+  '💯',
+  '👀',
+  '🙏',
+  '😅',
+] as const;

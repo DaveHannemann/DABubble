@@ -28,42 +28,74 @@ export function buildMentionRegex(cachedMembers: ChannelMemberView[]): RegExp | 
   return new RegExp(`@(${names.join('|')})`, 'gi');
 }
 
+function buildChannelRegex(channels: { name: string }[]): RegExp | null {
+  if (!channels.length) return null;
+
+  const names = channels
+    .map((c) => c.name)
+    .filter(Boolean)
+    .sort((a, b) => b.length - a.length)
+    .map(escapeRegex);
+
+  if (!names.length) return null;
+  return new RegExp(`#(${names.join('|')})`, 'gi');
+}
+
 /**
  * Parses message text into segments, identifying mentions.
  * @param text The message text
  * @param cachedMembers Array of channel members
  * @returns Array of text segments with potential mention data
  */
-export function buildMessageSegments(text: string, cachedMembers: ChannelMemberView[]): MentionSegment[] {
-  if (!text) return [{ text: '' }];
+export function buildMessageSegments(
+  text: string,
+  members: ChannelMemberView[],
+  channels: { id: string; name: string }[] = []
+): MentionSegment[] {
+  if (!text) return [{ kind: 'text', text: '' }];
 
-  const regex = buildMentionRegex(cachedMembers);
-  if (!regex) return [{ text }];
+  const userRegex = buildMentionRegex(members);
+  const channelRegex = buildChannelRegex(channels);
 
-  const segments: MentionSegment[] = [];
-  let lastIndex = 0;
-  regex.lastIndex = 0;
+  if (!userRegex && !channelRegex) {
+    return [{ kind: 'text', text }];
+  }
+
+  const parts: MentionSegment[] = [];
+  let index = 0;
+
+  const combined = new RegExp(`${userRegex?.source ?? ''}|${channelRegex?.source ?? ''}`, 'gi');
+
   let match: RegExpExecArray | null;
 
-  while ((match = regex.exec(text)) !== null) {
-    const matchStart = match.index;
-    const matchEnd = regex.lastIndex;
-
-    if (matchStart > lastIndex) {
-      segments.push({ text: text.slice(lastIndex, matchStart) });
+  while ((match = combined.exec(text)) !== null) {
+    if (match.index > index) {
+      parts.push({ kind: 'text', text: text.slice(index, match.index) });
     }
 
-    const mentionName = match[1] ?? '';
-    const member = cachedMembers.find((entry) => entry.name.toLowerCase() === mentionName.toLowerCase());
-    segments.push({ text: match[0], member });
-    lastIndex = matchEnd;
+    const value = match[0];
+
+    if (value.startsWith('@')) {
+      const name = value.slice(1);
+      const member = members.find((m) => m.name.toLowerCase() === name.toLowerCase());
+
+      parts.push(member ? { kind: 'member', text: value, member } : { kind: 'text', text: value });
+    }
+
+    if (value.startsWith('#')) {
+      const name = value.slice(1);
+      const channel = channels.find((c) => c.name.toLowerCase() === name.toLowerCase());
+      parts.push(channel ? { kind: 'channel', text: value, channel } : { kind: 'text', text: value });
+    }
+
+    index = combined.lastIndex;
   }
 
-  if (lastIndex < text.length) {
-    segments.push({ text: text.slice(lastIndex) });
+  if (index < text.length) {
+    parts.push({ kind: 'text', text: text.slice(index) });
   }
 
-  return segments.length ? segments : [{ text }];
+  return parts.length ? parts : [{ kind: 'text', text }];
 }
 
 /**
@@ -97,38 +129,35 @@ export function getMentionedMembers(text: string, cachedMembers: ChannelMemberVi
  * @param cachedMembers Array of channel members
  * @returns Updated mention state
  */
-export function updateMentionSuggestions(
+export function updateTagSuggestions<T extends { name: string }>(
   messageText: string,
   caretIndex: number | null,
-  cachedMembers: ChannelMemberView[]
-): { suggestions: ChannelMemberView[]; isVisible: boolean; triggerIndex: number | null } {
+  trigger: '@' | '#',
+  items: T[]
+): { suggestions: T[]; isVisible: boolean; triggerIndex: number | null } {
   const caret = caretIndex ?? messageText.length;
   const textUpToCaret = messageText.slice(0, caret);
-  const atIndex = textUpToCaret.lastIndexOf('@');
+  const triggerIndex = textUpToCaret.lastIndexOf(trigger);
 
-  if (atIndex === -1) {
+  if (triggerIndex === -1) {
     return { suggestions: [], isVisible: false, triggerIndex: null };
   }
 
-  if (atIndex > 0) {
-    const charBefore = textUpToCaret[atIndex - 1];
-    if (!/\s/.test(charBefore)) {
-      return { suggestions: [], isVisible: false, triggerIndex: null };
-    }
+  if (triggerIndex > 0 && !/\s/.test(textUpToCaret[triggerIndex - 1])) {
+    return { suggestions: [], isVisible: false, triggerIndex: null };
   }
 
-  const query = textUpToCaret.slice(atIndex + 1);
-
+  const query = textUpToCaret.slice(triggerIndex + 1);
   if (/\s/.test(query)) {
     return { suggestions: [], isVisible: false, triggerIndex: null };
   }
 
-  const normalizedQuery = query.toLowerCase();
-  const suggestions = cachedMembers.filter((member) => member.name.toLowerCase().includes(normalizedQuery));
+  const q = query.toLowerCase();
+  const suggestions = items.filter((i) => i.name.toLowerCase().includes(q));
 
   return {
     suggestions,
     isVisible: suggestions.length > 0,
-    triggerIndex: atIndex,
+    triggerIndex,
   };
 }

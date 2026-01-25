@@ -437,22 +437,28 @@
   white-space: pre-wrap;
   overflow-wrap: anywhere;
   text-align: left;
+  cursor: default;
 }
 
 .channel__mention-link {
   border: none;
   background: transparent;
-  color: #2563eb;
+  color: #1300ff;
   font-weight: 600;
   padding: 0;
   cursor: pointer;
-  text-decoration: underline;
 }
 
 .channel__mention-link:hover,
 .channel__mention-link:focus-visible {
-  color: #1d4ed8;
+  color: #0d00b2;
+  text-decoration: none;
 }
+
+.channel__mention-link--channel {
+  cursor: default;
+}
+
 .channel__message-edit {
   display: flex;
   flex-direction: column;

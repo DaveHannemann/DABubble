@@ -31,16 +31,16 @@ import { ReactionTooltipService } from '../../services/reaction-tooltip.service'
 import { ProfilePictureService } from '../../services/profile-picture.service';
 import { DirectMessagesService } from '../../services/direct-messages.service';
 import type { Channel, ChannelDay, ChannelMemberView, ChannelMessageView, ProfilePictureKey } from '../../types';
-import { EMOJI_CHOICES } from '../../texts';
+import { EMOJI_CHOICES, CHANNEL_EMOJI_CHOICES } from '../../texts';
 import { MessageReactions } from '../message-reactions/message-reactions';
 import { ChannelDescription } from '../messages/channel-description/channel-description';
 import { ChannelMembers } from './channel-members/channel-members';
 import { AddToChannel } from './add-to-channel/add-to-channel';
 import { MemberDialog } from '../member-dialog/member-dialog';
 import { groupMessagesByDay } from './channel-message.helper';
-import { buildMessageSegments, getMentionedMembers, updateMentionSuggestions } from './channel-mention.helper';
+import { buildMessageSegments, getMentionedMembers, updateTagSuggestions } from './channel-mention.helper';
 import { isNearBottom, scrollToBottom, shouldAutoScroll, scrollToHighlightedMessage } from './channel-scroll.helper';
-import type { MentionSegment, MentionState } from './channel.types';
+import type { MentionSegment, MentionState, MentionType  } from './channel.types';
 import { ChannelFacadeService } from './channel-facade.service';
 
 /** Channel component for message display and management. */
@@ -84,6 +84,7 @@ export class ChannelComponent {
     summary: 'Gruppe zum Austausch über technische Fragen und das laufende Redesign des Devspace.',
   };
   protected readonly emojiChoices = EMOJI_CHOICES;
+  protected readonly channelEmojiChoices = CHANNEL_EMOJI_CHOICES;
   protected readonly isTabletScreen = this.screenService.isTabletScreen;
 
   // State
@@ -106,6 +107,9 @@ export class ChannelComponent {
   protected get isMentionListVisible() {
     return this.mentionState.isVisible;
   }
+  protected get mentionType(): MentionType | undefined {
+  return this.mentionState.type;
+}
 
   // Cached data
   private cachedMembers: ChannelMemberView[] = [];
@@ -113,6 +117,7 @@ export class ChannelComponent {
   private lastMessageCount = 0;
   private lastMessageId?: string;
   private shouldScrollOnNextMessage = false;
+  private cachedChannels: { id: string; name: string }[] = [];
 
   // Observables
   private readonly currentUser$ = this.userService.currentUser$;
@@ -219,6 +224,15 @@ export class ChannelComponent {
     this.members$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((m) => {
       this.cachedMembers = m;
       this.updateMentionState();
+    });
+    this.channels$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((chs) => {
+      this.cachedChannels =
+        chs
+          ?.filter((c): c is { id: string; title?: string } => !!c.id)
+          .map((c) => ({
+            id: c.id,
+            name: c.title ?? '',
+          })) ?? [];
     });
     this.messagesByDay$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((d) => this.onMessagesChange(d));
     this.highlightRequest$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((id) => id && this.highlightMessage(id));
@@ -355,9 +369,13 @@ export class ChannelComponent {
   }
 
   /** Builds message segments. */
-  protected buildMessageSegments(text: string): MentionSegment[] {
-    return buildMessageSegments(text, this.cachedMembers);
-  }
+buildMessageSegments(text: string): MentionSegment[] {
+  return buildMessageSegments(
+    text,
+    this.cachedMembers,
+    this.cachedChannels
+  );
+}
 
   /** Opens member profile. */
   protected openMemberProfile(member?: ChannelMemberView): void {
@@ -593,12 +611,57 @@ export class ChannelComponent {
 
   /** Updates mention state. */
   private updateMentionState(): void {
-    const result = updateMentionSuggestions(this.messageText, this.mentionState.caretIndex, this.cachedMembers);
-    this.mentionState = { ...this.mentionState, ...result };
+    const caret = this.mentionState.caretIndex ?? this.messageText.length;
+
+    const userResult = updateTagSuggestions(this.messageText, caret, '@', this.cachedMembers);
+
+    if (userResult.isVisible) {
+      this.mentionState = {
+        ...userResult,
+        caretIndex: this.mentionState.caretIndex,
+        type: 'user',
+      };
+      return;
+    }
+
+    const channelResult = updateTagSuggestions(this.messageText, caret, '#', this.cachedChannels);
+
+    if (channelResult.isVisible) {
+      this.mentionState = {
+        ...channelResult,
+        caretIndex: this.mentionState.caretIndex,
+        type: 'channel',
+      };
+      return;
+    }
+
+    this.resetMentionState();
   }
 
   /** Resets mention state. */
   private resetMentionState(): void {
     this.mentionState = { suggestions: [], isVisible: false, triggerIndex: null, caretIndex: null };
+  }
+
+  protected insertChannel(channel: { name: string }): void {
+    if (this.mentionState.triggerIndex === null) return;
+
+    const caret = this.mentionState.caretIndex ?? this.messageText.length;
+    const before = this.messageText.slice(0, this.mentionState.triggerIndex);
+    const after = this.messageText.slice(caret);
+
+    const text = `#${channel.name} `;
+    this.messageText = `${before}${text}${after}`;
+
+    const newCaret = before.length + text.length;
+    queueMicrotask(() => {
+      const ta = this.messageTextarea?.nativeElement;
+      if (ta) {
+        ta.focus();
+        ta.setSelectionRange(newCaret, newCaret);
+      }
+    });
+
+    this.resetMentionState();
   }
 }

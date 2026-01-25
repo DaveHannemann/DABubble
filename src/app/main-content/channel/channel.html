@@ -134,15 +134,23 @@
                     <ng-container *ngIf="editingMessageId !== message.id; else editChannelMessage">
                       <p class="channel__message-text">
                         <ng-container *ngFor="let segment of buildMessageSegments(message.text)">
-                          <ng-container *ngIf="segment.member; else plainText">
-                            <button
-                              type="button"
-                              class="channel__mention-link"
-                              (click)="openMemberProfile(segment.member)">
-                              {{ segment.text }}
-                            </button>
-                          </ng-container>
-                          <ng-template #plainText>{{ segment.text }}</ng-template>
+                          <span *ngIf="segment.kind === 'text'">
+                            {{ segment.text }}
+                          </span>
+
+                          <button
+                            *ngIf="segment.kind === 'member'"
+                            type="button"
+                            class="channel__mention-link channel__mention-link--user"
+                            (click)="openMemberProfile(segment.member)">
+                            {{ segment.text }}
+                          </button>
+
+                          <span
+                            *ngIf="segment.kind === 'channel'"
+                            class="channel__mention-link channel__mention-link--channel">
+                            {{ segment.text }}
+                          </span>
                         </ng-container>
                       </p>
                     </ng-container>
@@ -222,15 +230,22 @@
               (keydown.enter)="onComposerKeydown($event)"
               [placeholder]="'Nachricht an #' + ((channelTitle$ | async) ?? channelDefaults.name)"></textarea>
             <div class="channel__composer-picker" *ngIf="isComposerEmojiPickerOpen">
-              <button type="button" *ngFor="let emoji of emojiChoices" (click)="addComposerEmoji(emoji)">
+              <button type="button" *ngFor="let emoji of channelEmojiChoices" (click)="addComposerEmoji(emoji)">
                 {{ emoji }}
               </button>
             </div>
             <div *ngIf="isMentionListVisible" class="channel__mention-suggestions">
-              <button type="button" *ngFor="let member of mentionSuggestions" (click)="insertMention(member)">
-                <img [src]="getAvatarUrl(member.profilePictureKey)" [alt]="member.name" />
-                <span>{{ member.name }}</span>
-              </button>
+              <ng-container *ngIf="mentionType === 'user'">
+                <button type="button" *ngFor="let member of mentionSuggestions" (click)="insertMention(member)">
+                  <img [src]="getAvatarUrl(member.profilePictureKey)" [alt]="member.name" />
+                  <span>{{ member.name }}</span>
+                </button>
+              </ng-container>
+              <ng-container *ngIf="mentionType === 'channel'">
+                <button type="button" *ngFor="let channel of mentionSuggestions" (click)="insertChannel(channel)">
+                  <span>#{{ channel.name }}</span>
+                </button>
+              </ng-container>
             </div>
           </div>
           <div class="channel__composer-actions">
