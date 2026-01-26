@@ -70,8 +70,15 @@ export class Signup {
   openPrivacyOverlay() {
     this.overlayDialog.open(PrivacyPolicyOverlay, {
       panelClass: 'privacy-policy-overlay-pane',
-      backdropClass: 'privacy-policy-overlay-pane-backdrop',
-      maxWidth: 800,
+      backdropClass: 'privacy-policy-overlay-backdrop',
+      maxWidth: '800px',
+      width: '100%',
+      maxHeight: '65vh',
+      autoFocus: false,
+      restoreFocus: false,
+      data: {
+        mode: 'embedded',
+      },
     });
   }
 

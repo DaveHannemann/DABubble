@@ -57,7 +57,56 @@ input:is(:-webkit-autofill, :autofill) {
 }
 
 .privacy-policy-overlay-pane {
-  margin: 0 16px;
+  margin: 0 clamp(8px, 4vw, 16px);
+  .mat-mdc-dialog-container {
+    max-height: 90vh;
+    display: flex;
+    padding: 0;
+  }
+
+  .mat-mdc-dialog-surface {
+    display: flex;
+    flex-direction: column;
+    max-height: 100%;
+    overflow: hidden;
+  }
+
+  .dab-page-card {
+    max-width: 100%;
+    width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+    border-radius: 0;
+    max-height: 70vh;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background-color: rgba(0, 0, 0, 0.35);
+      border-radius: 9999px;
+    }
+
+    &::-webkit-scrollbar-thumb:hover {
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+  }
+
+  .aside-content-wrapper {
+    min-height: auto;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    flex: 1;
+    overflow: hidden;
+  }
 }
 
 .privacy-policy-overlay-pane-backdrop {
@@ -72,4 +121,14 @@ input:is(:-webkit-autofill, :autofill) {
 
 .overlay :focus-visible {
   outline: 2px solid #3b82f6;
+}
+
+@media (max-width: 640px) {
+  .privacy-policy-overlay-pane {
+    .dab-page-card {
+      border-radius: 0;
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+  }
 }
