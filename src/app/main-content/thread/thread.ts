@@ -65,7 +65,14 @@ export class Thread {
   protected readonly members$ = this.createMembersObservable();
 
   // ViewChild
-  @ViewChild('replyTextarea') replyTextarea?: ElementRef<HTMLTextAreaElement>;
+  @ViewChild('replyTextarea')
+  set replyTextarea(el: ElementRef<HTMLTextAreaElement> | undefined) {
+    if (el) {
+      requestAnimationFrame(() => {
+        el.nativeElement.focus();
+      });
+    }
+  }
   @ViewChild('threadScrollArea')
   threadScrollArea?: ElementRef<HTMLElement>;
 
@@ -136,7 +143,7 @@ export class Thread {
       .subscribe(() => {
         requestAnimationFrame(() => {
           this.scrollToBottom();
-          this.focusComposer();
+          // this.focusComposer();
         });
       });
   }
@@ -148,7 +155,21 @@ export class Thread {
         !cId
           ? of<ChannelMemberView[]>([])
           : combineLatest([this.membershipService.getChannelMembers(cId), this.userService.getAllUsers()]).pipe(
-              map(([members, users]) => this.enrichMembers(members, users))
+              map(
+                ([members, users]) =>
+                  members
+                    .map((m) => {
+                      const user = users.find((u) => u.uid === m.id);
+                      if (!user) return null;
+                      return {
+                        ...m,
+                        name: user.name ?? m.name,
+                        profilePictureKey: user.profilePictureKey ?? m.profilePictureKey,
+                        user,
+                      } as ChannelMemberView;
+                    })
+                    .filter((m): m is ChannelMemberView => m !== null)
+              )
             )
       ),
       shareReplay({ bufferSize: 1, refCount: true })

@@ -205,15 +205,15 @@
         (keydown.enter)="onReplyKeydown($event)"></textarea>
       <div *ngIf="isMentionListVisible" class="thread__mention-suggestions">
         <ng-container *ngIf="mentionType === 'user'">
-          <button type="button" *ngFor="let member of userMentionSuggestions" (click)="insertMention(member)">
+          <button type="button" *ngFor="let member of userMentionSuggestions as members" (click)="insertMention(member)">
             <img [src]="getAvatarUrl(member.profilePictureKey)" [alt]="member.name" />
-            <span>{{ member.name }}</span>
+            <span class="truncate">{{ member.name }}</span>
           </button>
         </ng-container>
 
         <ng-container *ngIf="mentionType === 'channel'">
           <button type="button" *ngFor="let channel of channelMentionSuggestions" (click)="insertChannel(channel)">
-            <span>#{{ channel.name }}</span>
+            <span class="truncate">#{{ channel.name }}</span>
           </button>
         </ng-container>
       </div>

@@ -418,10 +418,12 @@
   border: 1px solid #e2e8f0;
   border-radius: 12px;
   padding: 10px;
-  min-width: 220px;
+  max-width: 300px;
   max-height: 220px;
   overflow-y: auto;
   box-shadow: 0 16px 30px rgba(15, 23, 42, 0.16);
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
 }
 
 .thread__mention-suggestions button {
@@ -554,4 +556,10 @@
 .thread__empty-card p {
   margin: 0;
   color: #475569;
+}
+
+@media (max-width: 1024px) {
+  .thread__mention-suggestions {
+    max-width: 70vw;
+  }
 }
