@@ -89,7 +89,7 @@
           (click)="selectMember(member)">
           <img [src]="member.avatar" [alt]="member.name" />
           <div class="member-option__meta">
-            <span class="member-option__name">{{ member.name }}</span>
+            <span class="member-option__name truncate">{{ member.name }}</span>
             <span *ngIf="member.subtitle" class="member-option__subtitle">{{ member.subtitle }}</span>
           </div>
           <span *ngIf="member.status === 'online'" class="member-option__status" aria-label="Online"></span>
