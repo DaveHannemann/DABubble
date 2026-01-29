@@ -375,22 +375,27 @@ export class Messages {
       return;
     }
 
-    this.cachedMentionUsers = [
-      {
-        id: this.currentUser.uid,
-        name: this.currentUser.name,
-        profilePictureKey: this.currentUser.profilePictureKey,
-        isCurrentUser: true,
-        user: this.currentUser,
-      },
-      {
+    const map = new Map<string, ChannelMemberView>();
+
+    map.set(this.currentUser.uid, {
+      id: this.currentUser.uid,
+      name: this.currentUser.name,
+      profilePictureKey: this.currentUser.profilePictureKey,
+      isCurrentUser: true,
+      user: this.currentUser,
+    });
+
+    if (this.selectedRecipient.uid !== this.currentUser.uid) {
+      map.set(this.selectedRecipient.uid, {
         id: this.selectedRecipient.uid,
         name: this.selectedRecipient.name,
         profilePictureKey: this.selectedRecipient.profilePictureKey,
         isCurrentUser: false,
         user: this.selectedRecipient,
-      },
-    ];
+      });
+    }
+
+    this.cachedMentionUsers = [...map.values()];
   }
 
   private updateMentionState(): void {
