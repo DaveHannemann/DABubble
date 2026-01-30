@@ -1,4 +1,4 @@
-import { Component, computed, ElementRef, EventEmitter, inject, Input, Output, ViewChild } from '@angular/core';
+import { Component, computed, ElementRef, inject, ViewChild } from '@angular/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -10,6 +10,9 @@ import { FilterBox } from '../filter-box/filter-box';
 import { FormsModule } from '@angular/forms';
 import { ClickOutsideDirective } from '../../classes/click-outside.class';
 import { DisplayNamePipe } from '../../pipes/display-name.pipe';
+import { ScreenService } from '../../services/screen.service';
+import { NavigationEnd, Router } from '@angular/router';
+import { filter } from 'rxjs';
 
 @Component({
   selector: 'app-navbar',
@@ -28,20 +31,13 @@ import { DisplayNamePipe } from '../../pipes/display-name.pipe';
   styleUrls: ['./navbar.scss'],
 })
 export class Navbar {
-  @Input() showBackButton = false;
-  @Output() back = new EventEmitter<void>();
-
+  private readonly router = inject(Router);
   private overlayService = inject(OverlayService);
   private userService = inject(UserService);
+  private readonly screenService = inject(ScreenService);
 
-  isDesktop = window.matchMedia('(min-width: 1024px)').matches;
-
-  constructor() {
-    const media = window.matchMedia('(min-width: 1024px)');
-    media.addEventListener('change', (e) => {
-      this.isDesktop = e.matches;
-    });
-  }
+  protected readonly isTabletScreen = this.screenService.isTabletScreen;
+  protected showBackButton = false;
 
   @ViewChild('menuBtn', { read: ElementRef })
   menuBtn!: ElementRef<HTMLElement>;
@@ -51,6 +47,20 @@ export class Navbar {
   isSearchFocused = false;
 
   currentUser = this.userService.currentUser;
+
+  constructor() {
+    this.screenService.connect();
+
+    this.router.events.pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd)).subscribe((e) => {
+      this.showBackButton = this.computeShowBackButton(e.urlAfterRedirects);
+    });
+  }
+
+  private computeShowBackButton(url: string): boolean {
+    if (!this.isTabletScreen()) return false;
+    if (url === '/main/home') return false;
+    return url.startsWith('/main');
+  }
 
   onSearchInput(event: Event) {
     this.searchTerm = (event.target as HTMLInputElement).value;
@@ -66,7 +76,7 @@ export class Navbar {
   }
 
   openUserMenu() {
-    if (this.isDesktop) {
+    if (!this.isTabletScreen()) {
       this.openDesktopMenu();
     } else {
       this.openMobileMenu();
@@ -97,8 +107,10 @@ export class Navbar {
   }
 
   onBackClick() {
-    this.back.emit();
+    this.router.navigateByUrl('/main/home', {
+      replaceUrl: true,
+    });
   }
-
+  
   profilePictureUrl = computed(() => this.userService.getProfilePictureUrl(this.currentUser()));
 }

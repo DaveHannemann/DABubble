@@ -9,6 +9,9 @@ import { FormsModule } from '@angular/forms';
 import { FilterBox } from '../filter-box/filter-box';
 import { ClickOutsideDirective } from '../../classes/click-outside.class';
 import { ProfilePictureService } from '../../services/profile-picture.service';
+import { OverlayService } from '../../services/overlay.service';
+import { CreateChannelWithMembers } from './create-channel-with-members/create-channel-with-members';
+import { ScreenService } from '../../services/screen.service';
 
 /** Workspace sidebar component for channel and direct message navigation. */
 @Component({
@@ -26,6 +29,8 @@ export class Workspace {
   private readonly unreadMessagesService = inject(UnreadMessagesService);
   private readonly router = inject(Router);
   private readonly profilePictureService = inject(ProfilePictureService);
+  private readonly overlayService = inject(OverlayService);
+  private readonly screenService = inject(ScreenService);
 
   readonly activeChannelId = input<string | null>(null);
   readonly activeDmId = input<string | null>(null);
@@ -52,7 +57,14 @@ export class Workspace {
 
   /** Opens channel creation dialog. */
   protected openCreateChannel(): void {
-    void this.router.navigate(['/main/create-channel']);
+    const isMobile = this.screenService.isTabletScreen();
+
+    this.overlayService.open(CreateChannelWithMembers, {
+      fullscreen: isMobile,
+      centerX: !isMobile,
+      centerY: !isMobile,
+      mode: isMobile ? 'mobile' : 'desktop',
+    });
   }
 
   /** Closes channel creation dialog. */

@@ -9,6 +9,7 @@ import { UserService } from '../../../services/user.service';
 import { ProfilePictureService } from '../../../services/profile-picture.service';
 import { take } from 'rxjs';
 import { ProfilePictureKey } from '../../../types';
+import { OverlayRef } from '../../../classes/overlay.class';
 
 type SuggestedMember = {
   id: string;
@@ -27,6 +28,7 @@ type SuggestedMember = {
   styleUrl: './create-channel-with-members.scss',
 })
 export class CreateChannelWithMembers implements OnInit {
+  overlayRef!: OverlayRef;
   private readonly channelService = inject(ChannelService);
   private readonly membershipService = inject(ChannelMembershipService);
   private readonly userService = inject(UserService);
@@ -209,7 +211,11 @@ export class CreateChannelWithMembers implements OnInit {
       }
 
       // Navigiere zum neuen Channel
-      await this.router.navigate(['/main/channels', channelId]);
+      this.overlayRef.startCloseAnimation();
+
+      queueMicrotask(() => {
+        this.router.navigate(['/main/channels', channelId]);
+      });
     } catch (error: any) {
       console.error('Fehler beim Erstellen des Channels:', error);
       this.errorMessage = error?.message || 'Fehler beim Erstellen des Channels.';
@@ -229,6 +235,6 @@ export class CreateChannelWithMembers implements OnInit {
   }
 
   protected cancel(): void {
-    void this.router.navigate(['/main']);
+    this.overlayRef.startCloseAnimation();
   }
 }

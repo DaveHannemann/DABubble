@@ -32,15 +32,19 @@ export interface MemberDialogData {
 export class MemberDialog {
   private readonly profilePictureService = inject(ProfilePictureService);
 
-  protected getAvatarUrl(key?: ProfilePictureKey): string {
-  return this.profilePictureService.getUrl(key);
-}
-
   constructor(
     public dialogRef: MatDialogRef<MemberDialog>,
     @Inject(MAT_DIALOG_DATA) public data: MemberDialogData,
     private router: Router
   ) {}
+
+  protected getAvatarUrl(key?: ProfilePictureKey): string {
+    return this.profilePictureService.getUrl(key);
+  }
+
+  protected get isInDirectMessage(): boolean {
+    return this.router.url.startsWith('/main/dms');
+  }
 
   close() {
     this.dialogRef.close();

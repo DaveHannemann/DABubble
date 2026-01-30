@@ -37,14 +37,27 @@ export class MainContent {
   constructor() {
     this.screenService.connect();
 
+    if (this.screenService.isTabletScreen() && this.router.url === '/main') {
+      queueMicrotask(() => {
+        this.router.navigateByUrl('/main/home', {
+          replaceUrl: true,
+        });
+      });
+    }
+
     this.router.events
       .pipe(
-        filter((event): event is NavigationEnd => event instanceof NavigationEnd),
-        startWith(null),
-        map(() => this.route),
+        filter(
+          (e): e is NavigationEnd =>
+            e instanceof NavigationEnd && !this.screenService.isTabletScreen() && e.urlAfterRedirects === '/main'
+        ),
         takeUntilDestroyed(this.destroyRef)
       )
-      .subscribe((route) => this.syncRouteState(route));
+      .subscribe(() => {
+        this.router.navigateByUrl('/main/channels/GzP5VuJtvB50FtijLqlI', {
+          replaceUrl: true,
+        });
+      });
   }
 
   protected showMobileBackButton(): boolean {

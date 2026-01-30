@@ -28,6 +28,7 @@ export interface OverlayConfig<T = any> {
   centerX?: boolean;
   centerY?: boolean;
   ignoreTargetPosition?: boolean;
+  fullscreen?: boolean;
 }
 
 /**
@@ -93,7 +94,14 @@ export class OverlayRef<T extends object = any> {
       zIndex: String(this.BASE_OVERLAY_Z + this.stackIndex),
     };
 
-    if (this.isCentered) {
+    if (this.config.fullscreen) {
+      Object.assign(styles, {
+        inset: '0',
+        width: '100vw',
+        height: '100vh',
+        pointerEvents: 'auto',
+      });
+    } else if (this.isCentered) {
       Object.assign(styles, {
         inset: '0',
         display: 'flex',
@@ -167,6 +175,7 @@ export class OverlayRef<T extends object = any> {
    * Updates the position of the overlay based on the target element and offsets.
    */
   private updatePosition() {
+    if (this.config.fullscreen) return;
     this.applyViewportConstraints();
 
     if (this.isHybrid) {

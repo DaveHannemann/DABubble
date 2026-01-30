@@ -12,6 +12,10 @@ export class ScreenService {
 
   private isListenerAttached = false;
 
+  constructor() {
+    this.updateAll();
+  }
+
   connect(): void {
     this.updateAll();
 
