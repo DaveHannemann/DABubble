@@ -44,6 +44,8 @@ export class CreateChannelWithMembers implements OnInit {
   protected suggestedMembers: SuggestedMember[] = [];
   protected filteredMembers: SuggestedMember[] = [];
   protected selectedMembers: SuggestedMember[] = [];
+  protected addAllMembers = false;
+  protected addSpecificMembers = false;
 
   // State
   protected isSubmitting = false;
@@ -143,6 +145,30 @@ export class CreateChannelWithMembers implements OnInit {
     this.showSuggestions = false;
   }
 
+  protected onToggleAllMembers(): void {
+    if (this.addAllMembers) {
+      this.addSpecificMembers = false;
+      this.clearMemberSelection();
+    }
+  }
+
+  protected onToggleSpecificMembers(): void {
+    if (this.addSpecificMembers) {
+      this.addAllMembers = false;
+      this.filteredMembers = this.filterMembers(this.searchTerm);
+    } else {
+      this.clearMemberSelection();
+    }
+  }
+
+  protected canCreateChannel(): boolean {
+    if (this.isSubmitting) return false;
+
+    if (this.addAllMembers) return true;
+
+    return this.addSpecificMembers && this.selectedMembers.length > 0;
+  }
+
   protected async createChannel(): Promise<void> {
     if (this.isSubmitting) return;
 
@@ -167,10 +193,11 @@ export class CreateChannelWithMembers implements OnInit {
         });
       }
 
-      // Füge ausgewählte Members hinzu
-      if (this.selectedMembers.length) {
+      const membersToAdd = this.addAllMembers ? this.suggestedMembers : this.selectedMembers;
+
+      if (membersToAdd.length) {
         await Promise.all(
-          this.selectedMembers.map((member) =>
+          membersToAdd.map((member) =>
             this.membershipService.upsertChannelMember(channelId, {
               id: member.id,
               name: member.name,
@@ -192,6 +219,13 @@ export class CreateChannelWithMembers implements OnInit {
 
   private isAlreadySelected(memberId: string): boolean {
     return this.selectedMembers.some((member) => member.id === memberId);
+  }
+
+  private clearMemberSelection(): void {
+    this.searchTerm = '';
+    this.showSuggestions = false;
+    this.selectedMembers = [];
+    this.filteredMembers = this.filterMembers('');
   }
 
   protected cancel(): void {
