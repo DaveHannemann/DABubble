@@ -17,7 +17,7 @@
         </p>
       </div>
 
-      <form #signupForm="ngForm" (ngSubmit)="onSubmit(signupForm)" novalidate class="dab-form">
+      <form #signupForm="ngForm" (ngSubmit)="onFirstSignupStep(signupForm)" novalidate class="dab-form">
         <div>
           <div class="dab-input-field">
             <label for="fullName" class="sr-only">Name und Nachname</label>
@@ -28,12 +28,19 @@
               type="text"
               autocomplete="name"
               required
+              pattern="^(?=(?:.*\S){3,}).*$"
               placeholder="Name und Nachname"
               [(ngModel)]="name"
+              (blur)="onNameBlur()"
               #nameModel="ngModel" />
           </div>
           @if (nameModel.invalid && nameModel.touched) {
-            <p class="dab-field-error">Bitte gib deinen Namen ein.</p>
+            @if (nameModel.errors?.['required']) {
+              <p class="dab-field-error">Bitte gib deinen Namen ein.</p>
+            }
+            @if (nameModel.errors?.['pattern']) {
+              <p class="dab-field-error">Bitte gib mindestens 3 Zeichen ein.</p>
+            }
           }
         </div>
 

@@ -38,7 +38,7 @@ export class Signup {
   isAvatarStep = false;
   selectedProfilePictureKey: ProfilePictureKey = 'default';
 
-  async onSubmit(form: NgForm): Promise<void> {
+  async onFirstSignupStep(form: NgForm): Promise<void> {
     if (this.isSubmitting || form.invalid) {
       return;
     }
@@ -61,6 +61,14 @@ export class Signup {
     } finally {
       this.isSubmitting = false;
     }
+  }
+
+  onNameBlur(): void {
+    this.name = this.normalizeUserName(this.name);
+  }
+
+  private normalizeUserName(value: string): string {
+    return value.trim().replace(/\s+/g, ' ');
   }
 
   onProfilePictureChange(key: ProfilePictureKey): void {
@@ -89,6 +97,8 @@ export class Signup {
 
     this.isSubmitting = true;
     this.errorMessage = null;
+
+    this.name = this.normalizeUserName(this.name);
 
     try {
       const userCredential = await this.authenticationService.signUpWithEmailAndPassword(
