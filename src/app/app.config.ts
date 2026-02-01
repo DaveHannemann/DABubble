@@ -21,12 +21,13 @@ export const appConfig: ApplicationConfig = {
     provideAnimations(),
     provideFirebaseApp(() =>
       initializeApp({
-        projectId: 'dabubble-39e16',
-        appId: '1:705017968624:web:aacf23c7e03c3ad4758f35',
-        storageBucket: 'dabubble-39e16.firebasestorage.app',
-        apiKey: 'AIzaSyDehGUwhVbK8Db__fh1K_e2-Z0d1qD7sM0',
-        authDomain: 'dabubble-39e16.firebaseapp.com',
-        messagingSenderId: '705017968624',
+        projectId: 'dabubble-54e45',
+        appId: '1:540944892197:web:3e473ff16df4b9458a9acc',
+        storageBucket: 'dabubble-54e45.firebasestorage.app',
+        apiKey: 'AIzaSyD0bQj9X-5G_3a0-2Q6uHjlsgEESE0InYA',
+        authDomain: 'dabubble-54e45.firebaseapp.com',
+        messagingSenderId: '540944892197',
+        measurementId: 'G-JCXSMQS4S6',
       })
     ),
     provideAuth(() => getAuth()),
@@ -40,7 +41,7 @@ function getViewTransitionOptions(): ViewTransitionsFeatureOptions {
     onViewTransitionCreated: (transitionInfo: ViewTransitionInfo) => {
       const viewTransitionService = inject(ViewTransitionService);
       viewTransitionService.handleViewTransition(transitionInfo);
-      
+
       // Suppress "Transition was skipped" errors from console
       transitionInfo.transition.finished.catch((error) => {
         if (error?.name === 'AbortError' && error?.message?.includes('skipped')) {

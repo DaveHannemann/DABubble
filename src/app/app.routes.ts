@@ -69,7 +69,7 @@ export const routes: Routes = [
           {
             path: '',
             pathMatch: 'full',
-            redirectTo: 'GzP5VuJtvB50FtijLqlI',
+            redirectTo: '4Xbhq37L4DY2crwz05g2',
           },
           {
             path: ':channelId',

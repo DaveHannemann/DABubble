@@ -157,7 +157,7 @@ export class MainContent {
 
   private handleRedirect(event: NavigationEnd): boolean {
     if (!this.screenService.isTabletScreen() && event.urlAfterRedirects === '/main') {
-      this.router.navigateByUrl('/main/channels/GzP5VuJtvB50FtijLqlI', { replaceUrl: true });
+      this.router.navigateByUrl('/main/channels/4Xbhq37L4DY2crwz05g2', { replaceUrl: true });
       return true;
     }
 
